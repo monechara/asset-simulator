@@ -1,9 +1,10 @@
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { getCharacterType } from "@/lib/characters";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Share2, Download, Home } from "lucide-react";
+import { Share2, Download, Home, MessageCircle } from "lucide-react";
 import { useRef, useState } from "react";
+import { useLocation } from "wouter";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 
@@ -17,10 +18,10 @@ export default function Result() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <p className="text-white text-lg mb-4">キャラクターが見つかりません</p>
-          <Button onClick={() => navigate("/")} variant="default">
+          <p className="text-gray-900 text-lg mb-4">キャラクターが見つかりません</p>
+          <Button onClick={() => navigate("/")} className="bg-orange-400 hover:bg-orange-500 text-white">
             トップへ戻る
           </Button>
         </div>
@@ -34,7 +35,7 @@ export default function Result() {
     setIsGenerating(true);
     try {
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
+        backgroundColor: "#ffffff",
         scale: 2,
       });
       const link = document.createElement("a");
@@ -61,16 +62,22 @@ export default function Result() {
     window.open(url, "_blank");
   };
 
+  const handleShareThreads = () => {
+    const text = `私のお金の性格は「${character.name}」です！\n"${character.catchphrase}"\n\nあなたのお金の性格は？\n#マネキャラ診断`;
+    const url = `https://www.threads.net/intent/compose?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-orange-50 text-gray-900 flex flex-col">
       {/* ヘッダー */}
-      <header className="px-4 py-4 sm:px-6 sm:py-6 border-b border-slate-700/50">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm px-4 py-4 sm:px-6 sm:py-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center font-bold text-sm sm:text-base">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full flex items-center justify-center font-bold text-sm sm:text-base">
               💰
             </div>
-            <span className="text-sm sm:text-base font-semibold">
+            <span className="text-sm sm:text-base font-semibold text-gray-900">
               診断結果
             </span>
           </div>
@@ -78,191 +85,180 @@ export default function Result() {
             onClick={() => navigate("/")}
             variant="ghost"
             size="sm"
-            className="text-slate-400 hover:text-white"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <Home className="w-4 h-4" />
+            <Home className="w-5 h-5" />
           </Button>
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-6 sm:py-8">
-        <div className="w-full max-w-md">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8 sm:py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md"
+        >
           {/* 結果カード */}
-          <motion.div
+          <div
             ref={cardRef}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 sm:p-8 border border-slate-700/50 mb-6 sm:mb-8 shadow-2xl"
+            className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 mb-8"
           >
             {/* キャラクター */}
-            <div className="text-center mb-6">
-              <div className="text-6xl sm:text-7xl mb-3">{character.emoji}</div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-                No.{String(character.no).padStart(3, "0")} {character.name}
-              </h1>
-              <p className="text-sm sm:text-base text-emerald-400 italic">
-                「{character.catchphrase}」
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-center mb-6"
+            >
+              <div className="text-6xl mb-4">{character.emoji}</div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {character.name}
+              </h2>
+              <p className="text-lg text-orange-500 font-semibold italic">
+                "{character.catchphrase}"
               </p>
-            </div>
+            </motion.div>
 
-            {/* 統計情報 */}
-            <div className="bg-slate-700/50 rounded-lg p-4 mb-6 border border-slate-600/50">
-              <p className="text-xs sm:text-sm text-slate-300 mb-2">
-                全国の診断者
-              </p>
-              <p className="text-lg sm:text-xl font-bold text-emerald-400">
+            {/* 全国の診断者 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-4 mb-6 border border-yellow-100"
+            >
+              <p className="text-sm text-gray-600 mb-2">全国の診断者</p>
+              <p className="text-3xl font-bold text-orange-500">
                 {character.nationalPercentage}%
               </p>
-            </div>
+            </motion.div>
 
-            {/* オリジナル指標 */}
-            <div className="space-y-3 mb-6">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs sm:text-sm">💸 誘惑耐性</span>
-                  <span className="text-xs sm:text-sm font-semibold">
-                    {"★".repeat(character.temptationResistance)}
-                    {"☆".repeat(5 - character.temptationResistance)}
-                  </span>
+            {/* 指標 */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="space-y-4 mb-6"
+            >
+              {[
+              { icon: "🎯", name: "誘惑耐性", level: character.temptationResistance },
+              { icon: "📈", name: "資産成長ポテンシャル", level: character.assetGrowthPotential },
+              { icon: "⚠️", name: "浪費危険度", level: character.wasteDangerLevel },
+            ].map((trait: any, idx: number) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {trait.icon} {trait.name}
+                    </p>
+                    <div className="flex gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-2 h-2 rounded-full ${
+                            i < trait.level ? "bg-orange-400" : "bg-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-1.5">
-                  <div
-                    className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-1.5 rounded-full"
-                    style={{
-                      width: `${(character.temptationResistance / 5) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
+              ))}
+            </motion.div>
 
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs sm:text-sm">📈 資産成長ポテンシャル</span>
-                  <span className="text-xs sm:text-sm font-semibold">
-                    {"★".repeat(character.assetGrowthPotential)}
-                    {"☆".repeat(5 - character.assetGrowthPotential)}
-                  </span>
-                </div>
-                <div className="w-full bg-slate-700 rounded-full h-1.5">
-                  <div
-                    className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-1.5 rounded-full"
-                    style={{
-                      width: `${(character.assetGrowthPotential / 5) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs sm:text-sm">⚠️ 浪費危険度</span>
-                  <span className="text-xs sm:text-sm font-semibold">
-                    {"★".repeat(character.wasteDangerLevel)}
-                    {"☆".repeat(5 - character.wasteDangerLevel)}
-                  </span>
-                </div>
-                <div className="w-full bg-slate-700 rounded-full h-1.5">
-                  <div
-                    className="bg-gradient-to-r from-red-400 to-red-600 h-1.5 rounded-full"
-                    style={{
-                      width: `${(character.wasteDangerLevel / 5) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 相性 */}
-            <div className="bg-slate-700/50 rounded-lg p-3 mb-6 border border-slate-600/50 text-center">
-              <p className="text-xs sm:text-sm text-slate-300 mb-1">
-                🤝 相性の良いタイプ
-              </p>
-              <p className="text-sm sm:text-base font-semibold">
+            {/* 相性の良いタイプ */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-2xl p-4 mb-6 border border-emerald-100"
+            >
+              <p className="text-sm text-gray-600 mb-2">💚 相性の良いタイプ</p>
+              <p className="text-lg font-bold text-gray-900">
                 {character.compatibleType}
               </p>
-            </div>
+            </motion.div>
 
-            {/* 財布からの一言 */}
-            <div className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/30 rounded-lg p-4 border border-emerald-600/30 text-center">
-              <p className="text-xs sm:text-sm text-emerald-300 mb-2">
-                💬 あなたの財布から一言
+            {/* メッセージ */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-2xl p-4 border border-emerald-100"
+            >
+              <p className="text-sm text-gray-600 mb-2">💬 あなたの財布から一言</p>
+              <p className="text-sm text-gray-900 italic">
+                "{character.walletMessage}"
               </p>
-              <p className="text-sm sm:text-base italic text-white">
-                「{character.walletMessage}」
-              </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
           {/* シェアボタン */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="space-y-3 mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="grid grid-cols-3 gap-3 mb-6"
           >
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={handleShareX}
-                variant="outline"
-                className="text-xs sm:text-sm py-2.5 sm:py-3"
-              >
-                <Share2 className="w-4 h-4 mr-1" />
-                X
-              </Button>
-              <Button
-                onClick={handleShareLine}
-                variant="outline"
-                className="text-xs sm:text-sm py-2.5 sm:py-3"
-              >
-                <Share2 className="w-4 h-4 mr-1" />
-                LINE
-              </Button>
-            </div>
+            <Button
+              onClick={handleShareX}
+              className="bg-black hover:bg-gray-800 text-white font-bold py-3 rounded-full"
+            >
+              <Share2 className="w-4 h-4 mr-1" />
+              X
+            </Button>
+            <Button
+              onClick={handleShareLine}
+              className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-full"
+            >
+              <MessageCircle className="w-4 h-4 mr-1" />
+              LINE
+            </Button>
             <Button
               onClick={handleDownloadImage}
               disabled={isGenerating}
-              variant="outline"
-              className="w-full text-xs sm:text-sm py-2.5 sm:py-3"
+              className="bg-orange-400 hover:bg-orange-500 text-white font-bold py-3 rounded-full disabled:opacity-50"
             >
-              <Download className="w-4 h-4 mr-2" />
-              {isGenerating ? "生成中..." : "画像を保存"}
+              <Download className="w-4 h-4 mr-1" />
+              保存
             </Button>
           </motion.div>
 
-          {/* 次のステップ */}
+          {/* シミュレーターへのCTA */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="bg-gradient-to-r from-emerald-900/30 to-emerald-800/30 rounded-xl p-4 sm:p-6 border border-emerald-600/30 text-center mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+            className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-3xl p-6 border-2 border-yellow-300 mb-6"
           >
-            <div className="text-3xl sm:text-4xl mb-3">{character.emoji}</div>
-            <p className="text-sm sm:text-base font-semibold mb-2">
-              {character.name}のあなたへ
+            <p className="text-center text-sm text-gray-600 mb-3">
+              🎯 {character.name}のあなたへ
             </p>
-            <p className="text-xs sm:text-sm text-slate-300 mb-4">
-              1年間で100万円貯められる？
+            <p className="text-center text-lg font-bold text-gray-900 mb-4">
+              「このままだと本当に100万円貯まる？」
             </p>
             <Button
               onClick={() => navigate("/simulator")}
-              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-2.5 sm:py-3 text-xs sm:text-sm rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95"
+              className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-bold py-3 rounded-full"
             >
-              資産シミュレーターで試してみる
+              💰 資産シミュレーターで試してみる
             </Button>
           </motion.div>
 
-          {/* 別の診断 */}
+          {/* もう一度診断ボタン */}
           <Button
             onClick={() => navigate("/diagnosis")}
-            variant="outline"
-            className="w-full text-xs sm:text-sm py-2.5 sm:py-3"
+            className="w-full bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-3 rounded-full"
           >
-            もう一度診断する
+            🔄 もう一度診断する
           </Button>
-        </div>
+        </motion.div>
       </main>
+
+      {/* フッター */}
+      <footer className="px-4 py-4 sm:py-6 border-t border-gray-100 text-center text-xs sm:text-sm text-gray-600 bg-gray-50">
+        <p>© 2026 マネキャラ - 笑いながらお金を学ぶ</p>
+      </footer>
     </div>
   );
 }
