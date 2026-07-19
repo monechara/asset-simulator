@@ -49,7 +49,7 @@ function DashboardPreview() {
         ].map((item) => (
           <div
             key={item.label}
-            className="bg-yellow-50 rounded-2xl p-2.5 text-center border border-yellow-100"
+            className="bg-pink-50 rounded-2xl p-2.5 text-center border border-pink-100"
           >
             <p className="text-[10px] text-gray-600 mb-1">{item.label}</p>
             <p className="text-base font-bold text-gray-400 tabular-nums">{item.value}</p>
@@ -149,9 +149,9 @@ export default function Simulator() {
   }, [input]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-pink-50 to-pink-100">
       {/* ヘッダー */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm px-4 py-4 sm:px-6 sm:py-6">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-pink-100 shadow-sm px-4 py-4 sm:px-6 sm:py-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function Simulator() {
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600" />
               </button>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full flex items-center justify-center font-bold text-sm sm:text-base">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-400 to-pink-500 rounded-full flex items-center justify-center font-bold text-sm sm:text-base">
                 💰
               </div>
               <span className="text-sm sm:text-base font-semibold text-gray-900">
@@ -182,9 +182,9 @@ export default function Simulator() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-1"
           >
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+            <div className="bg-white rounded-3xl shadow-lg border border-pink-100 p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-orange-500" />
+                <TrendingUp className="w-5 h-5 text-pink-500" />
                 シミュレーション条件
               </h2>
               <SimulatorForm
@@ -204,7 +204,7 @@ export default function Simulator() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-2"
           >
-            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden h-full">
+            <div className="bg-white rounded-3xl shadow-lg border border-pink-100 overflow-hidden h-full">
               {result ? (
                 <SimulatorResultView result={result} input={input} onReset={() => setResult(null)} />
               ) : (
@@ -234,12 +234,12 @@ export default function Simulator() {
               <motion.div
                 key={idx}
                 whileHover={{ scale: 1.05 }}
-                className="bg-white rounded-2xl p-4 border border-gray-100 hover:border-orange-300 transition-all cursor-not-allowed opacity-60"
+                className="bg-white rounded-2xl p-4 border border-pink-100 hover:border-pink-300 transition-all cursor-not-allowed opacity-60"
               >
                 <div className="text-3xl mb-2">{feature.emoji}</div>
                 <p className="font-semibold text-gray-900 text-sm">{feature.label}</p>
                 <p className="text-xs text-gray-600 mt-1">{feature.desc}</p>
-                <p className="text-xs text-orange-500 font-semibold mt-2">近日公開</p>
+                <p className="text-xs text-pink-600 font-semibold mt-2">近日公開</p>
               </motion.div>
             ))}
           </div>
@@ -247,7 +247,7 @@ export default function Simulator() {
       </main>
 
       {/* フッター */}
-      <footer className="border-t border-gray-100 mt-16 py-8 bg-gray-50">
+      <footer className="border-t border-pink-100 mt-16 py-8 bg-white/50">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs sm:text-sm text-gray-600">
           <p>© 2026 マネキャラ - 笑いながらお金を学ぶ</p>
         </div>

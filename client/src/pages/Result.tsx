@@ -21,7 +21,7 @@ export default function Result() {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-900 text-lg mb-4">キャラクターが見つかりません</p>
-          <Button onClick={() => navigate("/")} className="bg-orange-400 hover:bg-orange-500 text-white">
+          <Button onClick={() => navigate("/")} className="bg-pink-500 hover:bg-pink-600 text-white">
             トップへ戻る
           </Button>
         </div>
@@ -69,12 +69,12 @@ export default function Result() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-yellow-50 to-orange-50 text-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-white via-pink-50 to-pink-100 text-gray-900 flex flex-col">
       {/* ヘッダー */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm px-4 py-4 sm:px-6 sm:py-6">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-pink-100 shadow-sm px-4 py-4 sm:px-6 sm:py-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full flex items-center justify-center font-bold text-sm sm:text-base">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-400 to-pink-500 rounded-full flex items-center justify-center font-bold text-sm sm:text-base">
               💰
             </div>
             <span className="text-sm sm:text-base font-semibold text-gray-900">
@@ -103,7 +103,7 @@ export default function Result() {
           {/* 結果カード */}
           <div
             ref={cardRef}
-            className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 mb-8"
+            className="bg-white rounded-3xl shadow-lg border border-pink-100 p-8 mb-8"
           >
             {/* キャラクター */}
             <motion.div
@@ -116,7 +116,7 @@ export default function Result() {
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
                 {character.name}
               </h2>
-              <p className="text-lg text-orange-500 font-semibold italic">
+              <p className="text-lg text-pink-600 font-semibold italic">
                 "{character.catchphrase}"
               </p>
             </motion.div>
@@ -126,10 +126,10 @@ export default function Result() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-4 mb-6 border border-yellow-100"
+              className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-2xl p-4 mb-6 border border-pink-100"
             >
               <p className="text-sm text-gray-600 mb-2">全国の診断者</p>
-              <p className="text-3xl font-bold text-orange-500">
+              <p className="text-3xl font-bold text-pink-600">
                 {character.nationalPercentage}%
               </p>
             </motion.div>
@@ -156,7 +156,7 @@ export default function Result() {
                         <div
                           key={i}
                           className={`w-2 h-2 rounded-full ${
-                            i < trait.level ? "bg-orange-400" : "bg-gray-300"
+                            i < trait.level ? "bg-pink-400" : "bg-gray-300"
                           }`}
                         />
                       ))}
@@ -171,7 +171,7 @@ export default function Result() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.5 }}
-              className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-2xl p-4 mb-6 border border-emerald-100"
+              className="bg-gradient-to-r from-green-50 to-cyan-50 rounded-2xl p-4 mb-6 border border-green-100"
             >
               <p className="text-sm text-gray-600 mb-2">💚 相性の良いタイプ</p>
               <p className="text-lg font-bold text-gray-900">
@@ -184,7 +184,7 @@ export default function Result() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.5 }}
-              className="bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-2xl p-4 border border-emerald-100"
+              className="bg-gradient-to-r from-green-50 to-cyan-50 rounded-2xl p-4 border border-green-100"
             >
               <p className="text-sm text-gray-600 mb-2">💬 あなたの財布から一言</p>
               <p className="text-sm text-gray-900 italic">
@@ -217,7 +217,7 @@ export default function Result() {
             <Button
               onClick={handleDownloadImage}
               disabled={isGenerating}
-              className="bg-orange-400 hover:bg-orange-500 text-white font-bold py-3 rounded-full disabled:opacity-50"
+              className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 rounded-full disabled:opacity-50"
             >
               <Download className="w-4 h-4 mr-1" />
               保存
@@ -229,7 +229,7 @@ export default function Result() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.5 }}
-            className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-3xl p-6 border-2 border-yellow-300 mb-6"
+            className="bg-gradient-to-r from-pink-100 to-orange-100 rounded-3xl p-6 border-2 border-pink-300 mb-6"
           >
             <p className="text-center text-sm text-gray-600 mb-3">
               🎯 {character.name}のあなたへ
@@ -239,7 +239,7 @@ export default function Result() {
             </p>
             <Button
               onClick={() => navigate("/simulator")}
-              className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white font-bold py-3 rounded-full"
+              className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-3 rounded-full"
             >
               💰 資産シミュレーターで試してみる
             </Button>
@@ -256,7 +256,7 @@ export default function Result() {
       </main>
 
       {/* フッター */}
-      <footer className="px-4 py-4 sm:py-6 border-t border-gray-100 text-center text-xs sm:text-sm text-gray-600 bg-gray-50">
+      <footer className="px-4 py-4 sm:py-6 border-t border-pink-100 text-center text-xs sm:text-sm text-gray-600 bg-white/50">
         <p>© 2026 マネキャラ - 笑いながらお金を学ぶ</p>
       </footer>
     </div>
