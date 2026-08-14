@@ -123,6 +123,14 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
   const retirementYears = Math.max(0, input.targetAge - input.retirementAge);
   const requiredRetirementAssets = Math.max(0, (retirementMonthlyLiving - retirementMonthlyIncome) * 12 * retirementYears);
   const retirementFundingGap = Math.round(result.targetAgeAssets / 10_000) - requiredRetirementAssets;
+  const retirementShortfall = Math.max(0, -retirementFundingGap);
+  const retirementSummaryMessage = retirementShortfall === 0
+    ? "老後資金の目標を達成できる見込みです"
+    : `現在の条件では老後資金が約${retirementShortfall.toLocaleString()}万円不足する見込みです`;
+  const retirementGapDetail = retirementShortfall === 0
+    ? "設定した年金等の収入で、想定した生活費をまかなえる試算です"
+    : "想定した生活費と年金等の収入から算出した不足見込みです";
+  const hasTargetAge = input.targetAssets > 0 && Boolean(result.targetAchievedAge);
 
   const chartData = useMemo(() => result.yearlyRecords
     .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === input.targetAge || record.activeEvents.length > 0)
@@ -150,18 +158,48 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
 
   return (
     <div className="space-y-5">
-      {/* 1. 将来のシミュレーション結果 */}
+      {/* 1. 3秒で理解できる将来のシミュレーション結果 */}
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
         <div className="flex items-center justify-center gap-2 text-sm font-bold text-sky-800">
           <Target className="h-4 w-4" />
           <span>あなたのシミュレーション結果</span>
         </div>
         <p className="mt-4 text-center text-sm font-medium text-slate-600">{input.targetAge}歳時点の予想金融資産</p>
-        <p className="mt-2 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">{formatCurrency(result.targetAgeAssets)}</p>
+        <p className="mt-1 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">{formatCurrency(result.targetAgeAssets)}</p>
         <p className="mt-2 text-center text-xs text-slate-500">現金資産＋投資資産。住宅価値は含みません。</p>
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <SummaryMetric label="老後に必要な資金" value={`${requiredRetirementAssets.toLocaleString()}万円`} accent="amber" detail={`${input.retirementAge}〜${input.targetAge}歳の不足分を単純試算`} />
-          <SummaryMetric label="老後資金との差額" value={`${retirementFundingGap >= 0 ? "+" : "−"}${Math.abs(retirementFundingGap).toLocaleString()}万円`} accent={retirementFundingGap >= 0 ? "emerald" : "amber"} detail={retirementFundingGap >= 0 ? "必要資金を上回る試算" : "不足分が残る試算"} />
+
+        <div className={`mt-4 rounded-2xl border p-3.5 ${retirementShortfall === 0 ? "border-emerald-200 bg-emerald-50/80" : "border-amber-200 bg-amber-50/80"}`}>
+          <div className="flex items-start gap-2.5">
+            {retirementShortfall === 0 ? <Target className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" /> : <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />}
+            <div>
+              <p className={`text-sm font-bold ${retirementShortfall === 0 ? "text-emerald-900" : "text-amber-950"}`}>{retirementSummaryMessage}</p>
+              <p className={`mt-1 text-xs leading-relaxed ${retirementShortfall === 0 ? "text-emerald-800" : "text-amber-900"}`}>{retirementGapDetail}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl border border-sky-100 bg-white/85 p-3">
+            <p className="text-[11px] font-medium text-slate-500">投資元本</p>
+            <p className="mt-1 text-lg font-black tabular-nums text-slate-900">{formatCurrency(result.totalPrincipalContributed)}</p>
+            <p className="mt-0.5 text-[10px] text-slate-500">積立の累計</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white/85 p-3">
+            <p className="text-[11px] font-medium text-slate-500">運用益</p>
+            <p className="mt-1 text-lg font-black tabular-nums text-emerald-800">{formatCurrency(result.totalInvestmentGain)}</p>
+            <p className="mt-0.5 text-[10px] text-slate-500">想定利回りによる試算</p>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-white/75 px-3.5 py-3">
+          <div>
+            <p className="text-[11px] font-medium text-slate-500">老後の不足見込み</p>
+            <p className={`mt-0.5 text-xl font-black tabular-nums ${retirementShortfall === 0 ? "text-emerald-700" : "text-amber-800"}`}>{retirementShortfall.toLocaleString()}万円</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px] font-medium text-slate-500">目標達成予想</p>
+            <p className="mt-0.5 text-xl font-black tabular-nums text-slate-900">{hasTargetAge ? `${result.targetAchievedAge}歳` : input.targetAssets > 0 ? "未到達" : "目標未設定"}</p>
+          </div>
         </div>
       </motion.section>
 
@@ -434,11 +472,8 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
       </Card>
 
       {/* 6. 詳細なシミュレーション結果 */}
-      <div className="grid grid-cols-2 gap-3">
-        <SummaryMetric label="投資元本" value={formatCurrency(result.totalPrincipalContributed)} detail="積立の累計" />
-        <SummaryMetric label="運用益" value={formatCurrency(result.totalInvestmentGain)} accent="emerald" detail="想定利回りによる試算" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SummaryMetric label="資産ピーク" value={formatCurrency(result.peakFinancialAssets)} detail={`${result.peakAge}歳時点`} />
-        <SummaryMetric label="目標達成年齢" value={result.targetAchievedAge ? `${result.targetAchievedAge}歳` : "未到達"} accent={result.targetAchievedAge ? "emerald" : "amber"} detail={input.targetAssets > 0 ? `目標 ${formatCurrency(input.targetAssets)}` : "目標未設定"} />
       </div>
 
       {eventRecords.length > 0 && <Card className="border-amber-100 shadow-sm"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Calendar className="h-4 w-4 text-amber-600" />ライフイベントの影響</CardTitle></CardHeader><CardContent className="space-y-2">{eventRecords.map((record) => <div key={record.age} className="flex items-center justify-between rounded-xl bg-amber-50 p-3"><div><p className="text-sm font-semibold text-slate-800">{record.age}歳：{record.activeEvents.join("・")}</p><p className="text-xs text-slate-500">イベント費 {formatCurrency(record.eventCost)} / ローン返済 {formatCurrency(record.loanRepayment)}</p></div><p className="text-sm font-bold text-slate-900">{formatCurrency(record.totalFinancialAssets)}</p></div>)}</CardContent></Card>}
