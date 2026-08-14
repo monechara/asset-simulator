@@ -12,6 +12,62 @@ import type { SimulatorResult as ResultType } from "@/lib/simulator";
 import { SimulatorInput, calculateSimulation } from "@/lib/simulator";
 import { ChevronLeft } from "lucide-react";
 
+/**
+ * アイコン方針: 絵文字ではなく、strokeWidth=1.8・round linecap・24px viewBoxの
+ * オリジナル線画SVGで統一。白基調の画面に、青・ミント・アンバーを小さなアクセントとして使う。
+ */
+type LineIconProps = { className?: string };
+
+function BrandMarkIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <rect x="5" y="3.5" width="14" height="17" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 8.5h8M8 12h8M8 15.5h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="16.5" cy="16" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function CompareIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path d="M4.5 19.5V5.5M4.5 19.5h15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m7.5 15 3.2-3.4 2.5 2.1 4.2-5.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="7.5" cy="15" r="1" fill="currentColor" stroke="none" />
+      <circle cx="17.4" cy="8.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function SavingsIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <rect x="4" y="7" width="16" height="12" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 7V5.8A2.8 2.8 0 0 1 10.8 3h2.4A2.8 2.8 0 0 1 16 5.8V7M4 11h16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M10 14h4M12 12.5v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function GrowthIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path d="M4.5 19.5V5.5M4.5 19.5h15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m7 15.5 3.2-3.2 2.4 2 4.6-5.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14.5 8.5h2.7v2.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function NoticeIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path d="M12 3.8 20 19H4l8-15.2Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 9v4.5M12 16.5v.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const [result, setResult] = useState<ResultType | null>(null);
   const [lastInput, setLastInput] = useState<SimulatorInput | null>(null);
@@ -42,8 +98,8 @@ export default function Home() {
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-blue-100 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-              💰
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center text-white">
+              <BrandMarkIcon className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900">資産形成シミュレーター</h1>
@@ -75,7 +131,8 @@ export default function Home() {
               {/* スタート画面 / 導入部 */}
               <div className="mb-8 text-center space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide">
-                  <span>📊 統計データと比較できる</span>
+                  <CompareIcon className="w-4 h-4" />
+                  <span>統計データと比較できる</span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
                   あなたの老後、いくら必要？
@@ -89,7 +146,7 @@ export default function Home() {
                   <div className="bg-white/90 backdrop-blur border border-blue-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-blue-700 font-bold text-sm mb-1">
-                        <span>📊</span>
+                        <CompareIcon className="w-5 h-5" />
                         <span>統計上の目安と比較</span>
                       </div>
                       <p className="text-xs text-gray-600 leading-relaxed">
@@ -101,7 +158,7 @@ export default function Home() {
                   <div className="bg-white/90 backdrop-blur border border-emerald-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm mb-1">
-                        <span>💰</span>
+                        <SavingsIcon className="w-5 h-5" />
                         <span>必要な老後資金が分かる</span>
                       </div>
                       <p className="text-xs text-gray-600 leading-relaxed">
@@ -113,7 +170,7 @@ export default function Home() {
                   <div className="bg-white/90 backdrop-blur border border-amber-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
                     <div>
                       <div className="flex items-center gap-2 text-amber-700 font-bold text-sm mb-1">
-                        <span>📈</span>
+                        <GrowthIcon className="w-5 h-5" />
                         <span>今から必要な積立額が分かる</span>
                       </div>
                       <p className="text-xs text-gray-600 leading-relaxed">
@@ -146,9 +203,9 @@ export default function Home() {
 
               {/* 注意書き */}
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-gray-600">
-                  ⚠️ このシミュレーションは、入力した条件に基づいた試算です。
-                  実際の運用成果を保証するものではありません。
+                <p className="text-xs text-gray-600 flex items-start gap-2">
+                  <NoticeIcon className="w-4 h-4 shrink-0 text-blue-700 mt-0.5" />
+                  <span>このシミュレーションは、入力した条件に基づいた試算です。実際の運用成果を保証するものではありません。</span>
                 </p>
               </div>
             </motion.div>
