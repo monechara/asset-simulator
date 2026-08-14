@@ -16,6 +16,7 @@ const base = (overrides: Partial<SimulatorInput> = {}): SimulatorInput => ({
   monthlyIncome: 0,
   monthlyLivingExpenses: 0,
   monthlyInvestmentContribution: 0,
+  annualBonusInvestment: 0,
   annualReturnRate: 0,
   retirementAge: 65,
   annualRetirementIncome: 0,
@@ -42,6 +43,29 @@ describe("人生全体マネープラン計算", () => {
     expect(yearEnd.cashEnd).toBe(1_600_000);
     expect(yearEnd.investmentEnd).toBe(600_000);
     expect(result.targetAgeAssets).toBe(2_200_000);
+  });
+
+  it("年間ボーナス投資は年末に投資資産へ振り替え、総資産へ一度だけ加算する", () => {
+    const result = calculateSimulation(base({ annualBonusInvestment: 200_000 }));
+    const yearEnd = result.yearlyRecords.at(-1)!;
+    expect(yearEnd.cashEnd).toBe(1_000_000);
+    expect(yearEnd.investmentEnd).toBe(200_000);
+    expect(result.targetAgeAssets).toBe(1_200_000);
+    expect(result.totalPrincipalContributed).toBe(200_000);
+  });
+
+  it("年金の年間収入は老後開始年齢以降の収支へ反映する", () => {
+    const result = calculateSimulation(base({
+      currentAge: 64,
+      targetAge: 66,
+      currentCashAssets: 0,
+      monthlyLivingExpenses: 100_000,
+      retirementAge: 65,
+      annualRetirementIncome: 1_800_000,
+    }));
+    const retirementYear = result.yearlyRecords.find((record) => record.age === 65)!;
+    expect(retirementYear.annualIncome).toBe(1_800_000);
+    expect(retirementYear.annualLivingExpenses).toBe(900_000);
   });
 
   it("ケースC: 年末に資産が不足し、年次枯渇判定が立つ", () => {

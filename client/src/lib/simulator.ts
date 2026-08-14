@@ -47,6 +47,8 @@ export interface SimulatorInput {
   monthlyIncome: number;
   monthlyLivingExpenses: number;
   monthlyInvestmentContribution: number;
+  /** 年間合計。勤務中の年末に投資資産へ振り替える。 */
+  annualBonusInvestment: number;
   annualReturnRate: number;
   retirementAge: number;
   annualRetirementIncome: number;
@@ -145,6 +147,7 @@ export function validateSimulatorInput(input: SimulatorInput): void {
     [input.monthlyIncome, "手取り月収"],
     [input.monthlyLivingExpenses, "毎月の生活費"],
     [input.monthlyInvestmentContribution, "毎月の積立投資額"],
+    [input.annualBonusInvestment, "年間ボーナス投資額"],
     [input.annualReturnRate, "想定運用利回り"],
     [input.retirementAge, "老後開始年齢"],
     [input.annualRetirementIncome, "老後の年間収入"],
@@ -163,8 +166,8 @@ export function validateSimulatorInput(input: SimulatorInput): void {
   if (input.currentCashAssets < 0 || input.currentInvestmentAssets < 0) {
     throw new Error("現在の資産は0以上で入力してください");
   }
-  if (input.monthlyIncome < 0 || input.monthlyLivingExpenses < 0 || input.monthlyInvestmentContribution < 0) {
-    throw new Error("収入・生活費・積立額は0以上で入力してください");
+  if (input.monthlyIncome < 0 || input.monthlyLivingExpenses < 0 || input.monthlyInvestmentContribution < 0 || input.annualBonusInvestment < 0) {
+    throw new Error("収入・生活費・積立額・ボーナス投資額は0以上で入力してください");
   }
   if (input.annualReturnRate < 0 || input.annualReturnRate > 20) {
     throw new Error("想定運用利回りは0〜20%の範囲で入力してください");
@@ -249,6 +252,7 @@ function getActiveEventTitles(events: LifeEvent[], age: number): string[] {
 function calculateInvestmentYear(
   investmentStart: number,
   monthlyContribution: number,
+  annualBonusInvestment: number,
   annualReturnRate: number,
 ): { balance: number; gain: number } {
   const monthlyRate = annualReturnRate / 100 / MONTHS_PER_YEAR;
@@ -259,7 +263,9 @@ function calculateInvestmentYear(
     balance += monthlyContribution;
   }
 
-  const gain = balance - investmentStart - monthlyContribution * MONTHS_PER_YEAR;
+  // ボーナス投資は年末に振り替えるため、同年の運用益には含めない。
+  balance += annualBonusInvestment;
+  const gain = balance - investmentStart - monthlyContribution * MONTHS_PER_YEAR - annualBonusInvestment;
   return { balance, gain: Math.max(0, gain) };
 }
 
@@ -271,6 +277,7 @@ function calculateDepletionMonth(
   monthlyIncome: number,
   monthlyLivingExpenses: number,
   monthlyContribution: number,
+  annualBonusInvestment: number,
   eventCost: number,
   loanRepayment: number,
 ): number | null {
@@ -282,6 +289,10 @@ function calculateDepletionMonth(
     investment *= 1 + monthlyRate;
     investment += monthlyContribution;
     cash += monthlyIncome - monthlyLivingExpenses - monthlyContribution;
+    if (month === MONTHS_PER_YEAR) {
+      // ボーナス投資は給与・現金資産とは別の年間ボーナスから年末に投資する。
+      investment += annualBonusInvestment;
+    }
     if (month === 1) cash -= eventCost;
     cash -= loanRepayment / MONTHS_PER_YEAR;
 
@@ -356,9 +367,11 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     const monthlyLivingExpenses =
       input.monthlyLivingExpenses * (isRetired ? input.retirementLivingExpenseRatio : 1);
     const monthlyContribution = isRetired ? 0 : input.monthlyInvestmentContribution;
+    const annualBonusInvestment = isRetired ? 0 : input.annualBonusInvestment;
     const annualIncome = monthlyIncome * MONTHS_PER_YEAR;
     const annualLivingExpenses = monthlyLivingExpenses * MONTHS_PER_YEAR;
-    const annualInvestmentContribution = monthlyContribution * MONTHS_PER_YEAR;
+    const annualMonthlyInvestmentContribution = monthlyContribution * MONTHS_PER_YEAR;
+    const annualInvestmentContribution = annualMonthlyInvestmentContribution + annualBonusInvestment;
     const eventCost = getEventCostForAge(input.lifeEvents, age);
     const loanRepayment = getLoanRepaymentForAge(input.lifeEvents, age);
     const cashStart = cashAssets;
@@ -367,10 +380,12 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     const investmentYear = calculateInvestmentYear(
       investmentStart,
       monthlyContribution,
+      annualBonusInvestment,
       input.annualReturnRate,
     );
+    // 月次積立は給与からの現金→投資振替。ボーナス投資は外部ボーナスからの拠出なので現金を二重控除しない。
     const cashFlowBeforeWithdrawal =
-      cashStart + annualIncome - annualLivingExpenses - annualInvestmentContribution - eventCost - loanRepayment;
+      cashStart + annualIncome - annualLivingExpenses - annualMonthlyInvestmentContribution - eventCost - loanRepayment;
     const shortfall = Math.max(0, -cashFlowBeforeWithdrawal);
     const investmentWithdrawal = Math.min(shortfall, investmentYear.balance);
     const cashEnd = Math.max(0, cashFlowBeforeWithdrawal);
@@ -388,6 +403,7 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
         monthlyIncome,
         monthlyLivingExpenses,
         monthlyContribution,
+        annualBonusInvestment,
         eventCost,
         loanRepayment,
       );
@@ -539,6 +555,7 @@ export const DEFAULT_INPUT: SimulatorInput = {
   monthlyIncome: 300_000,
   monthlyLivingExpenses: 200_000,
   monthlyInvestmentContribution: 50_000,
+  annualBonusInvestment: 0,
   annualReturnRate: 5,
   retirementAge: 65,
   annualRetirementIncome: 1_800_000,

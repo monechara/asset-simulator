@@ -29,6 +29,7 @@ interface Props {
 }
 
 const STEPS = ["基本情報", "家計と運用", "ライフイベント"];
+const PENSION_OPTIONS = [100_000, 150_000, 200_000, 250_000, 300_000];
 
 function normalizeNumericDraft(raw: string): string {
   if (raw === "") return "";
@@ -184,6 +185,7 @@ export default function SimulatorForm({ onCalculate }: Props) {
   const [educationAge, setEducationAge] = useState(48);
   const [educationCost, setEducationCost] = useState(5_000_000);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [pensionSelection, setPensionSelection] = useState<number | "custom">(150_000);
 
   const minimumTargetAge = Math.min(100, input.currentAge + 1);
   const eventSummary = useMemo(() => {
@@ -291,6 +293,7 @@ export default function SimulatorForm({ onCalculate }: Props) {
               <NumberField label="手取り月収" value={input.monthlyIncome} onChange={(value) => updateInput({ monthlyIncome: value })} unit="円/月" min={0} />
               <NumberField label="毎月の生活費" value={input.monthlyLivingExpenses} onChange={(value) => updateInput({ monthlyLivingExpenses: value })} unit="円/月" min={0} />
               <NumberField label="毎月の積立投資額" value={input.monthlyInvestmentContribution} onChange={(value) => updateInput({ monthlyInvestmentContribution: value })} unit="円/月" min={0} />
+              <NumberField label="年間ボーナスから投資する金額" value={input.annualBonusInvestment} onChange={(value) => updateInput({ annualBonusInvestment: value })} unit="円/年" min={0} hint="ボーナスから年間合計で投資する金額。年末に投資資産へ振り替えて試算します。" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium text-slate-800">想定運用利回り</Label>
@@ -303,7 +306,49 @@ export default function SimulatorForm({ onCalculate }: Props) {
               <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 space-y-4">
                 <div><p className="text-sm font-bold text-slate-800">老後の前提</p><p className="mt-1 text-xs leading-relaxed text-slate-500">老後は給与収入を止め、入力した年間収入と生活費比率で試算します。</p></div>
                 <NumberField label="老後開始年齢" value={input.retirementAge} onChange={(value) => updateInput({ retirementAge: value })} unit="歳" min={input.currentAge} max={input.targetAge} />
-                <NumberField label="老後の年間収入（年金等）" value={input.annualRetirementIncome} onChange={(value) => updateInput({ annualRetirementIncome: value })} unit="円/年" min={0} />
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium text-slate-800">老後の毎月の収入（年金）はどのくらいを想定しますか？</Label>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">年金額は人によって異なります。分からない場合はまず目安を選択してください。</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label="老後の毎月の年金目安">
+                    {PENSION_OPTIONS.map((amount) => {
+                      const selected = pensionSelection === amount;
+                      return (
+                        <button
+                          key={amount}
+                          type="button"
+                          onClick={() => {
+                            setPensionSelection(amount);
+                            updateInput({ annualRetirementIncome: amount * 12 });
+                          }}
+                          className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${selected ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300"}`}
+                          aria-pressed={selected}
+                        >
+                          月{amount / 10_000}万円
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => setPensionSelection("custom")}
+                      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${pensionSelection === "custom" ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300"}`}
+                      aria-pressed={pensionSelection === "custom"}
+                    >
+                      自分で入力する
+                    </button>
+                  </div>
+                  {pensionSelection === "custom" && (
+                    <NumberField
+                      label="老後の毎月の収入（年金）"
+                      value={Math.round(input.annualRetirementIncome / 12)}
+                      onChange={(value) => updateInput({ annualRetirementIncome: value * 12 })}
+                      unit="円/月"
+                      min={0}
+                      hint="計算では入力した月額を12倍して年間収入として扱います。"
+                    />
+                  )}
+                </div>
                 <NumberField label="老後の生活費比率" value={Math.round(input.retirementLivingExpenseRatio * 100)} onChange={(value) => updateInput({ retirementLivingExpenseRatio: value / 100 })} unit="%" min={0} max={200} hint="現役時代の生活費に対する比率。75%なら4分の3です。" />
               </div>
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">利回りは将来の結果を保証しません。投資元本を下回る可能性もあります。</div>
