@@ -65,6 +65,8 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
   const currentInvest = Math.round(input.currentInvestmentAssets / 10_000);
   const currentMonthlySave = Math.round(input.monthlyInvestmentContribution / 10_000);
   const currentAnnualBonus = Math.round(input.annualBonusInvestment / 10_000);
+  const comparisonScaleMax = Math.max(benchmarkData.totalAvg, benchmarkData.totalMedian, currentTotalAssets, 1) * 1.15;
+  const markerPosition = (value: number) => `${Math.min(100, Math.max(0, (value / comparisonScaleMax) * 100))}%`;
   const currentReturnRate = input.annualReturnRate;
   const retirementMonthlyLiving = Math.round((input.retirementMonthlyLivingExpenses ?? input.monthlyLivingExpenses * input.retirementLivingExpenseRatio) / 10_000);
   const retirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12 / 10_000);
@@ -135,40 +137,53 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 金融資産合計の比較 */}
-          <div className="bg-white rounded-2xl p-4 border border-emerald-100 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-800">金融資産合計（現金＋投資）</span>
-              <span className="text-xs text-slate-500">{ageGroupLabel}世帯</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 text-center pt-1">
-              <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-2.5">
-                <p className="text-[11px] font-bold text-emerald-800">あなた</p>
-                <p className="text-base font-black text-emerald-900 mt-0.5">{currentTotalAssets}万円</p>
-                <p className="text-[10px] text-emerald-700 mt-0.5">現在残高</p>
+          {/* 金融資産合計の比較：このカードだけビジュアルで位置関係を表示 */}
+          <div className="bg-white rounded-2xl p-4 border border-emerald-200 shadow-sm space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold tracking-wide text-emerald-700">現在の金融資産合計</p>
+                <p className="mt-1 text-3xl font-black tracking-tight text-slate-900 tabular-nums">{currentTotalAssets}万円</p>
+                <p className="mt-1 text-xs text-slate-500">現金資産＋投資資産</p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-                <p className="text-[11px] font-bold text-slate-700">平均値</p>
-                <p className="text-base font-bold text-slate-900 mt-0.5">約{benchmarkData.totalAvg}万円</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">全体平均</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-                <p className="text-[11px] font-bold text-slate-700">中央値</p>
-                <p className="text-base font-bold text-slate-900 mt-0.5">約{benchmarkData.totalMedian}万円</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">真ん中の値</p>
+              <div className="rounded-xl bg-emerald-50 px-3 py-2 text-right">
+                <p className="text-[11px] font-bold text-emerald-800">{ageGroupLabel}の比較用目安</p>
+                <p className="mt-1 text-xs text-emerald-900">平均 約{benchmarkData.totalAvg}万円</p>
+                <p className="text-xs text-emerald-900">中央値 約{benchmarkData.totalMedian}万円</p>
               </div>
             </div>
 
-            <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between">
-              <span>同年代の中央値（約{benchmarkData.totalMedian}万）との差</span>
-              <span className={`font-bold ${currentTotalAssets >= benchmarkData.totalMedian ? "text-emerald-700" : "text-sky-700"}`}>
-                {(() => {
-                  const diff = currentTotalAssets - benchmarkData.totalMedian;
-                  if (diff === 0) return "中央値と同水準";
-                  return diff > 0 ? `中央値より 約${diff}万円多い` : `中央値より 約${Math.abs(diff)}万円少ない`;
-                })()}
-              </span>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                <span>金融資産が少ない</span>
+                <span>金融資産が多い</span>
+              </div>
+              <div className="relative mt-4 h-3 rounded-full bg-gradient-to-r from-slate-200 via-sky-100 to-emerald-200">
+                <div className="absolute -top-1 h-5 w-px bg-slate-500/70" style={{ left: markerPosition(benchmarkData.totalMedian) }} />
+                <div className="absolute -top-1 h-5 w-px bg-emerald-700" style={{ left: markerPosition(currentTotalAssets) }} />
+                <div className="absolute -top-1 h-5 w-px bg-slate-700/80" style={{ left: markerPosition(benchmarkData.totalAvg) }} />
+                <div className="absolute -top-1.5 h-6 w-6 -translate-x-1/2 rounded-full border-4 border-white bg-emerald-600 shadow" style={{ left: markerPosition(currentTotalAssets) }} aria-label={`あなた ${currentTotalAssets}万円`} />
+              </div>
+              <div className="relative mt-2 h-10 text-[10px]">
+                <div className="absolute top-0 -translate-x-1/2 text-center text-slate-600" style={{ left: markerPosition(benchmarkData.totalMedian) }}>
+                  <span className="font-bold">中央値</span><br />約{benchmarkData.totalMedian}万
+                </div>
+                <div className="absolute top-0 -translate-x-1/2 text-center text-emerald-800" style={{ left: markerPosition(currentTotalAssets) }}>
+                  <span className="font-black">あなた</span><br />{currentTotalAssets}万
+                </div>
+                <div className="absolute top-0 -translate-x-1/2 text-center text-slate-700" style={{ left: markerPosition(benchmarkData.totalAvg) }}>
+                  <span className="font-bold">平均</span><br />約{benchmarkData.totalAvg}万
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-slate-50 p-3 text-xs leading-relaxed text-slate-700">
+              {(() => {
+                const medianDiff = currentTotalAssets - benchmarkData.totalMedian;
+                const averageDiff = currentTotalAssets - benchmarkData.totalAvg;
+                const medianText = medianDiff === 0 ? "中央値と同水準" : `中央値より 約${Math.abs(medianDiff)}万円${medianDiff > 0 ? "多い" : "少ない"}`;
+                const averageText = averageDiff === 0 ? "平均と同水準" : `平均より 約${Math.abs(averageDiff)}万円${averageDiff > 0 ? "多い" : "少ない"}`;
+                return <><strong className="text-slate-900">{medianText}</strong>、<strong className="text-slate-900">{averageText}</strong>です。これは優劣ではなく、同年代の比較用データとの差を示しています。</>;
+              })()}
             </div>
           </div>
 
