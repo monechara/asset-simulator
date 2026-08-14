@@ -30,6 +30,59 @@ interface Props {
 
 const STEPS = ["基本情報", "家計と運用", "ライフイベント"];
 
+function AgeField({
+  label,
+  value,
+  onChange,
+  min = 18,
+  max = 100,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  // 入力途中の空欄・1桁目を親の数値状態で即時補正しない。
+  // これにより、全選択置換・Backspace・iPhone数字キーボードを通常の入力欄として扱える。
+  const [draft, setDraft] = useState(String(value));
+
+  const commit = (raw: string) => {
+    setDraft(raw);
+    if (raw === "") return;
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed)) onChange(parsed);
+  };
+
+  const normalizeOnBlur = () => {
+    const parsed = Number(draft);
+    const safe = Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : value;
+    setDraft(String(safe));
+    onChange(safe);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-sm font-medium text-slate-800">{label}</Label>
+        <span className="shrink-0 text-xs font-semibold text-sky-700">歳</span>
+      </div>
+      <Input
+        type="number"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        min={min}
+        max={max}
+        value={draft}
+        onChange={(event) => commit(event.target.value)}
+        onBlur={normalizeOnBlur}
+        className="h-12 rounded-xl border-slate-200 bg-white text-base font-medium"
+        aria-label={label}
+      />
+    </div>
+  );
+}
+
 function NumberField({
   label,
   value,
@@ -184,7 +237,7 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <h2 className="mt-1 text-xl font-bold text-slate-900">いまの状態を教えてください</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">まずは現在の金融資産と、いつまでの未来を見たいかを設定します。</p>
               </div>
-              <NumberField label="現在の年齢" value={input.currentAge} onChange={(value) => updateInput({ currentAge: value, targetAge: Math.max(value + 1, input.targetAge), retirementAge: Math.max(value, input.retirementAge) })} unit="歳" min={18} max={80} />
+              <AgeField label="現在の年齢" value={input.currentAge} onChange={(value) => updateInput({ currentAge: value, targetAge: Math.max(value + 1, input.targetAge), retirementAge: Math.max(value, input.retirementAge) })} min={18} max={80} />
               <NumberField label="現在の現金資産" value={input.currentCashAssets} onChange={(value) => updateInput({ currentCashAssets: value })} unit="円" min={0} hint="預金・普通預金など。投資資産とは分けて入力します。" />
               <NumberField label="現在の投資資産" value={input.currentInvestmentAssets} onChange={(value) => updateInput({ currentInvestmentAssets: value })} unit="円" min={0} hint="投資信託・株式など、運用中の金融資産。" />
               <NumberField label="計画終了年齢" value={input.targetAge} onChange={(value) => updateInput({ targetAge: value })} unit="歳" min={minimumTargetAge} max={100} />
