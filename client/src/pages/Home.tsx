@@ -72,18 +72,75 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* トップメッセージ */}
-              <div className="mb-8 text-center">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                  あなたは何歳で1,000万円？
+              {/* スタート画面 / 導入部 */}
+              <div className="mb-8 text-center space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide">
+                  <span>📊 統計データと比較できる</span>
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+                  あなたの老後、いくら必要？
                 </h2>
-                <p className="text-sm text-gray-600">
-                  30秒で将来の資産をシミュレーション
+                <p className="text-base text-gray-600 max-w-xl mx-auto leading-relaxed">
+                  統計上の目安と比べながら、あなたに必要な老後資金をシミュレーション
                 </p>
+
+                {/* 3つの特徴 */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 my-6 text-left">
+                  <div className="bg-white/90 backdrop-blur border border-blue-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-blue-700 font-bold text-sm mb-1">
+                        <span>📊</span>
+                        <span>統計上の目安と比較</span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        あなたの老後の生活費や年金を、統計上の目安と比較できます。
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/90 backdrop-blur border border-emerald-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm mb-1">
+                        <span>💰</span>
+                        <span>必要な老後資金が分かる</span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        現在の資産や積立額などから、老後に必要な資金をシミュレーションできます。
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/90 backdrop-blur border border-amber-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-amber-700 font-bold text-sm mb-1">
+                        <span>📈</span>
+                        <span>今から必要な積立額が分かる</span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        毎月の積立額やボーナス投資をもとに、将来どのくらい資産を準備できるか確認できます。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTAボタン */}
+                <div className="pt-2">
+                  <button
+                    onClick={() => {
+                      const formEl = document.getElementById("simulator-form-container");
+                      formEl?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-bold text-base rounded-2xl shadow-md hover:from-blue-700 hover:to-emerald-700 transition-all transform active:scale-95 flex items-center justify-center gap-2 mx-auto"
+                  >
+                    <span>無料でシミュレーションする</span>
+                    <span className="text-lg">↓</span>
+                  </button>
+                  <p className="mt-2 text-xs text-gray-500">会員登録不要・30秒で簡単にお試しいただけます</p>
+                </div>
               </div>
 
               {/* 入力フォーム */}
-              <div className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6 sm:p-8">
+              <div id="simulator-form-container" className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6 sm:p-8 scroll-mt-20">
                 <SimulatorForm onCalculate={handleCalculate} />
               </div>
 
