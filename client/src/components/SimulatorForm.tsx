@@ -2,7 +2,7 @@
  * SimulatorForm — 人生全体マネープラン入力フォーム
  * スマホ優先の3ステップ構成。金融商品は推奨しない。
  */
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,13 @@ interface Props {
 
 const STEPS = ["基本情報", "家計と運用", "ライフイベント"];
 
+function normalizeNumericDraft(raw: string): string {
+  if (raw === "") return "";
+  // 数値入力の途中で発生する「07457」を「7457」に正規化する。
+  const normalized = raw.replace(/^0+(?=\d|$)/, "");
+  return normalized || "0";
+}
+
 function AgeField({
   label,
   value,
@@ -44,13 +51,22 @@ function AgeField({
   max?: number;
 }) {
   // 入力途中の空欄・1桁目を親の数値状態で即時補正しない。
-  // これにより、全選択置換・Backspace・iPhone数字キーボードを通常の入力欄として扱える。
+  // 先頭ゼロは入力時に除去し、全選択置換・Backspace・iPhone数字キーボードに対応する。
   const [draft, setDraft] = useState(String(value));
+  const lastExternalValue = useRef(value);
+
+  useEffect(() => {
+    if (value !== lastExternalValue.current && Number(draft) !== value) {
+      setDraft(String(value));
+    }
+    lastExternalValue.current = value;
+  }, [value, draft]);
 
   const commit = (raw: string) => {
-    setDraft(raw);
-    if (raw === "") return;
-    const parsed = Number(raw);
+    const normalized = normalizeNumericDraft(raw);
+    setDraft(normalized);
+    if (normalized === "") return;
+    const parsed = Number(normalized);
     if (Number.isFinite(parsed)) onChange(parsed);
   };
 
@@ -100,6 +116,31 @@ function NumberField({
   max?: number;
   hint?: string;
 }) {
+  const [draft, setDraft] = useState(String(value));
+  const lastExternalValue = useRef(value);
+
+  useEffect(() => {
+    if (value !== lastExternalValue.current && Number(draft) !== value) {
+      setDraft(String(value));
+    }
+    lastExternalValue.current = value;
+  }, [value, draft]);
+
+  const commit = (raw: string) => {
+    const normalized = normalizeNumericDraft(raw);
+    setDraft(normalized);
+    if (normalized === "") return;
+    const parsed = Number(normalized);
+    if (Number.isFinite(parsed)) onChange(parsed);
+  };
+
+  const normalizeOnBlur = () => {
+    const parsed = Number(draft);
+    const safe = Number.isFinite(parsed) ? (max === undefined ? Math.max(min, parsed) : Math.min(max, Math.max(min, parsed))) : min;
+    setDraft(String(safe));
+    onChange(safe);
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -111,13 +152,9 @@ function NumberField({
         inputMode="numeric"
         min={min}
         max={max}
-        value={value}
-        onChange={(event) => {
-          const parsed = Number(event.target.value);
-          const safe = Number.isFinite(parsed) ? parsed : 0;
-          const bounded = max === undefined ? Math.max(min, safe) : Math.min(max, Math.max(min, safe));
-          onChange(bounded);
-        }}
+        value={draft}
+        onChange={(event) => commit(event.target.value)}
+        onBlur={normalizeOnBlur}
         className="h-12 rounded-xl border-slate-200 bg-white text-base font-medium"
       />
       {hint && <p className="text-xs leading-relaxed text-slate-500">{hint}</p>}
