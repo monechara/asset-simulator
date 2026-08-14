@@ -68,6 +68,21 @@ describe("人生全体マネープラン計算", () => {
     expect(retirementYear.annualLivingExpenses).toBe(900_000);
   });
 
+  it("老後の生活費は絶対額の指定を比率より優先する", () => {
+    const result = calculateSimulation(base({
+      currentAge: 64,
+      targetAge: 66,
+      currentCashAssets: 10_000_000,
+      monthlyLivingExpenses: 100_000,
+      retirementAge: 65,
+      annualRetirementIncome: 1_800_000,
+      retirementLivingExpenseRatio: 0.75,
+      retirementMonthlyLivingExpenses: 300_000,
+    }));
+    const retirementYear = result.yearlyRecords.find((record) => record.age === 65)!;
+    expect(retirementYear.annualLivingExpenses).toBe(3_600_000);
+  });
+
   it("ケースC: 年末に資産が不足し、年次枯渇判定が立つ", () => {
     const result = calculateSimulation(base({
       monthlyLivingExpenses: 100_000,

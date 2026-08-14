@@ -52,6 +52,9 @@ export interface SimulatorInput {
   annualReturnRate: number;
   retirementAge: number;
   annualRetirementIncome: number;
+  /** 老後の毎月生活費。未指定時は従来の比率モデルへフォールバックする。 */
+  retirementMonthlyLivingExpenses?: number;
+  /** 既存互換用。新UIでは金額指定を優先する。 */
   retirementLivingExpenseRatio: number;
   targetAssets: number;
   lifeEvents: LifeEvent[];
@@ -177,6 +180,12 @@ export function validateSimulatorInput(input: SimulatorInput): void {
   }
   if (input.annualRetirementIncome < 0) {
     throw new Error("老後の年間収入は0以上で入力してください");
+  }
+  if (input.retirementMonthlyLivingExpenses !== undefined) {
+    assertFiniteNumber(input.retirementMonthlyLivingExpenses, "老後の毎月生活費");
+    if (input.retirementMonthlyLivingExpenses < 0) {
+      throw new Error("老後の毎月生活費は0以上で入力してください");
+    }
   }
   if (input.retirementLivingExpenseRatio < 0 || input.retirementLivingExpenseRatio > 2) {
     throw new Error("老後生活費比率は0〜200%の範囲で入力してください");
@@ -364,8 +373,8 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     const age = input.currentAge + year;
     const isRetired = age >= input.retirementAge;
     const monthlyIncome = isRetired ? input.annualRetirementIncome / MONTHS_PER_YEAR : input.monthlyIncome;
-    const monthlyLivingExpenses =
-      input.monthlyLivingExpenses * (isRetired ? input.retirementLivingExpenseRatio : 1);
+    const retirementMonthlyLivingExpenses = input.retirementMonthlyLivingExpenses ?? input.monthlyLivingExpenses * input.retirementLivingExpenseRatio;
+    const monthlyLivingExpenses = isRetired ? retirementMonthlyLivingExpenses : input.monthlyLivingExpenses;
     const monthlyContribution = isRetired ? 0 : input.monthlyInvestmentContribution;
     const annualBonusInvestment = isRetired ? 0 : input.annualBonusInvestment;
     const annualIncome = monthlyIncome * MONTHS_PER_YEAR;
@@ -559,6 +568,7 @@ export const DEFAULT_INPUT: SimulatorInput = {
   annualReturnRate: 5,
   retirementAge: 65,
   annualRetirementIncome: 1_800_000,
+  retirementMonthlyLivingExpenses: 250_000,
   retirementLivingExpenseRatio: 0.75,
   targetAssets: 30_000_000,
   lifeEvents: DEFAULT_LIFE_EVENTS,

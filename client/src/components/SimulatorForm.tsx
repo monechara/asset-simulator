@@ -30,6 +30,21 @@ interface Props {
 
 const STEPS = ["基本情報", "家計と運用", "ライフイベント"];
 const PENSION_OPTIONS = [100_000, 150_000, 200_000, 250_000, 300_000];
+const RETIREMENT_LIVING_EXPENSE_OPTIONS = [150_000, 200_000, 250_000, 300_000];
+const PENSION_BENCHMARK = 150_000;
+const RETIREMENT_LIVING_EXPENSE_BENCHMARK = 250_000;
+
+function formatManValue(amount: number): string {
+  const man = amount / 10_000;
+  return Number.isInteger(man) ? String(man) : man.toFixed(1);
+}
+
+function benchmarkToneClass(value: number, benchmark: number): string {
+  const ratio = benchmark > 0 ? value / benchmark : 1;
+  if (ratio < 0.9) return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (ratio > 1.1) return "border-orange-200 bg-orange-50 text-orange-800";
+  return "border-slate-200 bg-slate-50 text-slate-700";
+}
 
 function normalizeNumericDraft(raw: string): string {
   if (raw === "") return "";
@@ -108,6 +123,7 @@ function NumberField({
   min = 0,
   max,
   hint,
+  scale = 1,
 }: {
   label: string;
   value: number;
@@ -116,29 +132,31 @@ function NumberField({
   min?: number;
   max?: number;
   hint?: string;
+  scale?: number;
 }) {
-  const [draft, setDraft] = useState(String(value));
+  const [draft, setDraft] = useState(String(value / scale));
   const lastExternalValue = useRef(value);
 
   useEffect(() => {
-    if (value !== lastExternalValue.current && Number(draft) !== value) {
-      setDraft(String(value));
+    if (value !== lastExternalValue.current && Number(draft) * scale !== value) {
+      setDraft(String(value / scale));
     }
     lastExternalValue.current = value;
-  }, [value, draft]);
+  }, [value, draft, scale]);
 
   const commit = (raw: string) => {
     const normalized = normalizeNumericDraft(raw);
     setDraft(normalized);
     if (normalized === "") return;
     const parsed = Number(normalized);
-    if (Number.isFinite(parsed)) onChange(parsed);
+    if (Number.isFinite(parsed)) onChange(parsed * scale);
   };
 
   const normalizeOnBlur = () => {
     const parsed = Number(draft);
-    const safe = Number.isFinite(parsed) ? (max === undefined ? Math.max(min, parsed) : Math.min(max, Math.max(min, parsed))) : min;
-    setDraft(String(safe));
+    const rawValue = parsed * scale;
+    const safe = Number.isFinite(rawValue) ? (max === undefined ? Math.max(min, rawValue) : Math.min(max, Math.max(min, rawValue))) : min;
+    setDraft(String(safe / scale));
     onChange(safe);
   };
 
@@ -150,9 +168,9 @@ function NumberField({
       </div>
       <Input
         type="number"
-        inputMode="numeric"
-        min={min}
-        max={max}
+        inputMode={scale > 1 ? "decimal" : "numeric"}
+        min={min === undefined ? undefined : min / scale}
+        max={max === undefined ? undefined : max / scale}
         value={draft}
         onChange={(event) => commit(event.target.value)}
         onBlur={normalizeOnBlur}
@@ -186,8 +204,11 @@ export default function SimulatorForm({ onCalculate }: Props) {
   const [educationCost, setEducationCost] = useState(5_000_000);
   const [isCalculating, setIsCalculating] = useState(false);
   const [pensionSelection, setPensionSelection] = useState<number | "custom">(150_000);
+  const [livingExpenseSelection, setLivingExpenseSelection] = useState<number | "custom">(RETIREMENT_LIVING_EXPENSE_BENCHMARK);
 
   const minimumTargetAge = Math.min(100, input.currentAge + 1);
+  const currentRetirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12);
+  const currentRetirementMonthlyLivingExpenses = input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio);
   const eventSummary = useMemo(() => {
     const summary: string[] = [];
     if (hasMarriage) summary.push(`結婚 ${marriageAge}歳`);
@@ -277,8 +298,8 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">まずは現在の金融資産と、いつまでの未来を見たいかを設定します。</p>
               </div>
               <AgeField label="現在の年齢" value={input.currentAge} onChange={(value) => updateInput({ currentAge: value, targetAge: Math.max(value + 1, input.targetAge), retirementAge: Math.max(value, input.retirementAge) })} min={18} max={80} />
-              <NumberField label="現在の現金資産" value={input.currentCashAssets} onChange={(value) => updateInput({ currentCashAssets: value })} unit="円" min={0} hint="預金・普通預金など。投資資産とは分けて入力します。" />
-              <NumberField label="現在の投資資産" value={input.currentInvestmentAssets} onChange={(value) => updateInput({ currentInvestmentAssets: value })} unit="円" min={0} hint="投資信託・株式など、運用中の金融資産。" />
+              <NumberField label="現在の現金資産" value={input.currentCashAssets} onChange={(value) => updateInput({ currentCashAssets: value })} unit="万円" scale={10_000} min={0} hint="預金・普通預金など。100万円なら「100」と入力します。投資資産とは分けて入力します。" />
+              <NumberField label="現在の投資資産" value={input.currentInvestmentAssets} onChange={(value) => updateInput({ currentInvestmentAssets: value })} unit="万円" scale={10_000} min={0} hint="投資信託・株式など、運用中の金融資産。" />
               <NumberField label="計画終了年齢" value={input.targetAge} onChange={(value) => updateInput({ targetAge: value })} unit="歳" min={minimumTargetAge} max={100} />
             </motion.div>
           )}
@@ -290,10 +311,10 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <h2 className="mt-1 text-xl font-bold text-slate-900">毎月のお金の流れを設定</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">積立後に残るお金は現金として蓄積され、積立額は投資資産へ振り替えます。</p>
               </div>
-              <NumberField label="手取り月収" value={input.monthlyIncome} onChange={(value) => updateInput({ monthlyIncome: value })} unit="円/月" min={0} />
-              <NumberField label="毎月の生活費" value={input.monthlyLivingExpenses} onChange={(value) => updateInput({ monthlyLivingExpenses: value })} unit="円/月" min={0} />
-              <NumberField label="毎月の積立投資額" value={input.monthlyInvestmentContribution} onChange={(value) => updateInput({ monthlyInvestmentContribution: value })} unit="円/月" min={0} />
-              <NumberField label="年間ボーナスから投資する金額" value={input.annualBonusInvestment} onChange={(value) => updateInput({ annualBonusInvestment: value })} unit="円/年" min={0} hint="ボーナスから年間合計で投資する金額。年末に投資資産へ振り替えて試算します。" />
+              <NumberField label="手取り月収" value={input.monthlyIncome} onChange={(value) => updateInput({ monthlyIncome: value })} unit="万円/月" scale={10_000} min={0} />
+              <NumberField label="毎月の生活費" value={input.monthlyLivingExpenses} onChange={(value) => updateInput({ monthlyLivingExpenses: value })} unit="万円/月" scale={10_000} min={0} />
+              <NumberField label="毎月の積立投資額" value={input.monthlyInvestmentContribution} onChange={(value) => updateInput({ monthlyInvestmentContribution: value })} unit="万円/月" scale={10_000} min={0} />
+              <NumberField label="年間ボーナスから投資する金額" value={input.annualBonusInvestment} onChange={(value) => updateInput({ annualBonusInvestment: value })} unit="万円/年" scale={10_000} min={0} hint="ボーナスから年間合計で投資する金額。20万円なら「20」と入力します。年末に投資資産へ振り替えて試算します。" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium text-slate-800">想定運用利回り</Label>
@@ -302,14 +323,69 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <input type="range" min="0" max="10" step="0.5" value={input.annualReturnRate} onChange={(event) => updateInput({ annualReturnRate: Number(event.target.value) })} className="w-full accent-emerald-600" />
                 <div className="flex justify-between text-xs text-slate-400"><span>0%</span><span>10%</span></div>
               </div>
-              <NumberField label="目標金融資産" value={input.targetAssets} onChange={(value) => updateInput({ targetAssets: value })} unit="円" min={0} hint="いつ到達するかを結果画面で確認できます。" />
-              <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 space-y-4">
-                <div><p className="text-sm font-bold text-slate-800">老後の前提</p><p className="mt-1 text-xs leading-relaxed text-slate-500">老後は給与収入を止め、入力した年間収入と生活費比率で試算します。</p></div>
+              <NumberField label="目標金融資産" value={input.targetAssets} onChange={(value) => updateInput({ targetAssets: value })} unit="万円" scale={10_000} min={0} hint="1,000万円なら「1000」と入力します。いつ到達するかを結果画面で確認できます。" />
+              <div className="space-y-4 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+                <div>
+                  <p className="text-sm font-bold text-slate-800">老後の前提</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">老後は給与収入を止め、年金収入と生活費の差額を金融資産から補います。</p>
+                </div>
                 <NumberField label="老後開始年齢" value={input.retirementAge} onChange={(value) => updateInput({ retirementAge: value })} unit="歳" min={input.currentAge} max={input.targetAge} />
-                <div className="space-y-3">
+
+                <div className="space-y-3 rounded-xl border border-white/80 bg-white/70 p-3">
+                  <div>
+                    <Label className="text-sm font-medium text-slate-800">老後の毎月の生活費はいくら必要ですか？</Label>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">統計上の目安：約{formatManValue(RETIREMENT_LIVING_EXPENSE_BENCHMARK)}万円/月。目安は参考値なので、生活スタイルに合わせて変更できます。</p>
+                  </div>
+                  <div className={`rounded-lg border px-3 py-2 text-xs font-semibold ${benchmarkToneClass(currentRetirementMonthlyLivingExpenses, RETIREMENT_LIVING_EXPENSE_BENCHMARK)}`}>
+                    あなたの想定：{formatManValue(currentRetirementMonthlyLivingExpenses)}万円/月
+                  </div>
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label="老後の毎月の生活費目安">
+                    {RETIREMENT_LIVING_EXPENSE_OPTIONS.map((amount) => {
+                      const selected = livingExpenseSelection === amount;
+                      return (
+                        <button
+                          key={amount}
+                          type="button"
+                          onClick={() => {
+                            setLivingExpenseSelection(amount);
+                            updateInput({ retirementMonthlyLivingExpenses: amount });
+                          }}
+                          className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${selected ? "border-violet-600 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-violet-300"}`}
+                          aria-pressed={selected}
+                        >
+                          月{formatManValue(amount)}万円
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => setLivingExpenseSelection("custom")}
+                      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${livingExpenseSelection === "custom" ? "border-violet-600 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-violet-300"}`}
+                      aria-pressed={livingExpenseSelection === "custom"}
+                    >
+                      自分で入力する
+                    </button>
+                  </div>
+                  {livingExpenseSelection === "custom" && (
+                    <NumberField
+                      label="老後の毎月の生活費"
+                      value={currentRetirementMonthlyLivingExpenses}
+                      onChange={(value) => updateInput({ retirementMonthlyLivingExpenses: value })}
+                      unit="万円/月"
+                      scale={10_000}
+                      min={0}
+                      hint="生活費は人によって異なります。住居費・医療費なども含めて想定してください。"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-white/80 bg-white/70 p-3">
                   <div>
                     <Label className="text-sm font-medium text-slate-800">老後の毎月の収入（年金）はどのくらいを想定しますか？</Label>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">年金額は人によって異なります。分からない場合はまず目安を選択してください。</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">統計上の目安：約{formatManValue(PENSION_BENCHMARK)}万円/月。年金額は加入状況などによって異なります。分からない場合は目安を利用してください。</p>
+                  </div>
+                  <div className={`rounded-lg border px-3 py-2 text-xs font-semibold ${benchmarkToneClass(currentRetirementMonthlyIncome, PENSION_BENCHMARK)}`}>
+                    あなたの想定：{formatManValue(currentRetirementMonthlyIncome)}万円/月
                   </div>
                   <div className="grid grid-cols-2 gap-2" role="group" aria-label="老後の毎月の年金目安">
                     {PENSION_OPTIONS.map((amount) => {
@@ -325,7 +401,7 @@ export default function SimulatorForm({ onCalculate }: Props) {
                           className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${selected ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300"}`}
                           aria-pressed={selected}
                         >
-                          月{amount / 10_000}万円
+                          月{formatManValue(amount)}万円
                         </button>
                       );
                     })}
@@ -341,15 +417,15 @@ export default function SimulatorForm({ onCalculate }: Props) {
                   {pensionSelection === "custom" && (
                     <NumberField
                       label="老後の毎月の収入（年金）"
-                      value={Math.round(input.annualRetirementIncome / 12)}
+                      value={currentRetirementMonthlyIncome}
                       onChange={(value) => updateInput({ annualRetirementIncome: value * 12 })}
-                      unit="円/月"
+                      unit="万円/月"
+                      scale={10_000}
                       min={0}
                       hint="計算では入力した月額を12倍して年間収入として扱います。"
                     />
                   )}
                 </div>
-                <NumberField label="老後の生活費比率" value={Math.round(input.retirementLivingExpenseRatio * 100)} onChange={(value) => updateInput({ retirementLivingExpenseRatio: value / 100 })} unit="%" min={0} max={200} hint="現役時代の生活費に対する比率。75%なら4分の3です。" />
               </div>
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900">利回りは将来の結果を保証しません。投資元本を下回る可能性もあります。</div>
             </motion.div>
@@ -364,19 +440,19 @@ export default function SimulatorForm({ onCalculate }: Props) {
               </div>
 
               <EventToggle icon={<Heart className="h-4 w-4" />} label="結婚" checked={hasMarriage} onChange={setHasMarriage}>
-                <div className="grid grid-cols-2 gap-3"><NumberField label="予定年齢" value={marriageAge} onChange={setMarriageAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="費用" value={marriageCost} onChange={setMarriageCost} unit="円" min={0} /></div>
+                <div className="grid grid-cols-2 gap-3"><NumberField label="予定年齢" value={marriageAge} onChange={setMarriageAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="費用" value={marriageCost} onChange={setMarriageCost} unit="万円" scale={10_000} min={0} /></div>
               </EventToggle>
 
               <EventToggle icon={<Baby className="h-4 w-4" />} label="子どもの誕生" checked={hasChild} onChange={setHasChild}>
-                <div className="grid grid-cols-2 gap-3"><NumberField label="予定年齢" value={childAge} onChange={setChildAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="初期費用" value={childCost} onChange={setChildCost} unit="円" min={0} /></div>
+                <div className="grid grid-cols-2 gap-3"><NumberField label="予定年齢" value={childAge} onChange={setChildAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="初期費用" value={childCost} onChange={setChildCost} unit="万円" scale={10_000} min={0} /></div>
               </EventToggle>
 
               <EventToggle icon={<Home className="h-4 w-4" />} label="住宅購入" checked={hasHousing} onChange={setHasHousing}>
-                <div className="space-y-3"><div className="grid grid-cols-2 gap-3"><NumberField label="購入年齢" value={housingAge} onChange={setHousingAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="住宅価格" value={propertyPrice} onChange={setPropertyPrice} unit="円" min={0} /></div><div className="grid grid-cols-2 gap-3"><NumberField label="頭金" value={downPayment} onChange={setDownPayment} unit="円" min={0} max={propertyPrice} /><NumberField label="返済期間" value={repaymentYears} onChange={setRepaymentYears} unit="年" min={1} max={50} /></div><NumberField label="ローン金利" value={interestRate} onChange={setInterestRate} unit="%/年" min={0} max={20} /></div>
+                <div className="space-y-3"><div className="grid grid-cols-2 gap-3"><NumberField label="購入年齢" value={housingAge} onChange={setHousingAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="住宅価格" value={propertyPrice} onChange={setPropertyPrice} unit="万円" scale={10_000} min={0} /></div><div className="grid grid-cols-2 gap-3"><NumberField label="頭金" value={downPayment} onChange={setDownPayment} unit="万円" scale={10_000} min={0} max={propertyPrice} /><NumberField label="返済期間" value={repaymentYears} onChange={setRepaymentYears} unit="年" min={1} max={50} /></div><NumberField label="ローン金利" value={interestRate} onChange={setInterestRate} unit="%/年" min={0} max={20} /></div>
               </EventToggle>
 
               <EventToggle icon={<GraduationCap className="h-4 w-4" />} label="教育費" checked={hasEducation} onChange={setHasEducation}>
-                <div className="grid grid-cols-2 gap-3"><NumberField label="開始年齢" value={educationAge} onChange={setEducationAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="4年間の総額" value={educationCost} onChange={setEducationCost} unit="円" min={0} /></div>
+                <div className="grid grid-cols-2 gap-3"><NumberField label="開始年齢" value={educationAge} onChange={setEducationAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="4年間の総額" value={educationCost} onChange={setEducationCost} unit="万円" scale={10_000} min={0} /></div>
               </EventToggle>
 
               {eventSummary.length > 0 && <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600">選択中: {eventSummary.join(" / ")}</p>}
