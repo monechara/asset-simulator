@@ -86,6 +86,103 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
         </div>
       )}
 
+      {/* 統計上の目安（平均・中央値）との比較カード */}
+      <Card className="border-sky-100 shadow-sm bg-gradient-to-b from-white to-sky-50/40">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>📊</span>
+              <span>あなたと統計上の目安を比較</span>
+            </CardTitle>
+            <span className="text-xs bg-sky-100 text-sky-800 font-semibold px-2.5 py-1 rounded-full">公的統計ベース</span>
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed mt-1">
+            平均（全体の合計を人数で割った一般的な平均値）や中央値（金額を小さい順に並べた真ん中の値）とご自身の想定を比較し、これからのライフプランの参考にしてください。
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* 老後の生活費比較 */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">老後の毎月の生活費</span>
+              <span className="text-xs text-slate-500">統計上の目安（生命保険文化センター等）</span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2 text-center pt-1">
+              <div className="bg-sky-50 border border-sky-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-sky-800">あなた</p>
+                <p className="text-base font-black text-sky-900 mt-0.5">{input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * (input.retirementLivingExpenseRatio))}万円</p>
+                <p className="text-[10px] text-sky-700 mt-0.5">想定月額</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-slate-700">平均値</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">約26万円</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">高齢無職世帯(総務省)</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-slate-700">中央値</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">約24万円</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">実態ボリューム層</p>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between">
+              <span>統計目安（平均26万）との差</span>
+              <span className={`font-bold ${(input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio)) >= 26 ? "text-amber-700" : "text-emerald-700"}`}>
+                {(() => {
+                  const userVal = input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio);
+                  const diff = userVal - 26;
+                  if (diff === 0) return "平均と同水準";
+                  return diff > 0 ? `平均より 約${diff}万円多い` : `平均より 約${Math.abs(diff)}万円少ない`;
+                })()}
+              </span>
+            </div>
+          </div>
+
+          {/* 老後の年金収入比較 */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">老後の毎月の収入（年金等）</span>
+              <span className="text-xs text-slate-500">公的年金受給者平均</span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2 text-center pt-1">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-emerald-800">あなた</p>
+                <p className="text-base font-black text-emerald-900 mt-0.5">{Math.round(input.annualRetirementIncome / 12 / 10_000)}万円</p>
+                <p className="text-[10px] text-emerald-700 mt-0.5">想定月額</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-slate-700">平均値</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">約15万円</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">公的年金受給実績</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-slate-700">中央値</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">約14万円</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">受給ボリューム層</p>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between">
+              <span>統計目安（平均15万）との差</span>
+              <span className={`font-bold ${Math.round(input.annualRetirementIncome / 12 / 10_000) >= 15 ? "text-emerald-700" : "text-amber-700"}`}>
+                {(() => {
+                  const userVal = Math.round(input.annualRetirementIncome / 12 / 10_000);
+                  const diff = userVal - 15;
+                  if (diff === 0) return "平均と同水準";
+                  return diff > 0 ? `平均より 約${diff}万円多い` : `平均より 約${Math.abs(diff)}万円少ない`;
+                })()}
+              </span>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-slate-400 text-center">
+            ※ 平均・中央値は一般的な統計データの参考値であり、加入状況や地域、生活スタイルにより大きく異なります。
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className="border-slate-200 shadow-sm">
         <CardHeader><CardTitle className="text-base">年齢ごとの金融資産推移</CardTitle><p className="text-xs text-slate-500">単位：万円。イベントのある年はグラフ上の点で確認できます。</p></CardHeader>
         <CardContent>
