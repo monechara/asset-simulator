@@ -60,11 +60,9 @@ function ResultCardDOM({
       ? ((result.investmentGainTotal / result.principalTotal) * 100).toFixed(1)
       : "0";
 
-  const milestones = [
-    { age: 30, value: result.assetAt30 },
-    { age: 40, value: result.assetAt40 },
-    { age: 50, value: result.assetAt50 },
-  ].filter((m) => m.value !== null && m.age >= input.currentAge);
+  const milestones = result.yearlyRecords
+    .filter((r) => [30, 40, 50].includes(r.age) && r.age >= input.currentAge)
+    .map((r) => ({ age: r.age, value: r.totalAssets }));
 
   return (
     <div
@@ -268,9 +266,10 @@ function ResultCardDOM({
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 24px" }}>
           {[
-            { label: "現在の資産", value: formatCurrency(input.currentAssets) },
-            { label: "毎月の投資", value: `${input.monthlyInvestment.toLocaleString()}円` },
-            { label: "ボーナス投資", value: `${input.annualBonusInvestment.toLocaleString()}円/年` },
+            { label: "現金資産", value: formatCurrency(input.currentCashAssets) },
+            { label: "投資資産", value: formatCurrency(input.currentInvestmentAssets) },
+            { label: "毎月の積立", value: `${input.monthlyInvestmentContribution.toLocaleString()}円` },
+
             { label: "想定利回り", value: `年率 ${input.annualReturnRate}%` },
           ].map((item) => (
             <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -341,8 +340,8 @@ export default function ShareCard({ result, input }: Props) {
   }, [imageUrl, input]);
 
   const shareText = result.targetAchievedAge
-    ? `【資産形成シミュレーター】\n${input.currentAge}歳から毎月${input.monthlyInvestment.toLocaleString()}円を年率${input.annualReturnRate}%で運用すると、${result.targetAchievedAge}歳で目標達成！\n80歳時点の総資産：${formatCurrency(result.finalAssets)}（うち運用益${formatCurrency(result.investmentGainTotal)}）\n\n#資産形成 #NISA #投資 #複利`
-    : `【資産形成シミュレーター】\n${input.currentAge}歳から毎月${input.monthlyInvestment.toLocaleString()}円を年率${input.annualReturnRate}%で運用すると、80歳時点の総資産は${formatCurrency(result.finalAssets)}に！\n運用益：${formatCurrency(result.investmentGainTotal)}\n\n#資産形成 #NISA #投資 #複利`;
+    ? `【資産形成シミュレーター】\n${input.currentAge}歳から毎月${input.monthlyInvestmentContribution.toLocaleString()}円を年率${input.annualReturnRate}%で運用すると、${result.targetAchievedAge}歳で目標達成！\n80歳時点の総資産：${formatCurrency(result.finalAssets)}（うち運用益${formatCurrency(result.investmentGainTotal)}）\n\n#資産形成 #NISA #投資 #複利`
+    : `【資産形成シミュレーター】\n${input.currentAge}歳から毎月${input.monthlyInvestmentContribution.toLocaleString()}円を年率${input.annualReturnRate}%で運用すると、80歳時点の総資産は${formatCurrency(result.finalAssets)}に！\n運用益：${formatCurrency(result.investmentGainTotal)}\n\n#資産形成 #NISA #投資 #複利`;
 
   const handleShareX = useCallback(() => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
