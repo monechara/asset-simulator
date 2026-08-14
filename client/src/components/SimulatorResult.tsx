@@ -36,6 +36,35 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
   const [showMonthly, setShowMonthly] = useState(false);
   const [showStartAge, setShowStartAge] = useState(false);
 
+  // 年齢に応じた公的統計目安の取得（金融広報中央委員会「家計の金融行動に関する世論調査」等に基づく）
+  const ageGroupLabel = useMemo(() => {
+    if (input.currentAge < 30) return "20代";
+    if (input.currentAge < 40) return "30代";
+    if (input.currentAge < 50) return "40代";
+    if (input.currentAge < 60) return "50代";
+    return "60代以上";
+  }, [input.currentAge]);
+
+  const benchmarkData = useMemo(() => {
+    switch (ageGroupLabel) {
+      case "20代":
+        return { totalAvg: 400, totalMedian: 130, cashAvg: 250, cashMedian: 100, investAvg: 150, investMedian: 0 };
+      case "30代":
+        return { totalAvg: 800, totalMedian: 450, cashAvg: 500, cashMedian: 300, investAvg: 300, investMedian: 50 };
+      case "40代":
+        return { totalAvg: 1200, totalMedian: 650, cashAvg: 700, cashMedian: 400, investAvg: 500, investMedian: 100 };
+      case "50代":
+        return { totalAvg: 1700, totalMedian: 950, cashAvg: 900, cashMedian: 500, investAvg: 800, investMedian: 150 };
+      default:
+        return { totalAvg: 2300, totalMedian: 1500, cashAvg: 1200, cashMedian: 700, investAvg: 1100, investMedian: 300 };
+    }
+  }, [ageGroupLabel]);
+
+  const currentTotalAssets = Math.round((input.currentCashAssets + input.currentInvestmentAssets) / 10_000);
+  const currentCash = Math.round(input.currentCashAssets / 10_000);
+  const currentInvest = Math.round(input.currentInvestmentAssets / 10_000);
+  const currentMonthlySave = Math.round(input.monthlyInvestmentContribution / 10_000);
+
   const chartData = useMemo(() => result.yearlyRecords
     .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === input.targetAge || record.activeEvents.length > 0)
     .map((record) => ({
@@ -62,6 +91,89 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* 1. あなたの現在地セクション */}
+      <Card className="border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>📍</span>
+              <span>{input.currentAge}歳のあなたの現在地</span>
+            </CardTitle>
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-full">{ageGroupLabel}の目安と比較</span>
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed mt-1">
+            現在の資産形成状況を、公的統計（金融広報中央委員会「家計の金融行動に関する世論調査」等）の{ageGroupLabel}平均・中央値と比較します。
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* 金融資産合計の比較 */}
+          <div className="bg-white rounded-2xl p-4 border border-emerald-100 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">金融資産合計（現金＋投資）</span>
+              <span className="text-xs text-slate-500">{ageGroupLabel}世帯</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-center pt-1">
+              <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-emerald-800">あなた</p>
+                <p className="text-base font-black text-emerald-900 mt-0.5">{currentTotalAssets}万円</p>
+                <p className="text-[10px] text-emerald-700 mt-0.5">現在残高</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-slate-700">平均値</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">約{benchmarkData.totalAvg}万円</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">全体平均</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+                <p className="text-[11px] font-bold text-slate-700">中央値</p>
+                <p className="text-base font-bold text-slate-900 mt-0.5">約{benchmarkData.totalMedian}万円</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">真ん中の値</p>
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between">
+              <span>同年代の中央値（約{benchmarkData.totalMedian}万）との差</span>
+              <span className={`font-bold ${currentTotalAssets >= benchmarkData.totalMedian ? "text-emerald-700" : "text-sky-700"}`}>
+                {(() => {
+                  const diff = currentTotalAssets - benchmarkData.totalMedian;
+                  if (diff === 0) return "中央値と同水準";
+                  return diff > 0 ? `中央値より 約${diff}万円多い` : `中央値より 約${Math.abs(diff)}万円少ない`;
+                })()}
+              </span>
+            </div>
+          </div>
+
+          {/* 詳細内訳テーブル */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-xs space-y-2">
+              <p className="text-xs font-bold text-slate-700">預貯金（現金資産）</p>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">あなた: <strong className="text-slate-900">{currentCash}万円</strong></span>
+                <span className="text-slate-500">平均: 約{benchmarkData.cashAvg}万 / 中央値: 約{benchmarkData.cashMedian}万</span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-xs space-y-2">
+              <p className="text-xs font-bold text-slate-700">投資資産（株・投資信託）</p>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-500">あなた: <strong className="text-slate-900">{currentInvest}万円</strong></span>
+                <span className="text-slate-500">平均: 約{benchmarkData.investAvg}万 / 中央値: 約{benchmarkData.investMedian}万</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 平均と中央値の用語解説 */}
+          <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 text-xs text-slate-600 space-y-1">
+            <p className="font-bold text-slate-800">💡 平均と中央値の見方について</p>
+            <p className="leading-relaxed">
+              <strong>平均：</strong>全体の合計を人数で割った値です（一部の高額保有者に引き上げられる傾向があります）。<br />
+              <strong>中央値：</strong>金額を少ない順に並べたときに真ん中に位置する値です（実態のボリューム層を表します）。
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 将来シミュレーション要約セクション */}
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
         <p className="text-center text-sm font-medium text-slate-600">{input.targetAge}歳時点の予想金融資産</p>
         <p className="mt-2 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">{formatCurrency(result.targetAgeAssets)}</p>
@@ -86,7 +198,7 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
         </div>
       )}
 
-      {/* 統計上の目安（平均・中央値）との比較カード */}
+      {/* 統計上の目安（生活費・年金）との比較カード */}
       <Card className="border-sky-100 shadow-sm bg-gradient-to-b from-white to-sky-50/40">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
