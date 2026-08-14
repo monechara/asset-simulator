@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Calendar, ChevronDown, ChevronUp, RotateCcw, ShieldAlert, TrendingUp } from "lucide-react";
+import { Calendar, ChevronDown, ChevronUp, MapPin, RotateCcw, ShieldAlert, Target, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { SimulatorInput, SimulatorResult } from "@/lib/simulator";
@@ -64,6 +64,13 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
   const currentCash = Math.round(input.currentCashAssets / 10_000);
   const currentInvest = Math.round(input.currentInvestmentAssets / 10_000);
   const currentMonthlySave = Math.round(input.monthlyInvestmentContribution / 10_000);
+  const currentAnnualBonus = Math.round(input.annualBonusInvestment / 10_000);
+  const currentReturnRate = input.annualReturnRate;
+  const retirementMonthlyLiving = Math.round((input.retirementMonthlyLivingExpenses ?? input.monthlyLivingExpenses * input.retirementLivingExpenseRatio) / 10_000);
+  const retirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12 / 10_000);
+  const retirementYears = Math.max(0, input.targetAge - input.retirementAge);
+  const requiredRetirementAssets = Math.max(0, (retirementMonthlyLiving - retirementMonthlyIncome) * 12 * retirementYears);
+  const retirementFundingGap = Math.round(result.targetAgeAssets / 10_000) - requiredRetirementAssets;
 
   const chartData = useMemo(() => result.yearlyRecords
     .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === input.targetAge || record.activeEvents.length > 0)
@@ -91,12 +98,34 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
 
   return (
     <div className="space-y-5">
-      {/* 1. あなたの現在地セクション */}
+      {/* 1. 将来のシミュレーション結果 */}
+      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
+        <div className="flex items-center justify-center gap-2 text-sm font-bold text-sky-800">
+          <Target className="h-4 w-4" />
+          <span>あなたのシミュレーション結果</span>
+        </div>
+        <p className="mt-4 text-center text-sm font-medium text-slate-600">{input.targetAge}歳時点の予想金融資産</p>
+        <p className="mt-2 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">{formatCurrency(result.targetAgeAssets)}</p>
+        <p className="mt-2 text-center text-xs text-slate-500">現金資産＋投資資産。住宅価値は含みません。</p>
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <SummaryMetric label="老後に必要な資金" value={`${requiredRetirementAssets.toLocaleString()}万円`} accent="amber" detail={`${input.retirementAge}〜${input.targetAge}歳の不足分を単純試算`} />
+          <SummaryMetric label="老後資金との差額" value={`${retirementFundingGap >= 0 ? "+" : "−"}${Math.abs(retirementFundingGap).toLocaleString()}万円`} accent={retirementFundingGap >= 0 ? "emerald" : "amber"} detail={retirementFundingGap >= 0 ? "必要資金を上回る試算" : "不足分が残る試算"} />
+        </div>
+      </motion.section>
+
+      {result.isDepleted && (
+        <div className="flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-900">
+          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
+          <div><p className="font-bold">金融資産が枯渇する可能性があります</p><p className="mt-1 text-sm leading-relaxed">{result.depletedAge}歳の年末に資産が不足する試算です。支出・積立・イベント条件を変えて比較してください。</p></div>
+        </div>
+      )}
+
+      {/* 2. あなたの現在地・同年代比較 */}
       <Card className="border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>📍</span>
+              <MapPin className="h-4 w-4 text-emerald-700" />
               <span>{input.currentAge}歳のあなたの現在地</span>
             </CardTitle>
             <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-full">{ageGroupLabel}の目安と比較</span>
@@ -173,32 +202,26 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
         </CardContent>
       </Card>
 
-      {/* 将来シミュレーション要約セクション */}
-      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
-        <p className="text-center text-sm font-medium text-slate-600">{input.targetAge}歳時点の予想金融資産</p>
-        <p className="mt-2 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">{formatCurrency(result.targetAgeAssets)}</p>
-        <p className="mt-2 text-center text-xs text-slate-500">現金資産＋投資資産。住宅価値は含みません。</p>
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <SummaryMetric label="現金資産" value={formatCurrency(result.yearlyRecords.at(-1)?.cashEnd ?? 0)} accent="sky" />
-          <SummaryMetric label="投資資産" value={formatCurrency(result.yearlyRecords.at(-1)?.investmentEnd ?? 0)} accent="emerald" />
-        </div>
-      </motion.section>
+      {/* 3. 現在の積立ペース */}
+      <Card className="border-violet-100 shadow-sm bg-violet-50/30">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-violet-700" />
+            <span>今の積立ペース</span>
+          </CardTitle>
+          <p className="text-xs text-slate-500 leading-relaxed mt-1">現在の資産と積立条件が、{input.targetAge}歳時点の予想資産につながっています。</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <SummaryMetric label="毎月の積立" value={`${currentMonthlySave}万円`} detail="投資資産へ" />
+            <SummaryMetric label="年間ボーナス投資" value={`${currentAnnualBonus}万円`} accent="amber" detail="年間合計" />
+            <SummaryMetric label="想定利回り" value={`${currentReturnRate}%`} accent="emerald" detail="将来保証なし" />
+            <SummaryMetric label="現在の金融資産" value={`${currentTotalAssets}万円`} accent="sky" detail="現金＋投資" />
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid grid-cols-2 gap-3">
-        <SummaryMetric label="投資元本" value={formatCurrency(result.totalPrincipalContributed)} detail="積立の累計" />
-        <SummaryMetric label="運用益" value={formatCurrency(result.totalInvestmentGain)} accent="emerald" detail="想定利回りによる試算" />
-        <SummaryMetric label="資産ピーク" value={formatCurrency(result.peakFinancialAssets)} detail={`${result.peakAge}歳時点`} />
-        <SummaryMetric label="目標達成年齢" value={result.targetAchievedAge ? `${result.targetAchievedAge}歳` : "未到達"} accent={result.targetAchievedAge ? "emerald" : "amber"} detail={input.targetAssets > 0 ? `目標 ${formatCurrency(input.targetAssets)}` : "目標未設定"} />
-      </div>
-
-      {result.isDepleted && (
-        <div className="flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-900">
-          <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
-          <div><p className="font-bold">金融資産が枯渇する可能性があります</p><p className="mt-1 text-sm leading-relaxed">{result.depletedAge}歳の年末に資産が不足する試算です。支出・積立・イベント条件を変えて比較してください。</p></div>
-        </div>
-      )}
-
-      {/* 統計上の目安（生活費・年金）との比較カード */}
+      {/* 4. 統計上の目安（生活費・年金）との比較カード */}
       <Card className="border-sky-100 shadow-sm bg-gradient-to-b from-white to-sky-50/40">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -223,7 +246,7 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
             <div className="grid grid-cols-3 gap-2 text-center pt-1">
               <div className="bg-sky-50 border border-sky-200 rounded-xl p-2.5">
                 <p className="text-[11px] font-bold text-sky-800">あなた</p>
-                <p className="text-base font-black text-sky-900 mt-0.5">{input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * (input.retirementLivingExpenseRatio))}万円</p>
+                <p className="text-base font-black text-sky-900 mt-0.5">{retirementMonthlyLiving}万円</p>
                 <p className="text-[10px] text-sky-700 mt-0.5">想定月額</p>
               </div>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
@@ -240,9 +263,9 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
 
             <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between">
               <span>統計目安（平均26万）との差</span>
-              <span className={`font-bold ${(input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio)) >= 26 ? "text-amber-700" : "text-emerald-700"}`}>
+              <span className={`font-bold ${retirementMonthlyLiving >= 26 ? "text-amber-700" : "text-emerald-700"}`}>
                 {(() => {
-                  const userVal = input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio);
+                  const userVal = retirementMonthlyLiving;
                   const diff = userVal - 26;
                   if (diff === 0) return "平均と同水準";
                   return diff > 0 ? `平均より 約${diff}万円多い` : `平均より 約${Math.abs(diff)}万円少ない`;
@@ -261,7 +284,7 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
             <div className="grid grid-cols-3 gap-2 text-center pt-1">
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5">
                 <p className="text-[11px] font-bold text-emerald-800">あなた</p>
-                <p className="text-base font-black text-emerald-900 mt-0.5">{Math.round(input.annualRetirementIncome / 12 / 10_000)}万円</p>
+                <p className="text-base font-black text-emerald-900 mt-0.5">{retirementMonthlyIncome}万円</p>
                 <p className="text-[10px] text-emerald-700 mt-0.5">想定月額</p>
               </div>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
@@ -278,9 +301,9 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
 
             <div className="text-xs text-slate-600 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between">
               <span>統計目安（平均15万）との差</span>
-              <span className={`font-bold ${Math.round(input.annualRetirementIncome / 12 / 10_000) >= 15 ? "text-emerald-700" : "text-amber-700"}`}>
+              <span className={`font-bold ${retirementMonthlyIncome >= 15 ? "text-emerald-700" : "text-amber-700"}`}>
                 {(() => {
-                  const userVal = Math.round(input.annualRetirementIncome / 12 / 10_000);
+                  const userVal = retirementMonthlyIncome;
                   const diff = userVal - 15;
                   if (diff === 0) return "平均と同水準";
                   return diff > 0 ? `平均より 約${diff}万円多い` : `平均より 約${Math.abs(diff)}万円少ない`;
@@ -314,6 +337,14 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* 6. 詳細なシミュレーション結果 */}
+      <div className="grid grid-cols-2 gap-3">
+        <SummaryMetric label="投資元本" value={formatCurrency(result.totalPrincipalContributed)} detail="積立の累計" />
+        <SummaryMetric label="運用益" value={formatCurrency(result.totalInvestmentGain)} accent="emerald" detail="想定利回りによる試算" />
+        <SummaryMetric label="資産ピーク" value={formatCurrency(result.peakFinancialAssets)} detail={`${result.peakAge}歳時点`} />
+        <SummaryMetric label="目標達成年齢" value={result.targetAchievedAge ? `${result.targetAchievedAge}歳` : "未到達"} accent={result.targetAchievedAge ? "emerald" : "amber"} detail={input.targetAssets > 0 ? `目標 ${formatCurrency(input.targetAssets)}` : "目標未設定"} />
+      </div>
 
       {eventRecords.length > 0 && <Card className="border-amber-100 shadow-sm"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Calendar className="h-4 w-4 text-amber-600" />ライフイベントの影響</CardTitle></CardHeader><CardContent className="space-y-2">{eventRecords.map((record) => <div key={record.age} className="flex items-center justify-between rounded-xl bg-amber-50 p-3"><div><p className="text-sm font-semibold text-slate-800">{record.age}歳：{record.activeEvents.join("・")}</p><p className="text-xs text-slate-500">イベント費 {formatCurrency(record.eventCost)} / ローン返済 {formatCurrency(record.loanRepayment)}</p></div><p className="text-sm font-bold text-slate-900">{formatCurrency(record.totalFinancialAssets)}</p></div>)}</CardContent></Card>}
 
