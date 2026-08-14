@@ -195,10 +195,12 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
           <div>
             <p className="text-[11px] font-medium text-slate-500">老後の不足見込み</p>
             <p className={`mt-0.5 text-xl font-black tabular-nums ${retirementShortfall === 0 ? "text-emerald-700" : "text-amber-800"}`}>{retirementShortfall.toLocaleString()}万円</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">生活費から年金等を差し引いた不足額</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] font-medium text-slate-500">目標達成予想</p>
+            <p className="text-[11px] font-medium text-slate-500" title="設定した目標金融資産に到達する年齢です">資産目標の到達予想 ⓘ</p>
             <p className="mt-0.5 text-xl font-black tabular-nums text-slate-900">{hasTargetAge ? `${result.targetAchievedAge}歳` : input.targetAssets > 0 ? "未到達" : "目標未設定"}</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">設定した目標金額への到達年齢</p>
           </div>
         </div>
       </motion.section>
