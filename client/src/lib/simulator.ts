@@ -427,8 +427,9 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     principal: Math.round(investmentAssets),
   });
 
-  for (let year = 1; year <= input.retirementEndAge - input.currentAge; year += 1) {
+  for (let year = 1; ; year += 1) {
     const age = input.currentAge + year;
+    if (age > input.retirementEndAge) break;
     const isRetired = age >= input.retirementAge;
     const isInvesting = age <= input.investmentEndAge;
     const monthlyIncome = isRetired ? input.annualRetirementIncome / MONTHS_PER_YEAR : input.monthlyIncome;
