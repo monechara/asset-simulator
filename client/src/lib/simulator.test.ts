@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateEventComparison,
+  calculateImprovementSimulation,
   calculateMonthlyComparison,
   calculateSimulation,
   createEvent,
@@ -231,6 +232,105 @@ describe("人生全体マネープラン計算", () => {
 
     expect(assetsAt65).toBeLessThan(1_000_000); // 65歳時点でもほぼ初期の5万円のみ
     expect(shortfall).toBeGreaterThan(0);
+  });
+
+  it("改善探索：積立額を増やすと想定終了年齢まで資産が残る最小額を見つける", () => {
+    const input = base({
+      currentAge: 30,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 0,
+      currentInvestmentAssets: 0,
+      monthlyIncome: 300_000,
+      monthlyLivingExpenses: 300_000,
+      monthlyInvestmentContribution: 0,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000,
+      annualReturnRate: 5,
+    });
+    const baseResult = calculateSimulation(input);
+    const improvement = calculateImprovementSimulation(input, baseResult);
+
+    expect(baseResult.isDepleted).toBe(true);
+    expect(improvement.status).toBe("increase");
+    expect(improvement.suggestedMonthlyInvestment).toBeGreaterThan(0);
+    expect(improvement.suggestedResult?.isDepleted).toBe(false);
+
+    const oneStepLess = calculateSimulation({
+      ...input,
+      monthlyInvestmentContribution: improvement.suggestedMonthlyInvestment! - improvement.searchStep,
+    });
+    expect(oneStepLess.isDepleted).toBe(true);
+  });
+
+  it("改善探索：最初から想定終了年齢まで資産が残る場合は増額提案をしない", () => {
+    const input = base({
+      currentAge: 30,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 1_000_000,
+      monthlyIncome: 300_000,
+      monthlyLivingExpenses: 200_000,
+      monthlyInvestmentContribution: 50_000,
+      retirementMonthlyLivingExpenses: 270_000,
+      annualRetirementIncome: 2_200_000,
+      annualReturnRate: 5,
+    });
+    const improvement = calculateImprovementSimulation(input);
+
+    expect(improvement.status).toBe("not-needed");
+    expect(improvement.suggestedMonthlyInvestment).toBeNull();
+    expect(improvement.targetAgeAssets).toBeGreaterThan(0);
+  });
+
+  it("改善探索：利回り0%で収支が厳しい場合は現実的な増額では解決しない", () => {
+    const input = base({
+      currentAge: 49,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 50_000,
+      currentInvestmentAssets: 0,
+      monthlyIncome: 150_000,
+      monthlyLivingExpenses: 150_000,
+      monthlyInvestmentContribution: 0,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000,
+      annualReturnRate: 0,
+    });
+    const improvement = calculateImprovementSimulation(input);
+
+    expect(improvement.status).toBe("not-found");
+    expect(improvement.suggestedMonthlyInvestment).toBeNull();
+    expect(improvement.maxAdditionalMonthlyInvestment).toBe(1_000_000);
+  });
+
+  it("改善探索：提案額の再計算結果は他の条件を変えずに枯渇を解消する", () => {
+    const input = base({
+      currentAge: 30,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 100_000,
+      currentInvestmentAssets: 100_000,
+      monthlyIncome: 300_000,
+      monthlyLivingExpenses: 300_000,
+      monthlyInvestmentContribution: 0,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000,
+      annualReturnRate: 5,
+    });
+    const improvement = calculateImprovementSimulation(input);
+
+    expect(improvement.status).toBe("increase");
+    expect(improvement.suggestedResult?.isDepleted).toBe(false);
+    expect(improvement.suggestedResult?.targetAgeAssets).toBeGreaterThanOrEqual(0);
   });
 
   it("給与余剰の自動貯蓄動作の検証：初期0円・月収30万・生活費15万・積立5万・利回り0%で1年間計算", () => {

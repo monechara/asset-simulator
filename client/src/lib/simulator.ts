@@ -120,6 +120,19 @@ export interface ComparisonResult {
   difference: number;
 }
 
+export type ImprovementSimulationStatus = "increase" | "not-needed" | "not-found";
+
+export interface ImprovementSimulationResult {
+  status: ImprovementSimulationStatus;
+  currentMonthlyInvestment: number;
+  suggestedMonthlyInvestment: number | null;
+  additionalMonthlyInvestment: number | null;
+  targetAgeAssets: number;
+  suggestedResult: SimulatorResult | null;
+  searchStep: number;
+  maxAdditionalMonthlyInvestment: number;
+}
+
 export interface StartAgeComparison {
   startAge: number;
   finalAssets: number;
@@ -499,6 +512,67 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     finalAssets: finalRecord.totalFinancialAssets,
     principalTotal: Math.round(totalPrincipalContributed),
     investmentGainTotal: Math.round(totalInvestmentGain),
+  };
+}
+
+/**
+ * 現在の条件で枯渇する場合に、他の条件を固定したまま、
+ * 想定終了年齢まで枯渇しない最小の毎月積立額を探索する。
+ * 既存の calculateSimulation を呼び出すだけの独立した比較計算であり、
+ * 基本の計算ロジック自体は変更しない。
+ */
+export function calculateImprovementSimulation(
+  input: SimulatorInput,
+  currentResult?: SimulatorResult,
+): ImprovementSimulationResult {
+  const searchStep = 1_000;
+  const maxAdditionalMonthlyInvestment = 1_000_000;
+  const baseResult = currentResult ?? calculateSimulation(input);
+  const currentMonthlyInvestment = input.monthlyInvestmentContribution;
+
+  if (!baseResult.isDepleted) {
+    return {
+      status: "not-needed",
+      currentMonthlyInvestment,
+      suggestedMonthlyInvestment: null,
+      additionalMonthlyInvestment: null,
+      targetAgeAssets: baseResult.targetAgeAssets,
+      suggestedResult: baseResult,
+      searchStep,
+      maxAdditionalMonthlyInvestment,
+    };
+  }
+
+  for (let additional = searchStep; additional <= maxAdditionalMonthlyInvestment; additional += searchStep) {
+    const suggestedMonthlyInvestment = currentMonthlyInvestment + additional;
+    const suggestedResult = calculateSimulation({
+      ...input,
+      monthlyInvestmentContribution: suggestedMonthlyInvestment,
+    });
+
+    if (!suggestedResult.isDepleted) {
+      return {
+        status: "increase",
+        currentMonthlyInvestment,
+        suggestedMonthlyInvestment,
+        additionalMonthlyInvestment: additional,
+        targetAgeAssets: suggestedResult.targetAgeAssets,
+        suggestedResult,
+        searchStep,
+        maxAdditionalMonthlyInvestment,
+      };
+    }
+  }
+
+  return {
+    status: "not-found",
+    currentMonthlyInvestment,
+    suggestedMonthlyInvestment: null,
+    additionalMonthlyInvestment: null,
+    targetAgeAssets: baseResult.targetAgeAssets,
+    suggestedResult: null,
+    searchStep,
+    maxAdditionalMonthlyInvestment,
   };
 }
 

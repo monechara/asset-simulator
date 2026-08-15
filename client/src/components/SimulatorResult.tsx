@@ -9,12 +9,13 @@ import { Calendar, ChevronDown, ChevronUp, MapPin, RotateCcw, ShieldAlert, Targe
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { SimulatorInput, SimulatorResult } from "@/lib/simulator";
-import { calculateMonthlyComparison, calculateStartAgeComparison, formatCurrency } from "@/lib/simulator";
+import { calculateImprovementSimulation, calculateMonthlyComparison, calculateStartAgeComparison, formatCurrency } from "@/lib/simulator";
 
 interface Props {
   result: SimulatorResult;
   input: SimulatorInput;
   onReset: () => void;
+  onUpdateInput?: (input: SimulatorInput) => void;
 }
 
 function SummaryMetric({ label, value, accent = "sky", detail }: { label: string; value: string; accent?: "sky" | "emerald" | "amber"; detail?: string }) {
@@ -32,9 +33,11 @@ function SummaryMetric({ label, value, accent = "sky", detail }: { label: string
   );
 }
 
-export default function SimulatorResultView({ result, input, onReset }: Props) {
+export default function SimulatorResultView({ result, input, onReset, onUpdateInput }: Props) {
   const [showMonthly, setShowMonthly] = useState(false);
   const [showStartAge, setShowStartAge] = useState(false);
+
+  const improvement = useMemo(() => calculateImprovementSimulation(input, result), [input, result]);
 
   // 年齢に応じた公的統計目安の取得（金融広報中央委員会「家計の金融行動に関する世論調査」等に基づく）
   const ageGroupLabel = useMemo(() => {
@@ -222,6 +225,70 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
           <div><p className="font-bold">金融資産が枯渇する可能性があります</p><p className="mt-1 text-sm leading-relaxed">{result.depletedAge}歳の年末に資産が不足する試算です。支出・積立・イベント条件を変えて比較してください。</p></div>
         </div>
       )}
+
+      {/* 💡 1つ変えた場合の改善シミュレーションカード */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-sm sm:p-6">
+        <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
+          <TrendingUp className="h-4 w-4" />
+          <span>💡 1つ変えると…</span>
+        </div>
+
+        {improvement.status === "increase" && improvement.additionalMonthlyInvestment !== null && improvement.suggestedMonthlyInvestment !== null ? (
+          <div className="mt-3 space-y-4">
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                毎月の積立投資額を
+                <span className="text-emerald-700">「現在 {(input.monthlyInvestmentContribution / 10_000).toFixed(1)}万円 → {(improvement.suggestedMonthlyInvestment / 10_000).toFixed(1)}万円」</span>
+                にすると、
+              </p>
+              <p className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+                毎月あと {(improvement.additionalMonthlyInvestment / 10_000).toFixed(1)}万円 積み立てると、{input.retirementEndAge}歳まで金融資産が枯渇しない試算です
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-white/80 p-4">
+              <div>
+                <p className="text-xs text-slate-500">改善後の{input.retirementEndAge}歳時点予想資産</p>
+                <p className="mt-0.5 text-lg font-black text-emerald-800 tabular-nums">{formatCurrency(improvement.targetAgeAssets)}</p>
+              </div>
+              {onUpdateInput && (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    onUpdateInput({
+                      ...input,
+                      monthlyInvestmentContribution: improvement.suggestedMonthlyInvestment!,
+                    });
+                  }}
+                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 text-sm shadow-sm transition-all"
+                >
+                  この条件で再計算する
+                </Button>
+              )}
+            </div>
+          </div>
+        ) : improvement.status === "not-needed" ? (
+          <div className="mt-3 space-y-2">
+            <p className="text-sm font-bold text-slate-900">
+              現在の条件では{input.retirementEndAge}歳時点でも金融資産が
+              <span className="text-emerald-700">約{Math.round(result.targetAgeAssets / 10_000).toLocaleString()}万円</span>
+              残る見込みです
+            </p>
+            <p className="text-xs text-slate-600">想定終了年齢まで資産が枯渇しないため、追加の増額は必須ではありません。</p>
+          </div>
+        ) : (
+          <div className="mt-3 space-y-2">
+            <p className="text-sm font-bold text-slate-900">
+              現在の収支前提では、毎月の積立増額のみで{input.retirementEndAge}歳までの枯渇を完全に解消することは困難です
+            </p>
+            <p className="text-xs text-slate-600">生活費の調整や、老後生活費・年金収入の見直しもあわせてご検討ください。</p>
+          </div>
+        )}
+
+        <p className="mt-4 text-[11px] leading-relaxed text-slate-400">
+          現在の入力条件を将来も一定とした場合の試算です。実際の運用成果、物価、収入、支出、年金額等により結果は変動します。
+        </p>
+      </motion.div>
 
       {/* 2. あなたの現在地・同年代比較 */}
       <Card className="border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">

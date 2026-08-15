@@ -217,7 +217,18 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <SimulatorResultView result={result} input={lastInput!} onReset={handleReset} />
+              <SimulatorResultView
+                result={result}
+                input={lastInput!}
+                onReset={handleReset}
+                onUpdateInput={(updatedInput) => {
+                  setLastInput(updatedInput);
+                  const newResult = calculateSimulation(updatedInput);
+                  setResult(newResult);
+                  toast.success("積立額を更新して再計算しました！");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              />
             </motion.div>
           )}
         </AnimatePresence>
