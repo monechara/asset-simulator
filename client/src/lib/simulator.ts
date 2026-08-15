@@ -427,9 +427,16 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     principal: Math.round(investmentAssets),
   });
 
+  // 90歳到達時点（retirementEndAge）で終了するため、処理対象は age <= retirementEndAge とする
+  // ただし、age は当年度の「期末（到達時点）」を表すため、現役期間は investmentEndAge 到達前（< investmentEndAge）までとする
   for (let year = 1; ; year += 1) {
     const age = input.currentAge + year;
     if (age > input.retirementEndAge) break;
+    // age は「その年の年末（到達年齢）」を表す
+    // 例: 35歳開始で year=1 の age=36 は、35歳〜36歳の1年間（36歳到達時点）の処理
+    // 現役期間は 35歳〜65歳到達直前（age <= input.retirementAge すなわち age 36〜65）
+    // 退職（老後）期間は 65歳到達後（age > input.retirementAge すなわち age 66〜90）
+    // 積立期間は investmentEndAge 到達前（age <= input.investmentEndAge すなわち age 36〜65）
     const isRetired = age >= input.retirementAge;
     const isInvesting = age <= input.investmentEndAge;
     const monthlyIncome = isRetired ? input.annualRetirementIncome / MONTHS_PER_YEAR : input.monthlyIncome;
