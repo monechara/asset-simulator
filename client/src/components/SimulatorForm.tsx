@@ -397,7 +397,41 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <input type="range" min="0" max="10" step="0.5" value={input.annualReturnRate} onChange={(event) => updateInput({ annualReturnRate: Number(event.target.value) })} className="w-full accent-emerald-600" />
                 <div className="flex justify-between text-xs text-slate-400"><span>0%</span><span>10%</span></div>
               </div>
-              <NumberField label="目標金融資産" value={input.targetAssets} onChange={(value) => updateInput({ targetAssets: value })} unit="万円" scale={10_000} min={0} hint="1,000万円なら「1000」と入力します。いつ到達するかを結果画面で確認できます。" />
+              <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/80 p-4">
+                <div>
+                  <Label className="text-sm font-medium text-slate-800">資産目標（任意）</Label>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">いつまでにいくら貯めたいか、任意の目標を設定して到達時期を確認できます。</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2" role="group" aria-label="資産目標の有無">
+                  <button
+                    type="button"
+                    onClick={() => updateInput({ targetAssets: 0 })}
+                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${input.targetAssets === 0 ? "border-sky-600 bg-sky-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-sky-300"}`}
+                    aria-pressed={input.targetAssets === 0}
+                  >
+                    設定しない
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateInput({ targetAssets: input.targetAssets > 0 ? input.targetAssets : 30_000_000 })}
+                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${input.targetAssets > 0 ? "border-sky-600 bg-sky-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-sky-300"}`}
+                    aria-pressed={input.targetAssets > 0}
+                  >
+                    目標金額を設定する
+                  </button>
+                </div>
+                {input.targetAssets > 0 && (
+                  <NumberField
+                    label="目標金額"
+                    value={input.targetAssets}
+                    onChange={(value) => updateInput({ targetAssets: value })}
+                    unit="万円"
+                    scale={10_000}
+                    min={0}
+                    hint="3,000万円なら「3000」と入力します。"
+                  />
+                )}
+              </div>
               <div className="space-y-4 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
                 <div>
                   <p className="text-sm font-bold text-slate-800">老後の前提</p>

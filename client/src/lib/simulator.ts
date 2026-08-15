@@ -866,7 +866,7 @@ export const DEFAULT_INPUT: SimulatorInput = {
   annualRetirementIncome: 2_200_000,
   retirementMonthlyLivingExpenses: 270_000,
   retirementLivingExpenseRatio: 0.75,
-  targetAssets: 30_000_000,
+  targetAssets: 0,
   householdSize: 2,
   lifeEvents: DEFAULT_LIFE_EVENTS,
   targetAge: 90,

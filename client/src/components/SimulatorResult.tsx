@@ -226,17 +226,21 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-white/75 px-3.5 py-3">
-          <div>
+        <div className={`mt-3 grid gap-3 ${input.targetAssets > 0 ? "grid-cols-2" : "grid-cols-1"}`}>
+          <div className="rounded-2xl border border-slate-200 bg-white/75 px-3.5 py-3">
             <p className="text-[11px] font-medium text-slate-500">老後の不足見込み</p>
             <p className={`mt-0.5 text-xl font-black tabular-nums ${retirementShortfall === 0 ? "text-emerald-700" : "text-amber-800"}`}>{retirementShortfall.toLocaleString()}万円</p>
             <p className="mt-0.5 text-[10px] text-slate-400">老後期間の生活費総額 − 年金収入総額 − 65歳時点資産</p>
           </div>
-          <div className="text-right">
-            <p className="text-[11px] font-medium text-slate-500" title="設定した目標金融資産に到達する年齢です">資産目標の到達予想 ⓘ</p>
-            <p className="mt-0.5 text-xl font-black tabular-nums text-slate-900">{hasTargetAge ? `${result.targetAchievedAge}歳` : input.targetAssets > 0 ? "未到達" : "目標未設定"}</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">設定した目標金額への到達年齢</p>
-          </div>
+          {input.targetAssets > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white/75 px-3.5 py-3 text-right">
+              <p className="text-[11px] font-medium text-slate-500">設定した資産目標</p>
+              <p className="mt-0.5 text-xl font-black tabular-nums text-slate-900">
+                {hasTargetAge ? `資産${Math.round(input.targetAssets / 10_000).toLocaleString()}万円の達成：${result.targetAchievedAge}歳` : `資産${Math.round(input.targetAssets / 10_000).toLocaleString()}万円：未到達`}
+              </p>
+              <p className="mt-0.5 text-[10px] text-slate-400">任意の資産目標に対する到達予想</p>
+            </div>
+          )}
         </div>
       </motion.section>
 
