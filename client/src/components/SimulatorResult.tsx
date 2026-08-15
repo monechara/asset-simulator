@@ -182,6 +182,8 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       .forEach((record) => {
         map.set(record.age, {
           age: record.age,
+          現金資産: Math.round(record.cashEnd / 10_000),
+          投資資産: Math.round(record.investmentEnd / 10_000),
           プランA_金融資産: Math.round(record.totalFinancialAssets / 10_000),
           プランA_現金: Math.round(record.cashEnd / 10_000),
           プランA_投資: Math.round(record.investmentEnd / 10_000),
@@ -193,6 +195,8 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
         .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === planBInput.targetAge || record.activeEvents.length > 0)
         .forEach((record) => {
           const existing = map.get(record.age) || { age: record.age };
+          existing.現金資産 = Math.round(record.cashEnd / 10_000);
+          existing.投資資産 = Math.round(record.investmentEnd / 10_000);
           existing.プランB_金融資産 = Math.round(record.totalFinancialAssets / 10_000);
           existing.プランB_現金 = Math.round(record.cashEnd / 10_000);
           existing.プランB_投資 = Math.round(record.investmentEnd / 10_000);
@@ -254,30 +258,60 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
             </CardContent>
           </Card>
 
-          {/* 3. あなたの現在地（要点を2〜3個に絞る） */}
-          <Card className="border-violet-100 shadow-sm bg-violet-50/30">
+          {/* 3. 同年代と比べると？（金融行動調査の中央値ベース比較） */}
+          <Card className="border-sky-100 shadow-sm bg-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span>📍</span>
-                <span>あなたの現在地</span>
+                <span>📊</span>
+                <span>同年代と比べると？（{benchmarkData.group}の目安）</span>
               </CardTitle>
-              <p className="text-xs text-slate-500 mt-1">現在の入力条件に基づく3つの重要ポイントです。</p>
+              <p className="text-xs text-slate-500 mt-1">{benchmarkData.sourceNote}の中央値データとの比較です。</p>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-xs">
-                <p className="text-xs text-slate-500 font-medium">現在の積立ペース</p>
-                <p className="mt-1 text-lg font-bold text-slate-900">{Math.round(input.monthlyInvestmentContribution / 10_000)}万円 / 月</p>
-                <p className="mt-0.5 text-[11px] text-emerald-700">コツコツ資産形成中</p>
+            <CardContent className="space-y-4">
+              {/* ① 現在の金融資産比較 */}
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                  <span>現在の金融資産（現金＋投資）</span>
+                  <span className={currentTotalAssets >= benchmarkData.totalMedian ? "text-emerald-700" : "text-amber-700"}>
+                    {currentTotalAssets >= benchmarkData.totalMedian ? `同年代の中央値より +${(currentTotalAssets - benchmarkData.totalMedian).toLocaleString()}万円` : `同年代の中央値まで あと${(benchmarkData.totalMedian - currentTotalAssets).toLocaleString()}万円`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="bg-white p-3 rounded-xl border border-sky-100 shadow-xs">
+                    <p className="text-[11px] text-slate-500">あなた</p>
+                    <p className="text-lg font-black text-slate-900 mt-0.5">{currentTotalAssets.toLocaleString()}万円</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-xs">
+                    <p className="text-[11px] text-slate-500">同年代の目安（中央値）</p>
+                    <p className="text-lg font-bold text-slate-700 mt-0.5">{benchmarkData.totalMedian.toLocaleString()}万円</p>
+                  </div>
+                </div>
+                <div className="relative w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mt-2">
+                  <div className="absolute top-0 left-0 bg-sky-500 h-full rounded-full" style={{ width: markerPosition(currentTotalAssets) }} />
+                </div>
               </div>
-              <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-xs">
-                <p className="text-xs text-slate-500 font-medium">資産ピーク</p>
-                <p className="mt-1 text-lg font-bold text-slate-900">{formatCurrency(result.peakFinancialAssets)}</p>
-                <p className="mt-0.5 text-[11px] text-slate-500">{result.peakAge}歳時点</p>
-              </div>
-              <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-xs">
-                <p className="text-xs text-slate-500 font-medium">老後資金の安定度</p>
-                <p className="mt-1 text-lg font-bold text-slate-900">{result.isDepleted ? `${result.depletedAge}歳頃に要注意` : "安定（枯渇なし）"}</p>
-                <p className="mt-0.5 text-[11px] text-sky-700">{result.isDepleted ? "詳細設定で調整推奨" : "良好な推移です"}</p>
+
+              {/* ② 毎月の積立額比較 */}
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                  <span>毎月の積立額</span>
+                  <span className={currentMonthlySave >= benchmarkData.monthlySaveAvg ? "text-emerald-700" : "text-amber-700"}>
+                    {currentMonthlySave >= benchmarkData.monthlySaveAvg ? `同年代の目安より +${Math.round((currentMonthlySave - benchmarkData.monthlySaveAvg) * 10) / 10}万円 / 月` : `同年代の目安まで あこと${Math.round((benchmarkData.monthlySaveAvg - currentMonthlySave) * 10) / 10}万円 / 月`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-xs">
+                    <p className="text-[11px] text-slate-500">あなた</p>
+                    <p className="text-lg font-black text-slate-900 mt-0.5">{currentMonthlySave}万円 / 月</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-xs">
+                    <p className="text-[11px] text-slate-500">同年代の目安（調査平均）</p>
+                    <p className="text-lg font-bold text-slate-700 mt-0.5">{benchmarkData.monthlySaveAvg}万円 / 月</p>
+                  </div>
+                </div>
+                <div className="relative w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mt-2">
+                  <div className="absolute top-0 left-0 bg-emerald-500 h-full rounded-full" style={{ width: `${Math.min(100, (currentMonthlySave / (benchmarkData.monthlySaveAvg * 2)) * 100)}%` }} />
+                </div>
               </div>
             </CardContent>
           </Card>
