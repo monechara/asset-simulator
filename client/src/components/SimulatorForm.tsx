@@ -210,6 +210,7 @@ export default function SimulatorForm({ onCalculate }: Props) {
   const minimumTargetAge = Math.min(100, input.currentAge + 1);
   const currentRetirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12);
   const currentRetirementMonthlyLivingExpenses = input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio);
+  const monthlyCashRemaining = input.monthlyIncome - input.monthlyLivingExpenses - input.monthlyInvestmentContribution;
   const eventSummary = useMemo(() => {
     const summary: string[] = [];
     if (hasMarriage) summary.push(`結婚 ${marriageAge}歳`);
@@ -357,8 +358,36 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">積立後に残るお金は現金として蓄積され、積立額は投資資産へ振り替えます。</p>
               </div>
               <NumberField label="手取り月収" value={input.monthlyIncome} onChange={(value) => updateInput({ monthlyIncome: value })} unit="万円/月" scale={10_000} min={0} />
-              <NumberField label="毎月の生活費" value={input.monthlyLivingExpenses} onChange={(value) => updateInput({ monthlyLivingExpenses: value })} unit="万円/月" scale={10_000} min={0} />
+              <NumberField label="毎月の支出" value={input.monthlyLivingExpenses} onChange={(value) => updateInput({ monthlyLivingExpenses: value })} unit="万円/月" scale={10_000} min={0} hint="家賃・食費・日用品・娯楽など、普段使うお金を含めて入力してください。" />
               <NumberField label="毎月の積立投資額" value={input.monthlyInvestmentContribution} onChange={(value) => updateInput({ monthlyInvestmentContribution: value })} unit="万円/月" scale={10_000} min={0} />
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4" aria-live="polite">
+                <p className="text-sm font-bold text-slate-800">毎月のお金の流れ</p>
+                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-slate-500">手取り</p>
+                    <p className="mt-0.5 font-bold text-slate-900">{formatManValue(input.monthlyIncome)}万円</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">支出</p>
+                    <p className="mt-0.5 font-bold text-slate-900">{formatManValue(input.monthlyLivingExpenses)}万円</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">投資</p>
+                    <p className="mt-0.5 font-bold text-slate-900">{formatManValue(input.monthlyInvestmentContribution)}万円</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">{monthlyCashRemaining >= 0 ? "現金として残る" : "現金の不足"}</p>
+                    <p className={`mt-0.5 font-bold ${monthlyCashRemaining >= 0 ? "text-emerald-700" : "text-orange-700"}`}>
+                      {formatManValue(Math.abs(monthlyCashRemaining))}万円/月
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-emerald-800">
+                  {monthlyCashRemaining >= 0
+                    ? "残ったお金は現金資産として貯まる設定です。"
+                    : "支出と投資が手取りを上回っているため、現金資産を取り崩す設定です。"}
+                </p>
+              </div>
               <NumberField label="年間ボーナスから投資する金額" value={input.annualBonusInvestment} onChange={(value) => updateInput({ annualBonusInvestment: value })} unit="万円/年" scale={10_000} min={0} hint="ボーナスから年間合計で投資する金額。20万円なら「20」と入力します。年末に投資資産へ振り替えて試算します。" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
