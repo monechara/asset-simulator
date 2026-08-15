@@ -241,43 +241,58 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
         </div>
       )}
 
-      {/* 💡 1つ変えた場合の改善シミュレーションカード */}
+      {/* 💡 1つ変えた場合の改善シミュレーションカード（Before→After） */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-sm sm:p-6">
         <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
           <TrendingUp className="h-4 w-4" />
           <span>💡 1つ変えると…</span>
         </div>
 
-        {improvement.status === "increase" && improvement.additionalMonthlyInvestment !== null && improvement.suggestedMonthlyInvestment !== null ? (
-          <div className="mt-3 space-y-4">
+        {improvement.bestProposal ? (
+          <div className="mt-4 space-y-4">
             <div>
-              <p className="text-sm font-bold text-slate-900">
-                毎月の積立投資額を
-                <span className="text-emerald-700">「現在 {(input.monthlyInvestmentContribution / 10_000).toFixed(1)}万円 → {(improvement.suggestedMonthlyInvestment / 10_000).toFixed(1)}万円」</span>
-                にすると、
-              </p>
-              <p className="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
-                毎月あと {(improvement.additionalMonthlyInvestment / 10_000).toFixed(1)}万円 積み立てると、{input.retirementEndAge}歳まで金融資産が枯渇しない試算です
+              <p className="text-base font-black tracking-tight text-slate-900">
+                {improvement.bestProposal.description}
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-white/80 p-4">
-              <div>
-                <p className="text-xs text-slate-500">改善後の{input.retirementEndAge}歳時点予想資産</p>
-                <p className="mt-0.5 text-lg font-black text-emerald-800 tabular-nums">{formatCurrency(improvement.targetAgeAssets)}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 p-3.5">
+                <p className="text-xs font-medium text-slate-500">資産が持つ年齢（寿命）</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-sm font-bold text-slate-400 line-through">
+                    {improvement.bestProposal.beforeDepletedAge ? `${improvement.bestProposal.beforeDepletedAge}歳` : `${input.retirementEndAge}歳以上`}
+                  </span>
+                  <span className="text-lg font-black text-emerald-800">
+                    {improvement.bestProposal.afterDepletedAge ? `${improvement.bestProposal.afterDepletedAge}歳` : `${input.retirementEndAge}歳以上`}
+                  </span>
+                </div>
               </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-white/80 p-3.5">
+                <p className="text-xs font-medium text-slate-500">老後の不足見込み</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-sm font-bold text-slate-400 line-through">
+                    {improvement.bestProposal.beforeShortfall.toLocaleString()}万円
+                  </span>
+                  <span className="text-lg font-black text-emerald-800">
+                    {improvement.bestProposal.afterShortfall.toLocaleString()}万円
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-slate-500">実測シミュレーションによる改善効果</span>
               {onUpdateInput && (
                 <Button
                   type="button"
                   onClick={() => {
-                    onUpdateInput({
-                      ...input,
-                      monthlyInvestmentContribution: improvement.suggestedMonthlyInvestment!,
-                    });
+                    onUpdateInput(improvement.bestProposal!.updatedInput);
                   }}
                   className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 text-sm shadow-sm transition-all"
                 >
-                  この条件で再計算する
+                  この条件で試す
                 </Button>
               )}
             </div>
@@ -289,18 +304,12 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               <span className="text-emerald-700">約{Math.round(result.targetAgeAssets / 10_000).toLocaleString()}万円</span>
               残る見込みです
             </p>
-            <p className="text-xs text-slate-600">想定終了年齢まで資産が枯渇しないため、追加の増額は必須ではありません。</p>
-          </div>
-        ) : improvement.status === "no-capacity" ? (
-          <div className="mt-3 space-y-2">
-            <p className="text-lg font-black tracking-tight text-slate-900">現在の家計では、積立額をこれ以上増やす余力がありません</p>
-            <p className="text-xs leading-relaxed text-slate-600">手取り収入から現役期間の支出を差し引いた範囲を、毎月の積立可能額の上限として計算しています。</p>
-            <p className="text-xs leading-relaxed font-semibold text-emerald-800">生活費・退職年齢・老後生活費などを見直すことで改善できる可能性があります。</p>
+            <p className="text-xs text-slate-600">想定終了年齢まで資産が枯渇しないため、追加の調整は必須ではありません。</p>
           </div>
         ) : (
           <div className="mt-3 space-y-2">
-            <p className="text-lg font-black tracking-tight text-slate-900">積立額の増額だけでは解決できません</p>
-            <p className="text-xs leading-relaxed text-slate-600">積立可能額の上限まで増やしても資産が持たない試算です。生活費・退職年齢・老後生活費などの見直しもあわせてご検討ください。</p>
+            <p className="text-base font-black text-slate-900">1つの変更だけでは十分な改善が難しいため、複数の条件を組み合わせて考える必要があります</p>
+            <p className="text-xs leading-relaxed text-slate-600">生活費の調整、積立期間の延長、老後生活費や年金収入の再設計など複数の項目を見直すことで、より確実な資産形成につながります。</p>
           </div>
         )}
 

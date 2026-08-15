@@ -122,6 +122,24 @@ export interface ComparisonResult {
 
 export type ImprovementSimulationStatus = "increase" | "not-needed" | "no-capacity" | "not-found";
 
+export type ImprovementCategory = "monthly-investment" | "bonus-investment" | "investment-end-age" | "retirement-living";
+
+export interface ImprovementProposal {
+  category: ImprovementCategory;
+  title: string;
+  description: string;
+  changedParamLabel: string;
+  beforeValueFormatted: string;
+  afterValueFormatted: string;
+  beforeDepletedAge: number | null;
+  afterDepletedAge: number | null;
+  beforeShortfall: number;
+  afterShortfall: number;
+  score: number; // 改善の大きさ・現実性のスコア
+  updatedInput: SimulatorInput;
+  updatedResult: SimulatorResult;
+}
+
 export interface ImprovementSimulationResult {
   status: ImprovementSimulationStatus;
   currentMonthlyInvestment: number;
@@ -133,6 +151,7 @@ export interface ImprovementSimulationResult {
   maxAdditionalMonthlyInvestment: number;
   maxAffordableMonthlyInvestment: number;
   additionalMonthlyCapacity: number;
+  bestProposal: ImprovementProposal | null;
 }
 
 export interface StartAgeComparison {
@@ -550,6 +569,7 @@ export function calculateImprovementSimulation(
       suggestedMonthlyInvestment: null,
       additionalMonthlyInvestment: null,
       suggestedResult: baseResult,
+      bestProposal: null,
       ...baseFields,
     };
   }
@@ -560,6 +580,7 @@ export function calculateImprovementSimulation(
       suggestedMonthlyInvestment: null,
       additionalMonthlyInvestment: null,
       suggestedResult: null,
+      bestProposal: null,
       ...baseFields,
     };
   }
@@ -587,15 +608,166 @@ export function calculateImprovementSimulation(
         additionalMonthlyInvestment: additional,
         targetAgeAssets: suggestedResult.targetAgeAssets,
         suggestedResult,
+        bestProposal: null,
       };
     }
   }
 
+  let bestProposal: ImprovementProposal | null = null;
+
+  // 補助関数：老後不足額（万円）の計算
+  const calcShortfall = (inp: SimulatorInput, res: SimulatorResult): number => {
+    const living = Math.round((inp.retirementMonthlyLivingExpenses ?? inp.monthlyLivingExpenses * inp.retirementLivingExpenseRatio) / 10_000);
+    const income = Math.round(inp.annualRetirementIncome / 12 / 10_000);
+    const years = Math.max(0, inp.retirementEndAge - inp.retirementAge);
+    const totalLiving = living * 12 * years;
+    const totalIncome = income * 12 * years;
+    const netNeed = Math.max(0, totalLiving - totalIncome);
+    return Math.max(0, netNeed - Math.round(res.targetAgeAssets / 10_000));
+  };
+
+  const baseShortfall = calcShortfall(input, baseResult);
+  const baseDepletedAge = baseResult.depletedAge;
+
+  // 候補1：毎月の積立額を増やす（家計上限の範囲内、1万円単位など）
+  if (additionalMonthlyCapacity >= 10_000) {
+    // 試行する増額ステップ（1万円、3万円、または上限額）
+    const increments = [10_000, 20_000, 30_000, 50_000, additionalMonthlyCapacity].filter((v, idx, arr) => arr.indexOf(v) === idx && v <= additionalMonthlyCapacity);
+    for (const inc of increments) {
+      const newMonthly = currentMonthlyInvestment + inc;
+      const updatedInput: SimulatorInput = { ...input, monthlyInvestmentContribution: newMonthly };
+      const res = calculateSimulation(updatedInput);
+      const shortfall = calcShortfall(updatedInput, res);
+      const ageDiff = (res.depletedAge ?? 999) - (baseDepletedAge ?? 999);
+      const shortfallDiff = baseShortfall - shortfall;
+      const score = ageDiff * 10 + shortfallDiff * 2 + (inc / 10_000);
+
+      const proposal: ImprovementProposal = {
+        category: "monthly-investment",
+        title: "毎月の積立額を増やす",
+        description: `毎月の積立投資額を ${(currentMonthlyInvestment / 10_000).toFixed(1)}万円 → ${(newMonthly / 10_000).toFixed(1)}万円 に増やす`,
+        changedParamLabel: "毎月の積立額",
+        beforeValueFormatted: `${(currentMonthlyInvestment / 10_000).toFixed(1)}万円/月`,
+        afterValueFormatted: `${(newMonthly / 10_000).toFixed(1)}万円/月`,
+        beforeDepletedAge: baseDepletedAge,
+        afterDepletedAge: res.depletedAge,
+        beforeShortfall: baseShortfall,
+        afterShortfall: shortfall,
+        score,
+        updatedInput,
+        updatedResult: res,
+      };
+
+      if (!bestProposal || proposal.score > bestProposal.score) {
+        bestProposal = proposal;
+      }
+    }
+  }
+
+  // 候補2：年間ボーナス投資額を増やす（ボーナス収入上限などがないため、現実的な範囲で最大+20万円程度まで）
+  const bonusIncrements = [50_000, 100_000, 200_000];
+  for (const inc of bonusIncrements) {
+    const newBonus = input.annualBonusInvestment + inc;
+    const updatedInput: SimulatorInput = { ...input, annualBonusInvestment: newBonus };
+    const res = calculateSimulation(updatedInput);
+    const shortfall = calcShortfall(updatedInput, res);
+    const ageDiff = (res.depletedAge ?? 999) - (baseDepletedAge ?? 999);
+    const shortfallDiff = baseShortfall - shortfall;
+    const score = ageDiff * 10 + shortfallDiff * 2 + (inc / 50_000);
+
+    const proposal: ImprovementProposal = {
+      category: "bonus-investment",
+      title: "年間ボーナス投資額を増やす",
+      description: `年間ボーナス投資額を ${(input.annualBonusInvestment / 10_000).toFixed(0)}万円 → ${(newBonus / 10_000).toFixed(0)}万円 に増やす`,
+      changedParamLabel: "年間ボーナス投資",
+      beforeValueFormatted: `${(input.annualBonusInvestment / 10_000).toFixed(0)}万円/年`,
+      afterValueFormatted: `${(newBonus / 10_000).toFixed(0)}万円/年`,
+      beforeDepletedAge: baseDepletedAge,
+      afterDepletedAge: res.depletedAge,
+      beforeShortfall: baseShortfall,
+      afterShortfall: shortfall,
+      score,
+      updatedInput,
+      updatedResult: res,
+    };
+
+    if (!bestProposal || proposal.score > bestProposal.score) {
+      bestProposal = proposal;
+    }
+  }
+
+  // 候補3：積立終了年齢を1〜5年延長する
+  for (let years = 1; years <= 5; years += 1) {
+    const newEndAge = Math.min(input.retirementEndAge, input.investmentEndAge + years);
+    if (newEndAge <= input.investmentEndAge) continue;
+    const updatedInput: SimulatorInput = { ...input, investmentEndAge: newEndAge };
+    const res = calculateSimulation(updatedInput);
+    const shortfall = calcShortfall(updatedInput, res);
+    const ageDiff = (res.depletedAge ?? 999) - (baseDepletedAge ?? 999);
+    const shortfallDiff = baseShortfall - shortfall;
+    const score = ageDiff * 10 + shortfallDiff * 2 + years * 3;
+
+    const proposal: ImprovementProposal = {
+      category: "investment-end-age",
+      title: "積立終了年齢を延長する",
+      description: `積立を続ける期間を ${input.investmentEndAge}歳 → ${newEndAge}歳 まで ${years}年 延長する`,
+      changedParamLabel: "積立終了年齢",
+      beforeValueFormatted: `${input.investmentEndAge}歳`,
+      afterValueFormatted: `${newEndAge}歳`,
+      beforeDepletedAge: baseDepletedAge,
+      afterDepletedAge: res.depletedAge,
+      beforeShortfall: baseShortfall,
+      afterShortfall: shortfall,
+      score,
+      updatedInput,
+      updatedResult: res,
+    };
+
+    if (!bestProposal || proposal.score > bestProposal.score) {
+      bestProposal = proposal;
+    }
+  }
+
+  // 候補4：老後の毎月生活費を1万円単位で下げる（最大20%程度または最大-3万円まで）
+  const currentRetirementLivingYen = input.retirementMonthlyLivingExpenses ?? input.monthlyLivingExpenses * input.retirementLivingExpenseRatio;
+  const currentRetirementLivingMan = currentRetirementLivingYen / 10_000;
+  const reductionSteps = [10_000, 20_000, 30_000].filter(step => currentRetirementLivingYen - step >= 80_000 && step <= currentRetirementLivingYen * 0.2);
+  for (const red of reductionSteps) {
+    const newLivingYen = currentRetirementLivingYen - red;
+    const updatedInput: SimulatorInput = { ...input, retirementMonthlyLivingExpenses: newLivingYen };
+    const res = calculateSimulation(updatedInput);
+    const shortfall = calcShortfall(updatedInput, res);
+    const ageDiff = (res.depletedAge ?? 999) - (baseDepletedAge ?? 999);
+    const shortfallDiff = baseShortfall - shortfall;
+    const score = ageDiff * 10 + shortfallDiff * 3 + (red / 10_000) * 4;
+
+    const proposal: ImprovementProposal = {
+      category: "retirement-living",
+      title: "老後の毎月生活費を見直す",
+      description: `老後の毎月生活費を ${(currentRetirementLivingYen / 10_000).toFixed(1)}万円 → ${(newLivingYen / 10_000).toFixed(1)}万円 に下げる`,
+      changedParamLabel: "老後の毎月生活費",
+      beforeValueFormatted: `${(currentRetirementLivingYen / 10_000).toFixed(1)}万円/月`,
+      afterValueFormatted: `${(newLivingYen / 10_000).toFixed(1)}万円/月`,
+      beforeDepletedAge: baseDepletedAge,
+      afterDepletedAge: res.depletedAge,
+      beforeShortfall: baseShortfall,
+      afterShortfall: shortfall,
+      score,
+      updatedInput,
+      updatedResult: res,
+    };
+
+    if (!bestProposal || proposal.score > bestProposal.score) {
+      bestProposal = proposal;
+    }
+  }
+
   return {
-    status: "not-found",
+    status: baseResult.isDepleted ? "increase" : "not-needed",
     suggestedMonthlyInvestment: null,
     additionalMonthlyInvestment: null,
     suggestedResult: null,
+    bestProposal,
     ...baseFields,
   };
 }
