@@ -205,6 +205,7 @@ export default function SimulatorForm({ onCalculate }: Props) {
   const [isCalculating, setIsCalculating] = useState(false);
   const [pensionSelection, setPensionSelection] = useState<number | "custom">(150_000);
   const [livingExpenseSelection, setLivingExpenseSelection] = useState<number | "custom">(RETIREMENT_LIVING_EXPENSE_BENCHMARK);
+  const [retirementEndAgeSelection, setRetirementEndAgeSelection] = useState<number | "custom">(90);
 
   const minimumTargetAge = Math.min(100, input.currentAge + 1);
   const currentRetirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12);
@@ -301,7 +302,50 @@ export default function SimulatorForm({ onCalculate }: Props) {
               <NumberField label="現在の現金資産" value={input.currentCashAssets} onChange={(value) => updateInput({ currentCashAssets: value })} unit="万円" scale={10_000} min={0} hint="預金・普通預金など。100万円なら「100」と入力します。投資資産とは分けて入力します。" />
               <NumberField label="現在の投資資産" value={input.currentInvestmentAssets} onChange={(value) => updateInput({ currentInvestmentAssets: value })} unit="万円" scale={10_000} min={0} hint="投資信託・株式など、運用中の金融資産。" />
               <AgeField label="何歳まで積み立てますか？（積立終了年齢）" value={input.investmentEndAge} onChange={(value) => updateInput({ investmentEndAge: value })} min={input.currentAge + 1} max={100} />
-              <AgeField label="老後資金は何歳まで想定しますか？（想定終了年齢）" value={input.retirementEndAge} onChange={(value) => updateInput({ retirementEndAge: value, targetAge: value })} min={Math.max(input.currentAge + 1, input.retirementAge)} max={100} />
+              <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/80 p-4">
+                <div>
+                  <Label className="text-sm font-medium text-slate-800">老後資金は何歳まで想定しますか？</Label>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">迷ったら90歳を目安にできます。生活スタイルや健康状態に合わせて変更できます。</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="老後資金の想定終了年齢">
+                  {[85, 90, 95, 100].map((age) => {
+                    const selected = retirementEndAgeSelection === age;
+                    return (
+                      <button
+                        key={age}
+                        type="button"
+                        onClick={() => {
+                          setRetirementEndAgeSelection(age);
+                          updateInput({ retirementEndAge: age, targetAge: age });
+                        }}
+                        className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${selected ? "border-sky-600 bg-sky-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-sky-300"}`}
+                        aria-pressed={selected}
+                      >
+                        {age}歳まで
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRetirementEndAgeSelection("custom");
+                    }}
+                    className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors col-span-2 sm:col-span-4 ${retirementEndAgeSelection === "custom" ? "border-sky-600 bg-sky-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-sky-300"}`}
+                    aria-pressed={retirementEndAgeSelection === "custom"}
+                  >
+                    その他（自由入力）
+                  </button>
+                </div>
+                {retirementEndAgeSelection === "custom" && (
+                  <AgeField
+                    label="老後資金の想定終了年齢"
+                    value={input.retirementEndAge}
+                    onChange={(value) => updateInput({ retirementEndAge: value, targetAge: value })}
+                    min={Math.max(input.currentAge + 1, input.retirementAge)}
+                    max={100}
+                  />
+                )}
+              </div>
             </motion.div>
           )}
 

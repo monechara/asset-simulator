@@ -165,9 +165,19 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
           <Target className="h-4 w-4" />
           <span>あなたのシミュレーション結果</span>
         </div>
-        <p className="mt-4 text-center text-sm font-medium text-slate-600">{input.targetAge}歳時点の予想金融資産</p>
+        <p className="mt-4 text-center text-sm font-medium text-slate-600">{input.retirementEndAge}歳時点の予想金融資産</p>
         <p className="mt-1 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">{formatCurrency(result.targetAgeAssets)}</p>
         <p className="mt-2 text-center text-xs text-slate-500">現金資産＋投資資産。住宅価値は含みません。</p>
+
+        {result.isDepleted && result.depletedAge !== null && (
+          <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 shrink-0 text-rose-600" />
+              <p className="text-sm font-bold">{result.depletedAge}歳で資産が枯渇する試算です</p>
+            </div>
+            <p className="mt-1 text-xs text-rose-700">想定終了年齢（{input.retirementEndAge}歳）に到達する前に金融資産がゼロになる試算となっています。</p>
+          </div>
+        )}
 
         <div className={`mt-4 rounded-2xl border p-3.5 ${retirementShortfall === 0 ? "border-emerald-200 bg-emerald-50/80" : "border-amber-200 bg-amber-50/80"}`}>
           <div className="flex items-start gap-2.5">
