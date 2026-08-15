@@ -205,6 +205,21 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
           </div>
         </div>
 
+        <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-violet-100 bg-violet-50/70 p-3">
+          <div>
+            <p className="text-[11px] font-medium text-slate-500">退職</p>
+            <p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{input.retirementAge}歳</p>
+          </div>
+          <div>
+            <p className="text-[11px] font-medium text-slate-500">老後生活費</p>
+            <p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{retirementMonthlyLiving}万円/月</p>
+          </div>
+          <div>
+            <p className="text-[11px] font-medium text-slate-500">年金</p>
+            <p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{retirementMonthlyIncome}万円/月</p>
+          </div>
+        </div>
+
         <div className="mt-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-white/75 px-3.5 py-3">
           <div>
             <p className="text-[11px] font-medium text-slate-500">老後の不足見込み</p>
@@ -276,12 +291,16 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
             </p>
             <p className="text-xs text-slate-600">想定終了年齢まで資産が枯渇しないため、追加の増額は必須ではありません。</p>
           </div>
+        ) : improvement.status === "no-capacity" ? (
+          <div className="mt-3 space-y-2">
+            <p className="text-lg font-black tracking-tight text-slate-900">現在の家計では、積立額をこれ以上増やす余力がありません</p>
+            <p className="text-xs leading-relaxed text-slate-600">手取り収入から現役期間の支出を差し引いた範囲を、毎月の積立可能額の上限として計算しています。</p>
+            <p className="text-xs leading-relaxed font-semibold text-emerald-800">生活費・退職年齢・老後生活費などを見直すことで改善できる可能性があります。</p>
+          </div>
         ) : (
           <div className="mt-3 space-y-2">
-            <p className="text-sm font-bold text-slate-900">
-              現在の収支前提では、毎月の積立増額のみで{input.retirementEndAge}歳までの枯渇を完全に解消することは困難です
-            </p>
-            <p className="text-xs text-slate-600">生活費の調整や、老後生活費・年金収入の見直しもあわせてご検討ください。</p>
+            <p className="text-lg font-black tracking-tight text-slate-900">積立額の増額だけでは解決できません</p>
+            <p className="text-xs leading-relaxed text-slate-600">積立可能額の上限まで増やしても資産が持たない試算です。生活費・退職年齢・老後生活費などの見直しもあわせてご検討ください。</p>
           </div>
         )}
 

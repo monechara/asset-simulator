@@ -234,17 +234,17 @@ describe("人生全体マネープラン計算", () => {
     expect(shortfall).toBeGreaterThan(0);
   });
 
-  it("改善探索：積立額を増やすと想定終了年齢まで資産が残る最小額を見つける", () => {
+  it("改善探索：家計上限の範囲で積立額を増やすと想定終了年齢まで資産が残る最小額を見つける", () => {
     const input = base({
-      currentAge: 30,
+      currentAge: 49,
       investmentEndAge: 65,
       retirementAge: 65,
       retirementEndAge: 90,
       targetAge: 90,
       currentCashAssets: 0,
       currentInvestmentAssets: 0,
-      monthlyIncome: 300_000,
-      monthlyLivingExpenses: 300_000,
+      monthlyIncome: 250_000,
+      monthlyLivingExpenses: 200_000,
       monthlyInvestmentContribution: 0,
       retirementMonthlyLivingExpenses: 150_000,
       annualRetirementIncome: 1_200_000,
@@ -305,22 +305,23 @@ describe("人生全体マネープラン計算", () => {
     });
     const improvement = calculateImprovementSimulation(input);
 
-    expect(improvement.status).toBe("not-found");
+    expect(improvement.status).toBe("no-capacity");
     expect(improvement.suggestedMonthlyInvestment).toBeNull();
-    expect(improvement.maxAdditionalMonthlyInvestment).toBe(1_000_000);
+    expect(improvement.maxAffordableMonthlyInvestment).toBe(0);
+    expect(improvement.additionalMonthlyCapacity).toBe(0);
   });
 
   it("改善探索：提案額の再計算結果は他の条件を変えずに枯渇を解消する", () => {
     const input = base({
-      currentAge: 30,
+      currentAge: 49,
       investmentEndAge: 65,
       retirementAge: 65,
       retirementEndAge: 90,
       targetAge: 90,
-      currentCashAssets: 100_000,
-      currentInvestmentAssets: 100_000,
-      monthlyIncome: 300_000,
-      monthlyLivingExpenses: 300_000,
+      currentCashAssets: 0,
+      currentInvestmentAssets: 0,
+      monthlyIncome: 250_000,
+      monthlyLivingExpenses: 200_000,
       monthlyInvestmentContribution: 0,
       retirementMonthlyLivingExpenses: 150_000,
       annualRetirementIncome: 1_200_000,
@@ -331,6 +332,33 @@ describe("人生全体マネープラン計算", () => {
     expect(improvement.status).toBe("increase");
     expect(improvement.suggestedResult?.isDepleted).toBe(false);
     expect(improvement.suggestedResult?.targetAgeAssets).toBeGreaterThanOrEqual(0);
+  });
+
+  it("改善探索：49歳・積立2万円・家計余力0円では増額提案をしない", () => {
+    const input = base({
+      currentAge: 49,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 0,
+      currentInvestmentAssets: 50_000,
+      monthlyIncome: 190_000,
+      monthlyLivingExpenses: 170_000,
+      monthlyInvestmentContribution: 20_000,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000,
+      annualReturnRate: 5,
+    });
+    const result = calculateSimulation(input);
+    const improvement = calculateImprovementSimulation(input, result);
+
+    expect(result.depletedAge).toBe(77);
+    expect(result.targetAgeAssets).toBe(0);
+    expect(improvement.status).toBe("no-capacity");
+    expect(improvement.suggestedMonthlyInvestment).toBeNull();
+    expect(improvement.maxAffordableMonthlyInvestment).toBe(20_000);
+    expect(improvement.additionalMonthlyCapacity).toBe(0);
   });
 
   it("給与余剰の自動貯蓄動作の検証：初期0円・月収30万・生活費15万・積立5万・利回り0%で1年間計算", () => {

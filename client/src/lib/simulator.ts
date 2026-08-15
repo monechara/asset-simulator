@@ -120,7 +120,7 @@ export interface ComparisonResult {
   difference: number;
 }
 
-export type ImprovementSimulationStatus = "increase" | "not-needed" | "not-found";
+export type ImprovementSimulationStatus = "increase" | "not-needed" | "no-capacity" | "not-found";
 
 export interface ImprovementSimulationResult {
   status: ImprovementSimulationStatus;
@@ -131,6 +131,8 @@ export interface ImprovementSimulationResult {
   suggestedResult: SimulatorResult | null;
   searchStep: number;
   maxAdditionalMonthlyInvestment: number;
+  maxAffordableMonthlyInvestment: number;
+  additionalMonthlyCapacity: number;
 }
 
 export interface StartAgeComparison {
@@ -526,24 +528,51 @@ export function calculateImprovementSimulation(
   currentResult?: SimulatorResult,
 ): ImprovementSimulationResult {
   const searchStep = 1_000;
-  const maxAdditionalMonthlyInvestment = 1_000_000;
   const baseResult = currentResult ?? calculateSimulation(input);
   const currentMonthlyInvestment = input.monthlyInvestmentContribution;
+  // 現役期間の給与から捻出できる毎月積立額の上限。
+  // 積立額を増やした結果、現金不足を投資資産から補填する循環を改善探索へ持ち込まない。
+  const maxAffordableMonthlyInvestment = Math.max(0, Math.round(input.monthlyIncome - input.monthlyLivingExpenses));
+  const additionalMonthlyCapacity = Math.max(0, maxAffordableMonthlyInvestment - currentMonthlyInvestment);
+
+  const baseFields = {
+    currentMonthlyInvestment,
+    targetAgeAssets: baseResult.targetAgeAssets,
+    searchStep,
+    maxAdditionalMonthlyInvestment: additionalMonthlyCapacity,
+    maxAffordableMonthlyInvestment,
+    additionalMonthlyCapacity,
+  };
 
   if (!baseResult.isDepleted) {
     return {
       status: "not-needed",
-      currentMonthlyInvestment,
       suggestedMonthlyInvestment: null,
       additionalMonthlyInvestment: null,
-      targetAgeAssets: baseResult.targetAgeAssets,
       suggestedResult: baseResult,
-      searchStep,
-      maxAdditionalMonthlyInvestment,
+      ...baseFields,
     };
   }
 
-  for (let additional = searchStep; additional <= maxAdditionalMonthlyInvestment; additional += searchStep) {
+  if (additionalMonthlyCapacity < searchStep) {
+    return {
+      status: "no-capacity",
+      suggestedMonthlyInvestment: null,
+      additionalMonthlyInvestment: null,
+      suggestedResult: null,
+      ...baseFields,
+    };
+  }
+
+  const candidateAdditionalAmounts: number[] = [];
+  for (let additional = searchStep; additional <= additionalMonthlyCapacity; additional += searchStep) {
+    candidateAdditionalAmounts.push(additional);
+  }
+  if (additionalMonthlyCapacity > 0 && additionalMonthlyCapacity % searchStep !== 0) {
+    candidateAdditionalAmounts.push(additionalMonthlyCapacity);
+  }
+
+  for (const additional of candidateAdditionalAmounts) {
     const suggestedMonthlyInvestment = currentMonthlyInvestment + additional;
     const suggestedResult = calculateSimulation({
       ...input,
@@ -552,27 +581,22 @@ export function calculateImprovementSimulation(
 
     if (!suggestedResult.isDepleted) {
       return {
+        ...baseFields,
         status: "increase",
-        currentMonthlyInvestment,
         suggestedMonthlyInvestment,
         additionalMonthlyInvestment: additional,
         targetAgeAssets: suggestedResult.targetAgeAssets,
         suggestedResult,
-        searchStep,
-        maxAdditionalMonthlyInvestment,
       };
     }
   }
 
   return {
     status: "not-found",
-    currentMonthlyInvestment,
     suggestedMonthlyInvestment: null,
     additionalMonthlyInvestment: null,
-    targetAgeAssets: baseResult.targetAgeAssets,
     suggestedResult: null,
-    searchStep,
-    maxAdditionalMonthlyInvestment,
+    ...baseFields,
   };
 }
 
