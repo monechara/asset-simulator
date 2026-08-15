@@ -187,21 +187,22 @@ export default function SimulatorForm({ onCalculate }: Props) {
     ...DEFAULT_INPUT,
     lifeEvents: [],
   });
-  const [hasMarriage, setHasMarriage] = useState(false);
-  const [hasChild, setHasChild] = useState(false);
-  const [hasHousing, setHasHousing] = useState(false);
-  const [hasEducation, setHasEducation] = useState(false);
-  const [marriageAge, setMarriageAge] = useState(32);
-  const [marriageCost, setMarriageCost] = useState(3_000_000);
-  const [childAge, setChildAge] = useState(34);
-  const [childCost, setChildCost] = useState(500_000);
-  const [housingAge, setHousingAge] = useState(38);
-  const [propertyPrice, setPropertyPrice] = useState(40_000_000);
-  const [downPayment, setDownPayment] = useState(5_000_000);
-  const [interestRate, setInterestRate] = useState(1);
-  const [repaymentYears, setRepaymentYears] = useState(35);
-  const [educationAge, setEducationAge] = useState(48);
-  const [educationCost, setEducationCost] = useState(5_000_000);
+  const [lifeEvents, setLifeEvents] = useState<any[]>([
+    { id: "marriage-32", type: "marriage", title: "結婚", age: 32, cost: 3_000_000 },
+    { id: "housing-38", type: "housing", title: "住宅購入", age: 38, cost: 5_000_000, housingLoan: { propertyPrice: 40_000_000, downPayment: 5_000_000, loanAmount: 35_000_000, annualInterestRate: 1, repaymentYears: 35, loanStartAge: 38, loanEndAge: 73 } }
+  ]);
+  const [activeModalType, setActiveModalType] = useState<string | null>(null);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
+
+  // フォーム用ローカル状態
+  const [modalAge, setModalAge] = useState(35);
+  const [modalCost, setModalCost] = useState(3_000_000);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalPropertyPrice, setModalPropertyPrice] = useState(40_000_000);
+  const [modalDownPayment, setModalDownPayment] = useState(5_000_000);
+  const [modalInterestRate, setModalInterestRate] = useState(1);
+  const [modalRepaymentYears, setModalRepaymentYears] = useState(35);
+
   const [isCalculating, setIsCalculating] = useState(false);
   const [pensionSelection, setPensionSelection] = useState<number | "custom">(150_000);
   const [livingExpenseSelection, setLivingExpenseSelection] = useState<number | "custom">(RETIREMENT_LIVING_EXPENSE_BENCHMARK);
@@ -211,51 +212,74 @@ export default function SimulatorForm({ onCalculate }: Props) {
   const currentRetirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12);
   const currentRetirementMonthlyLivingExpenses = input.retirementMonthlyLivingExpenses ?? Math.round(input.monthlyLivingExpenses * input.retirementLivingExpenseRatio);
   const monthlyCashRemaining = input.monthlyIncome - input.monthlyLivingExpenses - input.monthlyInvestmentContribution;
-  const eventSummary = useMemo(() => {
-    const summary: string[] = [];
-    if (hasMarriage) summary.push(`結婚 ${marriageAge}歳`);
-    if (hasChild) summary.push(`子ども ${childAge}歳`);
-    if (hasHousing) summary.push(`住宅 ${housingAge}歳`);
-    if (hasEducation) summary.push(`教育費 ${educationAge}歳`);
-    return summary;
-  }, [hasMarriage, hasChild, hasHousing, hasEducation, marriageAge, childAge, housingAge, educationAge]);
 
   const updateInput = (patch: Partial<SimulatorInput>) => {
     setInput((current) => ({ ...current, ...patch }));
   };
 
+  const openAddModal = (type: string) => {
+    setEditingEventId(null);
+    setActiveModalType(type);
+    setModalAge(Math.max(input.currentAge, type === "housing" ? 38 : type === "education" ? 45 : 32));
+    setModalCost(type === "marriage" ? 3_000_000 : type === "childbirth" ? 500_000 : type === "education" ? 5_000_000 : type === "car" ? 2_000_000 : 1_000_000);
+    setModalTitle(type === "other" ? "" : type === "car" ? "車購入" : "");
+    setModalPropertyPrice(40_000_000);
+    setModalDownPayment(5_000_000);
+    setModalInterestRate(1);
+    setModalRepaymentYears(35);
+  };
+
+  const openEditModal = (ev: any) => {
+    setEditingEventId(ev.id);
+    setActiveModalType(ev.type);
+    setModalAge(ev.age);
+    setModalCost(ev.cost);
+    setModalTitle(ev.title || "");
+    if (ev.type === "housing" && ev.housingLoan) {
+      setModalPropertyPrice(ev.housingLoan.propertyPrice);
+      setModalDownPayment(ev.housingLoan.downPayment);
+      setModalInterestRate(ev.housingLoan.annualInterestRate);
+      setModalRepaymentYears(ev.housingLoan.repaymentYears);
+    }
+  };
+
+  const saveModalEvent = () => {
+    if (!activeModalType) return;
+    let newEv: any = null;
+    const id = editingEventId ?? `${activeModalType}-${Date.now()}`;
+
+    if (activeModalType === "marriage") {
+      newEv = createEvent({ id, type: "marriage", title: "結婚", age: modalAge, cost: modalCost });
+    } else if (activeModalType === "childbirth") {
+      newEv = createEvent({ id, type: "childbirth", title: "子どもの誕生", age: modalAge, cost: modalCost });
+    } else if (activeModalType === "education") {
+      newEv = createEvent({ id, type: "education", title: "教育費", age: modalAge, cost: modalCost, durationYears: 4, annualCost: modalCost / 4 });
+    } else if (activeModalType === "car") {
+      newEv = createEvent({ id, type: "other", title: "車購入", age: modalAge, cost: modalCost });
+    } else if (activeModalType === "other") {
+      newEv = createEvent({ id, type: "other", title: modalTitle || "その他の大型支出", age: modalAge, cost: modalCost });
+    } else if (activeModalType === "housing") {
+      newEv = createHousingEvent({ id, age: modalAge, propertyPrice: modalPropertyPrice, downPayment: modalDownPayment, annualInterestRate: modalInterestRate, repaymentYears: modalRepaymentYears });
+    }
+
+    if (newEv) {
+      setLifeEvents((current) => {
+        if (editingEventId) {
+          return current.map((item) => (item.id === editingEventId ? newEv : item));
+        }
+        return [...current, newEv];
+      });
+    }
+    setActiveModalType(null);
+    setEditingEventId(null);
+  };
+
+  const removeEvent = (id: string) => {
+    setLifeEvents((current) => current.filter((item) => item.id !== id));
+  };
+
   const buildEvents = () => {
-    const events = [];
-    if (hasMarriage) {
-      events.push(createEvent({ type: "marriage", title: "結婚", age: marriageAge, cost: marriageCost }));
-    }
-    if (hasChild) {
-      events.push(createEvent({ type: "childbirth", title: "子どもの誕生", age: childAge, cost: childCost }));
-    }
-    if (hasHousing) {
-      events.push(
-        createHousingEvent({
-          age: housingAge,
-          propertyPrice,
-          downPayment,
-          annualInterestRate: interestRate,
-          repaymentYears,
-        }),
-      );
-    }
-    if (hasEducation) {
-      events.push(
-        createEvent({
-          type: "education",
-          title: "教育費",
-          age: educationAge,
-          cost: educationCost,
-          durationYears: 4,
-          annualCost: educationCost / 4,
-        }),
-      );
-    }
-    return events;
+    return lifeEvents;
   };
 
   const handleSubmit = (event: FormEvent) => {
@@ -614,26 +638,108 @@ export default function SimulatorForm({ onCalculate }: Props) {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-600">Step 3</p>
                 <h2 className="mt-1 text-xl font-bold text-slate-900">未来のイベントを重ねる</h2>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">必要なイベントだけ選択してください。あとから条件を変えて比較できます。</p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500">結婚や住宅購入などのライフイベントを追加して、将来のキャッシュフローをよりリアルにシミュレーションします。</p>
               </div>
 
-              <EventToggle icon={<Heart className="h-4 w-4" />} label="結婚" checked={hasMarriage} onChange={setHasMarriage}>
-                <div className="grid grid-cols-2 gap-3"><NumberField label="予定年齢" value={marriageAge} onChange={setMarriageAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="費用" value={marriageCost} onChange={setMarriageCost} unit="万円" scale={10_000} min={0} /></div>
-              </EventToggle>
+              {/* 追加済みイベント一覧 */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-slate-800">登録済みイベント ({lifeEvents.length}件)</h3>
+                </div>
 
-              <EventToggle icon={<Baby className="h-4 w-4" />} label="子どもの誕生" checked={hasChild} onChange={setHasChild}>
-                <div className="grid grid-cols-2 gap-3"><NumberField label="予定年齢" value={childAge} onChange={setChildAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="初期費用" value={childCost} onChange={setChildCost} unit="万円" scale={10_000} min={0} /></div>
-              </EventToggle>
+                {lifeEvents.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                    まだイベントが登録されていません。下のボタンから追加してください。
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {lifeEvents.map((ev) => {
+                      let icon = "🎯";
+                      let desc = `${ev.age}歳`;
+                      if (ev.type === "marriage") { icon = "💍"; desc += ` / 費用: ${formatManValue(ev.cost)}万円`; }
+                      else if (ev.type === "childbirth") { icon = "👶"; desc += ` / 費用: ${formatManValue(ev.cost)}万円`; }
+                      else if (ev.type === "education") { icon = "🎓"; desc += ` / 4年間総額: ${formatManValue(ev.cost)}万円`; }
+                      else if (ev.type === "housing") { icon = "🏠"; desc += ` / 物件: ${formatManValue(ev.housingLoan?.propertyPrice ?? ev.cost)}万円 (頭金${formatManValue(ev.cost)}万)`; }
+                      else if (ev.title === "車購入") { icon = "🚗"; desc += ` / 費用: ${formatManValue(ev.cost)}万円`; }
+                      else { icon = "＋"; desc += ` / 費用: ${formatManValue(ev.cost)}万円`; }
 
-              <EventToggle icon={<Home className="h-4 w-4" />} label="住宅購入" checked={hasHousing} onChange={setHasHousing}>
-                <div className="space-y-3"><div className="grid grid-cols-2 gap-3"><NumberField label="購入年齢" value={housingAge} onChange={setHousingAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="住宅価格" value={propertyPrice} onChange={setPropertyPrice} unit="万円" scale={10_000} min={0} /></div><div className="grid grid-cols-2 gap-3"><NumberField label="頭金" value={downPayment} onChange={setDownPayment} unit="万円" scale={10_000} min={0} max={propertyPrice} /><NumberField label="返済期間" value={repaymentYears} onChange={setRepaymentYears} unit="年" min={1} max={50} /></div><NumberField label="ローン金利" value={interestRate} onChange={setInterestRate} unit="%/年" min={0} max={20} /></div>
-              </EventToggle>
+                      return (
+                        <div key={ev.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-lg">{icon}</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">{ev.title}</p>
+                              <p className="text-xs text-slate-500">{desc}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => openEditModal(ev)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-sky-600 hover:bg-sky-50">編集</button>
+                            <button type="button" onClick={() => removeEvent(ev.id)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">削除</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-              <EventToggle icon={<GraduationCap className="h-4 w-4" />} label="教育費" checked={hasEducation} onChange={setHasEducation}>
-                <div className="grid grid-cols-2 gap-3"><NumberField label="開始年齢" value={educationAge} onChange={setEducationAge} unit="歳" min={input.currentAge} max={input.targetAge} /><NumberField label="4年間の総額" value={educationCost} onChange={setEducationCost} unit="万円" scale={10_000} min={0} /></div>
-              </EventToggle>
+              {/* 新規追加ボタン群 */}
+              <div className="pt-2">
+                <p className="mb-2 text-xs font-bold text-slate-600">イベントを追加する</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button type="button" variant="outline" onClick={() => openAddModal("marriage")} className="h-11 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-sky-300">💍 結婚</Button>
+                  <Button type="button" variant="outline" onClick={() => openAddModal("childbirth")} className="h-11 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-sky-300">👶 子ども</Button>
+                  <Button type="button" variant="outline" onClick={() => openAddModal("housing")} className="h-11 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-sky-300">🏠 住宅</Button>
+                  <Button type="button" variant="outline" onClick={() => openAddModal("education")} className="h-11 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-sky-300">🎓 教育</Button>
+                  <Button type="button" variant="outline" onClick={() => openAddModal("car")} className="h-11 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-sky-300">🚗 車</Button>
+                  <Button type="button" variant="outline" onClick={() => openAddModal("other")} className="h-11 rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:border-sky-300">＋ その他</Button>
+                </div>
+              </div>
 
-              {eventSummary.length > 0 && <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600">選択中: {eventSummary.join(" / ")}</p>}
+              {/* 追加・編集モーダル（インライン表示） */}
+              {activeModalType && (
+                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-slate-900">
+                      {editingEventId ? "イベントを編集" : "新しいイベントを追加"} ({
+                        activeModalType === "marriage" ? "結婚" :
+                        activeModalType === "childbirth" ? "子どもの誕生" :
+                        activeModalType === "education" ? "教育費" :
+                        activeModalType === "car" ? "車購入" :
+                        activeModalType === "housing" ? "住宅購入" : "その他の大型支出"
+                      })
+                    </h4>
+                    <button type="button" onClick={() => setActiveModalType(null)} className="text-xs text-slate-500 hover:text-slate-800">✕ 閉じる</button>
+                  </div>
+
+                  {activeModalType === "other" && (
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium text-slate-700">イベント名</Label>
+                      <Input type="text" value={modalTitle} onChange={(e) => setModalTitle(e.target.value)} placeholder="例：海外旅行、リフォーム" className="h-11 rounded-xl bg-white text-sm" />
+                    </div>
+                  )}
+
+                  <NumberField label="予定年齢" value={modalAge} onChange={setModalAge} unit="歳" min={input.currentAge} max={input.targetAge} />
+
+                  {activeModalType === "housing" ? (
+                    <div className="space-y-3">
+                      <NumberField label="物件価格" value={modalPropertyPrice} onChange={setModalPropertyPrice} unit="万円" scale={10_000} min={0} />
+                      <NumberField label="頭金" value={modalDownPayment} onChange={setModalDownPayment} unit="万円" scale={10_000} min={0} max={modalPropertyPrice} />
+                      <div className="grid grid-cols-2 gap-3">
+                        <NumberField label="返済期間" value={modalRepaymentYears} onChange={setModalRepaymentYears} unit="年" min={1} max={50} />
+                        <NumberField label="ローン金利" value={modalInterestRate} onChange={setModalInterestRate} unit="%/年" min={0} max={20} />
+                      </div>
+                    </div>
+                  ) : (
+                    <NumberField label={activeModalType === "education" ? "4年間の総額" : "費用"} value={modalCost} onChange={setModalCost} unit="万円" scale={10_000} min={0} />
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button type="button" onClick={saveModalEvent} className="h-11 flex-1 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">{editingEventId ? "変更を保存" : "追加する"}</Button>
+                    <Button type="button" variant="outline" onClick={() => setActiveModalType(null)} className="h-11 rounded-xl border-slate-300 bg-white text-xs text-slate-700">キャンセル</Button>
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </CardContent>
