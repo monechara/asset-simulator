@@ -26,7 +26,7 @@ import {
 } from "@/lib/simulator";
 
 interface Props {
-  onCalculate: (input: SimulatorInput) => void;
+  onCalculate: (input: SimulatorInput, isSimple?: boolean) => void;
   initialInput?: SimulatorInput;
 }
 
@@ -335,7 +335,7 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
 
     setIsCalculating(true);
     window.setTimeout(() => {
-      onCalculate(finalInput);
+      onCalculate(finalInput, isSimpleMode);
       setIsCalculating(false);
     }, 180);
   };

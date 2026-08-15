@@ -71,10 +71,12 @@ function NoticeIcon({ className = "" }: LineIconProps) {
 export default function Home() {
   const [result, setResult] = useState<ResultType | null>(null);
   const [lastInput, setLastInput] = useState<SimulatorInput | null>(null);
+  const [isSimpleResult, setIsSimpleResult] = useState(false);
 
-  const handleCalculate = useCallback((input: SimulatorInput) => {
+  const handleCalculate = useCallback((input: SimulatorInput, isSimple?: boolean) => {
     try {
       setLastInput(input);
+      setIsSimpleResult(Boolean(isSimple));
       const calculatedResult = calculateSimulation(input);
       setResult(calculatedResult);
       // スクロール
@@ -221,11 +223,13 @@ export default function Home() {
                 result={result}
                 input={lastInput!}
                 onReset={handleReset}
+                isSimpleResult={isSimpleResult}
                 onUpdateInput={(updatedInput) => {
                   setLastInput(updatedInput);
+                  setIsSimpleResult(false); // 詳細設定に切り替え
                   const newResult = calculateSimulation(updatedInput);
                   setResult(newResult);
-                  toast.success("積立額を更新して再計算しました！");
+                  toast.success("詳細設定モードに切り替えました！");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />

@@ -16,6 +16,7 @@ interface Props {
   input: SimulatorInput;
   onReset: () => void;
   onUpdateInput?: (input: SimulatorInput) => void;
+  isSimpleResult?: boolean;
 }
 
 import { calculateSimulation } from "@/lib/simulator";
@@ -36,7 +37,7 @@ function SummaryMetric({ label, value, accent = "sky", detail }: { label: string
   );
 }
 
-export default function SimulatorResultView({ result, input, onReset, onUpdateInput }: Props) {
+export default function SimulatorResultView({ result, input, onReset, onUpdateInput, isSimpleResult }: Props) {
   const [showMonthly, setShowMonthly] = useState(false);
   const [showStartAge, setShowStartAge] = useState(false);
 
@@ -219,68 +220,197 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
 
   return (
     <div className="space-y-5">
-      {/* かんたんモード結果向けの案内バナー ＆ 詳細設定への引き継ぎ導線 */}
-      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-sky-50 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold text-emerald-900">✨ かんたんシミュレーション結果</p>
-          <p className="text-xs text-slate-600 mt-0.5">生活費・年金・利回りに標準の統計目安を仮定しています。ライフイベントや実際の生活費を設定して、もっと正確に見てみませんか？</p>
-        </div>
-        {onUpdateInput && (
-          <Button
-            type="button"
-            onClick={() => {
-              // 詳細設定モードへ引き継ぐため、親（Home）経由でフォームへ戻しつつ詳細モードを有効にする
-              onReset();
-            }}
-            className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shrink-0 shadow-xs"
-          >
-            ✏️ 詳細設定でもっと正確に見る →
-          </Button>
-        )}
-      </div>
+      {isSimpleResult ? (
+        <>
+          {/* 1. 予想金融資産（最上部） */}
+          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-6 shadow-sm ring-1 ring-sky-100 sm:p-8 text-center space-y-2">
+            <p className="text-xs font-bold text-sky-800 tracking-wide uppercase">✨ かんたんシミュレーション結果</p>
+            <p className="text-sm font-medium text-slate-600">{input.retirementEndAge}歳時点の予想金融資産</p>
+            <p className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900">{formatCurrency(result.targetAgeAssets)}</p>
+            <p className="text-xs text-slate-400">※ 生活費や年金は統計目安を仮定した試算です。</p>
+          </motion.section>
 
-      {/* 比較プラン管理バー */}
-      <div className="rounded-2xl border border-sky-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold text-sky-800">比較プラン機能</p>
-          <p className="text-xs text-slate-500">{hasPlanB ? "プランAとプランBを並べて比較中" : "別の条件（積立額やリタイア年齢など）を比較できます"}</p>
-        </div>
-        {!hasPlanB ? (
-          <Button
-            type="button"
-            onClick={() => {
-              setPlanBInput(input);
-              setHasPlanB(true);
-              setIsEditingPlanB(true);
-            }}
-            className="h-10 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold"
-          >
-            ＋ 比較プラン（プランB）を作る
-          </Button>
-        ) : (
-          <div className="flex gap-2">
+          {/* 2. 資産推移グラフ */}
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">資産の推移グラフ</CardTitle>
+              <p className="text-xs text-slate-500">今後、資産がどのように増減していくのか一目で分かります。</p>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="cashFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} /><stop offset="95%" stopColor="#38bdf8" stopOpacity={0.05} /></linearGradient>
+                    <linearGradient id="investmentFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#34d399" stopOpacity={0.45} /><stop offset="95%" stopColor="#34d399" stopOpacity={0.08} /></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="age" tickFormatter={(value) => `${value}歳`} tick={{ fontSize: 11, fill: "#64748b" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(value) => `${value}`} width={42} />
+                  <Tooltip labelFormatter={(value) => `${value}歳`} formatter={(value) => [`${Number(value).toLocaleString()}万円`, ""]} />
+                  <Area type="monotone" dataKey="現金資産" stackId="assets" stroke="#0ea5e9" fill="url(#cashFill)" />
+                  <Area type="monotone" dataKey="投資資産" stackId="assets" stroke="#10b981" fill="url(#investmentFill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* 3. あなたの現在地（要点を2〜3個に絞る） */}
+          <Card className="border-violet-100 shadow-sm bg-violet-50/30">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span>📍</span>
+                <span>あなたの現在地</span>
+              </CardTitle>
+              <p className="text-xs text-slate-500 mt-1">現在の入力条件に基づく3つの重要ポイントです。</p>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-xs">
+                <p className="text-xs text-slate-500 font-medium">現在の積立ペース</p>
+                <p className="mt-1 text-lg font-bold text-slate-900">{Math.round(input.monthlyInvestmentContribution / 10_000)}万円 / 月</p>
+                <p className="mt-0.5 text-[11px] text-emerald-700">コツコツ資産形成中</p>
+              </div>
+              <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-xs">
+                <p className="text-xs text-slate-500 font-medium">資産ピーク</p>
+                <p className="mt-1 text-lg font-bold text-slate-900">{formatCurrency(result.peakFinancialAssets)}</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">{result.peakAge}歳時点</p>
+              </div>
+              <div className="bg-white rounded-2xl p-4 border border-violet-100 shadow-xs">
+                <p className="text-xs text-slate-500 font-medium">老後資金の安定度</p>
+                <p className="mt-1 text-lg font-bold text-slate-900">{result.isDepleted ? `${result.depletedAge}歳頃に要注意` : "安定（枯渇なし）"}</p>
+                <p className="mt-0.5 text-[11px] text-sky-700">{result.isDepleted ? "詳細設定で調整推奨" : "良好な推移です"}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 4. 詳細設定への分かりやすいCTA */}
+          <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-600 to-sky-600 p-6 text-white text-center shadow-md space-y-3">
+            <h4 className="text-lg font-black">もっと正確に未来を見てみませんか？</h4>
+            <p className="text-xs text-emerald-100 max-w-md mx-auto leading-relaxed">実際の生活費、マイホーム購入、子育て費用などのライフイベントを個別に追加して、さらに精度の高いプランを作成できます。</p>
             <Button
               type="button"
-              variant="outline"
-              onClick={() => setIsEditingPlanB(!isEditingPlanB)}
-              className="h-9 rounded-xl text-xs font-semibold"
-            >
-              {isEditingPlanB ? "比較結果を見る" : "プランBを編集する"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
               onClick={() => {
-                setHasPlanB(false);
-                setIsEditingPlanB(false);
+                onReset();
               }}
-              className="h-9 rounded-xl text-xs text-rose-600 hover:bg-rose-50"
+              className="h-14 px-8 rounded-2xl bg-white text-emerald-800 font-bold text-sm hover:bg-emerald-50 shadow-sm"
             >
-              比較を閉じる
+              詳細設定でシミュレーションする →
             </Button>
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <>
+          {/* かんたんモード結果向けの案内バナー ＆ 詳細設定への引き継ぎ導線 */}
+          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-sky-50 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-emerald-900">✨ かんたんシミュレーション結果</p>
+              <p className="text-xs text-slate-600 mt-0.5">生活費・年金・利回りに標準の統計目安を仮定しています。ライフイベントや実際の生活費を設定して、もっと正確に見てみませんか？</p>
+            </div>
+            {onUpdateInput && (
+              <Button
+                type="button"
+                onClick={() => {
+                  onReset();
+                }}
+                className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shrink-0 shadow-xs"
+              >
+                ✏️ 詳細設定でもっと正確に見る →
+              </Button>
+            )}
+          </div>
+
+          {/* 比較プラン管理バー */}
+          <div className="rounded-2xl border border-sky-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-sky-800">比較プラン機能</p>
+              <p className="text-xs text-slate-500">{hasPlanB ? "プランAとプランBを並べて比較中" : "別の条件（積立額やリタイア年齢など）を比較できます"}</p>
+            </div>
+            {!hasPlanB ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  setPlanBInput(input);
+                  setHasPlanB(true);
+                  setIsEditingPlanB(true);
+                }}
+                className="h-10 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold"
+              >
+                ＋ 比較プラン（プランB）を作る
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditingPlanB(!isEditingPlanB)}
+                  className="h-9 rounded-xl text-xs font-semibold"
+                >
+                  {isEditingPlanB ? "比較結果を見る" : "プランBを編集する"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setHasPlanB(false);
+                    setIsEditingPlanB(false);
+                  }}
+                  className="h-9 rounded-xl text-xs text-rose-600 hover:bg-rose-50"
+                >
+                  比較を閉じる
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* プランB編集モーダル/セクション */}
+          {hasPlanB && isEditingPlanB && (
+            <Card className="border-sky-200 bg-sky-50/50 shadow-sm">
+              <CardHeader><CardTitle className="text-base text-sky-900">プランBの条件編集</CardTitle><p className="text-xs text-slate-600">プランAをコピーしています。変更したい項目を調整して「プランBで再計算」を押してください。</p></CardHeader>
+              <CardContent>
+                <SimulatorForm
+                  initialInput={planBInput}
+                  onCalculate={(updated) => {
+                    setPlanBInput(updated);
+                    setIsEditingPlanB(false);
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* A/B比較カード（プランBがある場合） */}
+          {hasPlanB && planBResult && (
+            <Card className="border-sky-200 bg-white shadow-sm overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-sky-50 to-emerald-50 pb-3">
+                <CardTitle className="text-base text-slate-900">プランA ＆ プランB 比較結果</CardTitle>
+                <p className="text-xs text-slate-500">2つのプランの主要指標の比較</p>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-3 space-y-1">
+                    <p className="font-bold text-sky-800">プランA（現在）</p>
+                    <p className="text-slate-500">90歳時点資産: <span className="font-bold text-slate-900">{formatCurrency(result.targetAgeAssets)}</span></p>
+                    <p className="text-slate-500">最小資産: <span className="font-bold text-slate-900">{formatCurrency(planAMin.amount)} ({planAMin.age}歳)</span></p>
+                    <p className="text-slate-500">枯渇判定: <span className="font-bold text-slate-900">{result.isDepleted ? `${result.depletedAge}歳で枯渇` : "枯渇なし"}</span></p>
+                    <p className="text-slate-500">累計元本: <span className="font-bold text-slate-900">{formatCurrency(result.totalPrincipalContributed)}</span></p>
+                    <p className="text-slate-500">累計運用益: <span className="font-bold text-emerald-700">+{formatCurrency(result.totalInvestmentGain)}</span></p>
+                    <p className="text-slate-500">累計取り崩し: <span className="font-bold text-amber-800">-{formatCurrency(result.yearlyRecords.reduce((s, x) => s + x.investmentWithdrawal, 0))}</span></p>
+                  </div>
+
+                  <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 space-y-1">
+                    <p className="font-bold text-emerald-800">プランB（比較）</p>
+                    <p className="text-slate-500">90歳時点資産: <span className="font-bold text-slate-900">{formatCurrency(planBResult.targetAgeAssets)}</span></p>
+                    <p className="text-slate-500">最小資産: <span className="font-bold text-slate-900">{formatCurrency(planBMin?.amount ?? 0)} ({planBMin?.age}歳)</span></p>
+                    <p className="text-slate-500">枯渇判定: <span className="font-bold text-slate-900">{planBResult.isDepleted ? `${planBResult.depletedAge}歳で枯渇` : "枯渇なし"}</span></p>
+                    <p className="text-slate-500">累計元本: <span className="font-bold text-slate-900">{formatCurrency(planBResult.totalPrincipalContributed)}</span></p>
+                    <p className="text-slate-500">累計運用益: <span className="font-bold text-emerald-700">+{formatCurrency(planBResult.totalInvestmentGain)}</span></p>
+                    <p className="text-slate-500">累計取り崩し: <span className="font-bold text-amber-800">-{formatCurrency(planBResult.yearlyRecords.reduce((s, x) => s + x.investmentWithdrawal, 0))}</span></p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
 
       {/* プランB編集モーダル/セクション */}
       {hasPlanB && isEditingPlanB && (
