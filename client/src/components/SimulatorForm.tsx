@@ -331,10 +331,65 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 </div>
                 <NumberField label="老後開始年齢" value={input.retirementAge} onChange={(value) => updateInput({ retirementAge: value })} unit="歳" min={input.currentAge} max={input.targetAge} />
 
+                {/* ① 世帯人数の選択 */}
+                <div className="space-y-2.5 rounded-xl border border-white/80 bg-white/70 p-3">
+                  <Label className="text-sm font-medium text-slate-800">老後は何人で生活する予定ですか？</Label>
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label="老後の世帯人数">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateInput({
+                          householdSize: 1,
+                          retirementMonthlyLivingExpenses: 150_000,
+                          annualRetirementIncome: 1_200_000,
+                        });
+                        setLivingExpenseSelection(150_000);
+                        setPensionSelection(100_000);
+                      }}
+                      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${input.householdSize === 1 ? "border-violet-600 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-violet-300"}`}
+                      aria-pressed={input.householdSize === 1}
+                    >
+                      1人（単身世帯）
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateInput({
+                          householdSize: 2,
+                          retirementMonthlyLivingExpenses: 270_000,
+                          annualRetirementIncome: 2_200_000,
+                        });
+                        setLivingExpenseSelection(270_000);
+                        setPensionSelection(180_000);
+                      }}
+                      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${input.householdSize === 2 ? "border-violet-600 bg-violet-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-violet-300"}`}
+                      aria-pressed={input.householdSize === 2}
+                    >
+                      2人（夫婦世帯）
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-500">※ 選択すると、総務省「家計調査」等の公的統計に基づく世帯人数別の生活費・年金目安が自動で設定されます。</p>
+                </div>
+
                 <div className="space-y-3 rounded-xl border border-white/80 bg-white/70 p-3">
                   <div>
-                    <Label className="text-sm font-medium text-slate-800">老後の毎月の生活費はいくら必要ですか？</Label>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">統計上の目安：約{formatManValue(RETIREMENT_LIVING_EXPENSE_BENCHMARK)}万円/月。目安は参考値なので、生活スタイルに合わせて変更できます。</p>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-slate-800">老後の毎月の生活費はいくら必要ですか？</Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const suggested = input.householdSize === 1 ? 150_000 : 270_000;
+                          setLivingExpenseSelection(suggested);
+                          updateInput({ retirementMonthlyLivingExpenses: suggested });
+                        }}
+                        className="text-xs font-bold text-violet-700 hover:underline"
+                      >
+                        [目安を使う]
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      統計上の目安（{input.householdSize === 1 ? "単身世帯 約15万円/月" : "夫婦高齢者無職世帯 約27万円/月・総務省家計調査"}）。よく分からない方は目安からスタートできます。
+                    </p>
                   </div>
                   <div className={`rounded-lg border px-3 py-2 text-xs font-semibold ${benchmarkToneClass(currentRetirementMonthlyLivingExpenses, RETIREMENT_LIVING_EXPENSE_BENCHMARK)}`}>
                     あなたの想定：{formatManValue(currentRetirementMonthlyLivingExpenses)}万円/月
@@ -381,8 +436,23 @@ export default function SimulatorForm({ onCalculate }: Props) {
 
                 <div className="space-y-3 rounded-xl border border-white/80 bg-white/70 p-3">
                   <div>
-                    <Label className="text-sm font-medium text-slate-800">老後の毎月の収入（年金）はどのくらいを想定しますか？</Label>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">統計上の目安：約{formatManValue(PENSION_BENCHMARK)}万円/月。年金額は加入状況などによって異なります。分からない場合は目安を利用してください。</p>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-slate-800">老後の毎月の収入（年金）はどのくらいを想定しますか？</Label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const suggested = input.householdSize === 1 ? 100_000 : 180_000;
+                          setPensionSelection(suggested);
+                          updateInput({ annualRetirementIncome: suggested * 12 });
+                        }}
+                        className="text-xs font-bold text-emerald-700 hover:underline"
+                      >
+                        [目安を使う]
+                      </button>
+                    </div>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      統計上の目安（{input.householdSize === 1 ? "単身 約10万円/月" : "夫婦 約18万円/月"}）。※年金額は加入状況や職歴により大きく異なるため、この平均値があなたの受給額を保証するものではありません。
+                    </p>
                   </div>
                   <div className={`rounded-lg border px-3 py-2 text-xs font-semibold ${benchmarkToneClass(currentRetirementMonthlyIncome, PENSION_BENCHMARK)}`}>
                     あなたの想定：{formatManValue(currentRetirementMonthlyIncome)}万円/月

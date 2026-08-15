@@ -57,6 +57,7 @@ export interface SimulatorInput {
   /** 既存互換用。新UIでは金額指定を優先する。 */
   retirementLivingExpenseRatio: number;
   targetAssets: number;
+  householdSize: 1 | 2;
   lifeEvents: LifeEvent[];
 }
 
@@ -189,6 +190,9 @@ export function validateSimulatorInput(input: SimulatorInput): void {
   }
   if (input.retirementLivingExpenseRatio < 0 || input.retirementLivingExpenseRatio > 2) {
     throw new Error("老後生活費比率は0〜200%の範囲で入力してください");
+  }
+  if (input.householdSize !== undefined && input.householdSize !== 1 && input.householdSize !== 2) {
+    throw new Error("世帯人数は1人または2人で選択してください");
   }
 
   input.lifeEvents.forEach((event) => {
@@ -567,10 +571,11 @@ export const DEFAULT_INPUT: SimulatorInput = {
   annualBonusInvestment: 0,
   annualReturnRate: 5,
   retirementAge: 65,
-  annualRetirementIncome: 1_800_000,
-  retirementMonthlyLivingExpenses: 250_000,
+  annualRetirementIncome: 2_200_000,
+  retirementMonthlyLivingExpenses: 270_000,
   retirementLivingExpenseRatio: 0.75,
   targetAssets: 30_000_000,
+  householdSize: 2,
   lifeEvents: DEFAULT_LIFE_EVENTS,
 };
 
