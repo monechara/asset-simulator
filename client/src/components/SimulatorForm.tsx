@@ -26,6 +26,7 @@ import {
 
 interface Props {
   onCalculate: (input: SimulatorInput) => void;
+  initialInput?: SimulatorInput;
 }
 
 const STEPS = ["基本情報", "家計と運用", "ライフイベント"];
@@ -181,9 +182,9 @@ function NumberField({
   );
 }
 
-export default function SimulatorForm({ onCalculate }: Props) {
+export default function SimulatorForm({ onCalculate, initialInput }: Props) {
   const [step, setStep] = useState(0);
-  const [input, setInput] = useState<SimulatorInput>({
+  const [input, setInput] = useState<SimulatorInput>(initialInput ?? {
     ...DEFAULT_INPUT,
     lifeEvents: [],
   });

@@ -18,6 +18,9 @@ interface Props {
   onUpdateInput?: (input: SimulatorInput) => void;
 }
 
+import { calculateSimulation } from "@/lib/simulator";
+import SimulatorForm from "@/components/SimulatorForm";
+
 function SummaryMetric({ label, value, accent = "sky", detail }: { label: string; value: string; accent?: "sky" | "emerald" | "amber"; detail?: string }) {
   const colors = {
     sky: "border-sky-100 bg-sky-50/70 text-sky-700",
@@ -36,6 +39,20 @@ function SummaryMetric({ label, value, accent = "sky", detail }: { label: string
 export default function SimulatorResultView({ result, input, onReset, onUpdateInput }: Props) {
   const [showMonthly, setShowMonthly] = useState(false);
   const [showStartAge, setShowStartAge] = useState(false);
+
+  // 比較プランBの状態
+  const [hasPlanB, setHasPlanB] = useState(false);
+  const [planBInput, setPlanBInput] = useState<SimulatorInput>(input);
+  const [isEditingPlanB, setIsEditingPlanB] = useState(false);
+
+  const planBResult = useMemo(() => {
+    if (!hasPlanB) return null;
+    try {
+      return calculateSimulation(planBInput);
+    } catch {
+      return null;
+    }
+  }, [hasPlanB, planBInput]);
 
   const improvement = useMemo(() => calculateImprovementSimulation(input, result), [input, result]);
 
@@ -142,14 +159,48 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
     : `老後期間（${input.retirementAge}〜${input.retirementEndAge}歳 / ${retirementYears}年間）の試算において、${result.depletedAge}歳頃に資産が枯渇する見込みです。`;
   const hasTargetAge = input.targetAssets > 0 && Boolean(result.targetAchievedAge);
 
-  const chartData = useMemo(() => result.yearlyRecords
-    .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === input.targetAge || record.activeEvents.length > 0)
-    .map((record) => ({
-      age: record.age,
-      現金資産: Math.round(record.cashEnd / 10_000),
-      投資資産: Math.round(record.investmentEnd / 10_000),
-      金融資産: Math.round(record.totalFinancialAssets / 10_000),
-    })), [result.yearlyRecords, input.targetAge]);
+  // 資産が最も少なくなる年齢と金額を算出するヘルパー
+  const getMinAssetInfo = (records: any[]) => {
+    if (!records || records.length === 0) return { age: input.currentAge, amount: 0 };
+    let minRec = records[0];
+    for (const r of records) {
+      if (r.totalFinancialAssets < minRec.totalFinancialAssets) {
+        minRec = r;
+      }
+    }
+    return { age: minRec.age, amount: minRec.totalFinancialAssets };
+  };
+
+  const planAMin = useMemo(() => getMinAssetInfo(result.yearlyRecords), [result.yearlyRecords]);
+  const planBMin = useMemo(() => planBResult ? getMinAssetInfo(planBResult.yearlyRecords) : null, [planBResult]);
+
+  const chartData = useMemo(() => {
+    const map = new Map<number, any>();
+    result.yearlyRecords
+      .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === input.targetAge || record.activeEvents.length > 0)
+      .forEach((record) => {
+        map.set(record.age, {
+          age: record.age,
+          プランA_金融資産: Math.round(record.totalFinancialAssets / 10_000),
+          プランA_現金: Math.round(record.cashEnd / 10_000),
+          プランA_投資: Math.round(record.investmentEnd / 10_000),
+        });
+      });
+
+    if (planBResult) {
+      planBResult.yearlyRecords
+        .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === planBInput.targetAge || record.activeEvents.length > 0)
+        .forEach((record) => {
+          const existing = map.get(record.age) || { age: record.age };
+          existing.プランB_金融資産 = Math.round(record.totalFinancialAssets / 10_000);
+          existing.プランB_現金 = Math.round(record.cashEnd / 10_000);
+          existing.プランB_投資 = Math.round(record.investmentEnd / 10_000);
+          map.set(record.age, existing);
+        });
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.age - b.age);
+  }, [result.yearlyRecords, planBResult, input.targetAge, planBInput.targetAge]);
 
   const monthlyComparisons = useMemo(
     () => calculateMonthlyComparison(input, [10_000, 30_000]),
@@ -168,6 +219,98 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
 
   return (
     <div className="space-y-5">
+      {/* 比較プラン管理バー */}
+      <div className="rounded-2xl border border-sky-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold text-sky-800">比較プラン機能</p>
+          <p className="text-xs text-slate-500">{hasPlanB ? "プランAとプランBを並べて比較中" : "別の条件（積立額やリタイア年齢など）を比較できます"}</p>
+        </div>
+        {!hasPlanB ? (
+          <Button
+            type="button"
+            onClick={() => {
+              setPlanBInput(input);
+              setHasPlanB(true);
+              setIsEditingPlanB(true);
+            }}
+            className="h-10 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold"
+          >
+            ＋ 比較プラン（プランB）を作る
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditingPlanB(!isEditingPlanB)}
+              className="h-9 rounded-xl text-xs font-semibold"
+            >
+              {isEditingPlanB ? "比較結果を見る" : "プランBを編集する"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setHasPlanB(false);
+                setIsEditingPlanB(false);
+              }}
+              className="h-9 rounded-xl text-xs text-rose-600 hover:bg-rose-50"
+            >
+              比較を閉じる
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* プランB編集モーダル/セクション */}
+      {hasPlanB && isEditingPlanB && (
+        <Card className="border-sky-200 bg-sky-50/50 shadow-sm">
+          <CardHeader><CardTitle className="text-base text-sky-900">プランBの条件編集</CardTitle><p className="text-xs text-slate-600">プランAをコピーしています。変更したい項目を調整して「プランBで再計算」を押してください。</p></CardHeader>
+          <CardContent>
+            <SimulatorForm
+              initialInput={planBInput}
+              onCalculate={(updated) => {
+                setPlanBInput(updated);
+                setIsEditingPlanB(false);
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* A/B比較カード（プランBがある場合） */}
+      {hasPlanB && planBResult && (
+        <Card className="border-sky-200 bg-white shadow-sm overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-sky-50 to-emerald-50 pb-3">
+            <CardTitle className="text-base text-slate-900">プランA ＆ プランB 比較結果</CardTitle>
+            <p className="text-xs text-slate-500">2つのプランの主要指標の比較</p>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-3 space-y-1">
+                <p className="font-bold text-sky-800">プランA（現在）</p>
+                <p className="text-slate-500">90歳時点資産: <span className="font-bold text-slate-900">{formatCurrency(result.targetAgeAssets)}</span></p>
+                <p className="text-slate-500">最小資産: <span className="font-bold text-slate-900">{formatCurrency(planAMin.amount)} ({planAMin.age}歳)</span></p>
+                <p className="text-slate-500">枯渇判定: <span className="font-bold text-slate-900">{result.isDepleted ? `${result.depletedAge}歳で枯渇` : "枯渇なし"}</span></p>
+                <p className="text-slate-500">累計元本: <span className="font-bold text-slate-900">{formatCurrency(result.totalPrincipalContributed)}</span></p>
+                <p className="text-slate-500">累計運用益: <span className="font-bold text-emerald-700">+{formatCurrency(result.totalInvestmentGain)}</span></p>
+                <p className="text-slate-500">累計取り崩し: <span className="font-bold text-amber-800">-{formatCurrency(result.yearlyRecords.reduce((s, x) => s + x.investmentWithdrawal, 0))}</span></p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 space-y-1">
+                <p className="font-bold text-emerald-800">プランB（比較）</p>
+                <p className="text-slate-500">90歳時点資産: <span className="font-bold text-slate-900">{formatCurrency(planBResult.targetAgeAssets)}</span></p>
+                <p className="text-slate-500">最小資産: <span className="font-bold text-slate-900">{formatCurrency(planBMin?.amount ?? 0)} ({planBMin?.age}歳)</span></p>
+                <p className="text-slate-500">枯渇判定: <span className="font-bold text-slate-900">{planBResult.isDepleted ? `${planBResult.depletedAge}歳で枯渇` : "枯渇なし"}</span></p>
+                <p className="text-slate-500">累計元本: <span className="font-bold text-slate-900">{formatCurrency(planBResult.totalPrincipalContributed)}</span></p>
+                <p className="text-slate-500">累計運用益: <span className="font-bold text-emerald-700">+{formatCurrency(planBResult.totalInvestmentGain)}</span></p>
+                <p className="text-slate-500">累計取り崩し: <span className="font-bold text-amber-800">-{formatCurrency(planBResult.yearlyRecords.reduce((s, x) => s + x.investmentWithdrawal, 0))}</span></p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 1. 3秒で理解できる将来のシミュレーション結果 */}
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
         <div className="flex items-center justify-center gap-2 text-sm font-bold text-sky-800">
@@ -579,20 +722,32 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       </Card>
 
       <Card className="border-slate-200 shadow-sm">
-        <CardHeader><CardTitle className="text-base">年齢ごとの金融資産推移</CardTitle><p className="text-xs text-slate-500">単位：万円。イベントのある年はグラフ上の点で確認できます。</p></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">年齢ごとの金融資産推移 {hasPlanB && "(プランA ＆ プランB比較)"}</CardTitle>
+          <p className="text-xs text-slate-500">単位：万円。イベントのある年はグラフ上の点で確認できます。</p>
+        </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
               <defs>
-                <linearGradient id="cashFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} /><stop offset="95%" stopColor="#38bdf8" stopOpacity={0.05} /></linearGradient>
-                <linearGradient id="investmentFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#34d399" stopOpacity={0.45} /><stop offset="95%" stopColor="#34d399" stopOpacity={0.08} /></linearGradient>
+                <linearGradient id="planAFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#0284c7" stopOpacity={0.3} /><stop offset="95%" stopColor="#0284c7" stopOpacity={0.02} /></linearGradient>
+                <linearGradient id="planBFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.3} /><stop offset="95%" stopColor="#10b981" stopOpacity={0.02} /></linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="age" tickFormatter={(value) => `${value}歳`} tick={{ fontSize: 11, fill: "#64748b" }} />
               <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(value) => `${value}`} width={42} />
-              <Tooltip labelFormatter={(value) => `${value}歳`} formatter={(value) => [`${Number(value).toLocaleString()}万円`, ""]} />
-              <Area type="monotone" dataKey="現金資産" stackId="assets" stroke="#0ea5e9" fill="url(#cashFill)" />
-              <Area type="monotone" dataKey="投資資産" stackId="assets" stroke="#10b981" fill="url(#investmentFill)" />
+              <Tooltip labelFormatter={(value) => `${value}歳`} formatter={(value, name) => [`${Number(value).toLocaleString()}万円`, name]} />
+              {!hasPlanB ? (
+                <>
+                  <Area type="monotone" dataKey="現金資産" stackId="assets" stroke="#0ea5e9" fill="url(#planAFill)" />
+                  <Area type="monotone" dataKey="投資資産" stackId="assets" stroke="#10b981" fill="url(#planBFill)" />
+                </>
+              ) : (
+                <>
+                  <Area type="monotone" dataKey="プランA_金融資産" stroke="#0284c7" strokeWidth={2} fill="url(#planAFill)" name="プランA(金融資産)" />
+                  <Area type="monotone" dataKey="プランB_金融資産" stroke="#10b981" strokeWidth={2} fill="url(#planBFill)" name="プランB(金融資産)" />
+                </>
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>
