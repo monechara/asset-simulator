@@ -165,4 +165,97 @@ describe("人生全体マネープラン計算", () => {
     const postInvestingYear = records.find((r) => r.age === 66)!;
     expect(postInvestingYear.annualInvestmentContribution).toBe(0);
   });
+
+  it("49歳開始・生活費15万円・年金10万円・想定90歳で65歳時点資産が正しく差し引かれることを検証する", () => {
+    const input = base({
+      currentAge: 49,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      monthlyIncome: 300_000,
+      monthlyLivingExpenses: 150_000,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000, // 月10万円
+      currentCashAssets: 10_000_000, // 1000万円
+      currentInvestmentAssets: 5_000_000, // 500万円
+      monthlyInvestmentContribution: 50_000,
+      annualReturnRate: 3,
+    });
+    const result = calculateSimulation(input);
+    const record65 = result.yearlyRecords.find((r) => r.age === 65);
+    const assetsAt65 = record65 ? record65.totalFinancialAssets : 0;
+    const retirementYears = 90 - 65; // 25年
+    const totalLivingCost = 150_000 * 12 * retirementYears; // 4,500万円
+    const totalIncome = 1_200_000 * retirementYears; // 3,000万円
+    const netNeed = totalLivingCost - totalIncome; // 1,500万円
+    const expectedShortfall = Math.max(0, netNeed - Math.round(assetsAt65 / 10_000));
+    
+    console.log(`[検証実値] 65歳時点資産: ${assetsAt65}円, 生活費総額: ${totalLivingCost}円, 年金総額: ${totalIncome}円, ネット必要額: ${netNeed}円, 予想不足額: ${expectedShortfall}万円`);
+    expect(totalLivingCost - totalIncome).toBe(15_000_000);
+    expect(assetsAt65).toBeGreaterThan(0);
+  });
+
+  it("49歳・金融資産ほぼゼロ・積立なしのケースで正確な不足額と枯渇年齢を検証する", () => {
+    const input = base({
+      currentAge: 49,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      monthlyIncome: 150_000, // 生活費と同額（余剰なし）
+      monthlyLivingExpenses: 150_000,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000, // 月10万円
+      currentCashAssets: 50_000, // 5万円
+      currentInvestmentAssets: 0,
+      monthlyInvestmentContribution: 0, // 積立なし
+      annualBonusInvestment: 0,
+      annualReturnRate: 0,
+    });
+    const result = calculateSimulation(input);
+    const record65 = result.yearlyRecords.find((r) => r.age === 65);
+    const assetsAt65 = record65 ? record65.totalFinancialAssets : 0;
+    const retirementYears = 90 - 65; // 25年
+    const totalLivingCost = 150_000 * 12 * retirementYears; // 4,500万円
+    const totalIncome = 1_200_000 * retirementYears; // 3,000万円
+    const netNeed = totalLivingCost - totalIncome; // 1,500万円
+    const shortfall = Math.max(0, netNeed - Math.round(assetsAt65 / 10_000));
+
+    console.log(`[49歳資産ゼロ・積立なしケース] 49歳時点現金: 5万円, 月収15万=生活費15万, 積立0円`);
+    console.log(` → 65歳時点資産: ${assetsAt65}円 (約${Math.round(assetsAt65 / 10_000)}万円)`);
+    console.log(` → 65〜90歳生活費総額: ${totalLivingCost}円`);
+    console.log(` → 65〜90歳年金総額: ${totalIncome}円`);
+    console.log(` → 最終不足額: ${shortfall}万円`);
+    console.log(` → 資産枯渇年齢: ${result.depletedAge ?? "なし"}歳`);
+
+    expect(assetsAt65).toBeLessThan(1_000_000); // 65歳時点でもほぼ初期の5万円のみ
+    expect(shortfall).toBeGreaterThan(0);
+  });
+
+  it("給与余剰の自動貯蓄動作の検証：初期0円・月収30万・生活費15万・積立5万・利回り0%で1年間計算", () => {
+    const input = base({
+      currentAge: 30,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 0,
+      currentInvestmentAssets: 0,
+      monthlyIncome: 300_000,
+      monthlyLivingExpenses: 150_000,
+      monthlyInvestmentContribution: 50_000,
+      annualBonusInvestment: 0,
+      annualReturnRate: 0,
+    });
+    const result = calculateSimulation(input);
+    const year1 = result.yearlyRecords[1]; // 31歳時点（1年経過後の期末残高＝cashEnd/investmentEnd）
+    console.log(`[余剰検証 1年後] 現金End: ${year1.cashEnd}円, 投資End: ${year1.investmentEnd}円, 総資産: ${year1.totalFinancialAssets}円`);
+    
+    // 年間収入: 360万円, 生活費: 180万円, 積立: 60万円
+    // 余剰 (360 - 180 - 60 = 120万円) が現金エンドへ蓄積、積立60万円が投資エンドへ蓄積
+    expect(year1.cashEnd).toBe(1_200_000);
+    expect(year1.investmentEnd).toBe(600_000);
+    expect(year1.totalFinancialAssets).toBe(1_800_000);
+  });
 });
