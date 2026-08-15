@@ -219,6 +219,26 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
 
   return (
     <div className="space-y-5">
+      {/* かんたんモード結果向けの案内バナー ＆ 詳細設定への引き継ぎ導線 */}
+      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-sky-50 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold text-emerald-900">✨ かんたんシミュレーション結果</p>
+          <p className="text-xs text-slate-600 mt-0.5">生活費・年金・利回りに標準の統計目安を仮定しています。ライフイベントや実際の生活費を設定して、もっと正確に見てみませんか？</p>
+        </div>
+        {onUpdateInput && (
+          <Button
+            type="button"
+            onClick={() => {
+              // 詳細設定モードへ引き継ぐため、親（Home）経由でフォームへ戻しつつ詳細モードを有効にする
+              onReset();
+            }}
+            className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shrink-0 shadow-xs"
+          >
+            ✏️ 詳細設定でもっと正確に見る →
+          </Button>
+        )}
+      </div>
+
       {/* 比較プラン管理バー */}
       <div className="rounded-2xl border border-sky-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div>

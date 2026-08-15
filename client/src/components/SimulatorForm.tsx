@@ -183,9 +183,17 @@ function NumberField({
 }
 
 export default function SimulatorForm({ onCalculate, initialInput }: Props) {
+  const [isSimpleMode, setIsSimpleMode] = useState(!initialInput);
+  const [familyType, setFamilyType] = useState<"single" | "couple" | "family">("single");
+
   const [step, setStep] = useState(0);
   const [input, setInput] = useState<SimulatorInput>(initialInput ?? {
     ...DEFAULT_INPUT,
+    monthlyLivingExpenses: 150_000,
+    monthlyIncome: 300_000,
+    currentCashAssets: 1_000_000,
+    currentInvestmentAssets: 500_000,
+    monthlyInvestmentContribution: 30_000,
     lifeEvents: [],
   });
   const [lifeEvents, setLifeEvents] = useState<any[]>([
@@ -295,25 +303,167 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="flex items-center gap-2" aria-label="入力ステップ">
-        {STEPS.map((label, index) => (
-          <div key={label} className="flex min-w-0 flex-1 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setStep(index)}
-              className={`flex min-w-0 flex-1 items-center gap-2 rounded-full px-2 py-2 text-left text-xs font-semibold transition-colors ${
-                step === index ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-500"
-              }`}
-            >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/80 text-[11px] text-slate-700">
-                {index + 1}
-              </span>
-              <span className="truncate">{label}</span>
-            </button>
-            {index < STEPS.length - 1 && <span className="hidden h-px w-3 bg-slate-200 sm:block" />}
-          </div>
-        ))}
+      {/* モード切替ヘッダー */}
+      <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-3 flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-sky-900">{isSimpleMode ? "✨ かんたんモード（30秒で診断）" : "⚙️ 詳細設定モード"}</p>
+          <p className="text-[11px] text-slate-500">{isSimpleMode ? "主要な6項目だけでまずは将来予測をチェック" : "生活費やライフイベントを個別にカスタマイズ中"}</p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setIsSimpleMode(!isSimpleMode)}
+          className="h-9 rounded-xl text-xs font-semibold bg-white border-sky-200 text-sky-700 hover:bg-sky-50"
+        >
+          {isSimpleMode ? "詳細設定へ切り替える" : "かんたんモードに戻る"}
+        </Button>
       </div>
+
+      {isSimpleMode ? (
+        <Card className="rounded-2xl border-slate-200 shadow-sm">
+          <CardContent className="space-y-5 p-5 sm:p-6">
+            <div className="space-y-2">
+              <h3 className="text-base font-bold text-slate-900">かんたん資産シミュレーション</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">以下の6つの質問に答えるだけで、あなたの将来の資産推移をすぐにシミュレーションできます（生活費や年金は統計目安を自動適用しています）。</p>
+            </div>
+
+            {/* 1. 現在の年齢 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700">現在の年齢</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={input.currentAge}
+                  onChange={(e) => updateInput({ currentAge: Math.max(18, parseInt(e.target.value) || 30) })}
+                  className="h-12 rounded-xl text-base font-bold"
+                  min={18}
+                  max={80}
+                />
+                <span className="text-sm font-medium text-slate-600">歳</span>
+              </div>
+            </div>
+
+            {/* 2. 家族構成 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700">家族構成（参考生活費の自動設定用）</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: "single", label: "👤 単身", expense: 150_000 },
+                  { id: "couple", label: "👫 夫婦2人", expense: 220_000 },
+                  { id: "family", label: "👨‍👩‍👧 子育て世帯", expense: 280_000 },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setFamilyType(item.id as any);
+                      updateInput({ monthlyLivingExpenses: item.expense });
+                    }}
+                    className={`h-12 rounded-xl border text-xs font-bold transition-all ${
+                      familyType === item.id
+                        ? "border-sky-500 bg-sky-50 text-sky-900 shadow-xs"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-500 bg-slate-50 rounded-xl p-2.5">
+                💡 統計をもとにした参考生活費（月額 {Math.round(input.monthlyLivingExpenses / 10_000)}万円）を自動設定しています。後から詳細設定で自由に変更できます。
+              </p>
+            </div>
+
+            {/* 3. 月の手取り収入 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700">毎月の手取り収入</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={Math.round(input.monthlyIncome / 10_000)}
+                  onChange={(e) => updateInput({ monthlyIncome: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  className="h-12 rounded-xl text-base font-bold"
+                  step={1}
+                />
+                <span className="text-sm font-medium text-slate-600">万円 / 月</span>
+              </div>
+            </div>
+
+            {/* 4. 現在の現金資産 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700">現在の現金資産（預金・普通預金等）</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={Math.round(input.currentCashAssets / 10_000)}
+                  onChange={(e) => updateInput({ currentCashAssets: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  className="h-12 rounded-xl text-base font-bold"
+                  step={1}
+                />
+                <span className="text-sm font-medium text-slate-600">万円</span>
+              </div>
+            </div>
+
+            {/* 5. 現在の投資資産 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700">現在の投資資産（NISA・株・投資信託等）</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={Math.round(input.currentInvestmentAssets / 10_000)}
+                  onChange={(e) => updateInput({ currentInvestmentAssets: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  className="h-12 rounded-xl text-base font-bold"
+                  step={1}
+                />
+                <span className="text-sm font-medium text-slate-600">万円</span>
+              </div>
+            </div>
+
+            {/* 6. 毎月の積立額 */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700">毎月の積立額（投資や貯蓄に回す額）</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={Math.round(input.monthlyInvestmentContribution / 10_000)}
+                  onChange={(e) => updateInput({ monthlyInvestmentContribution: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  className="h-12 rounded-xl text-base font-bold"
+                  step={1}
+                />
+                <span className="text-sm font-medium text-slate-600">万円 / 月</span>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isCalculating}
+              className="h-14 w-full rounded-2xl bg-gradient-to-r from-sky-600 to-emerald-600 text-base font-bold text-white shadow-md hover:from-sky-700 hover:to-emerald-700"
+            >
+              {isCalculating ? "計算中..." : "この条件でシミュレーションする 🚀"}
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="flex items-center gap-2" aria-label="入力ステップ">
+            {STEPS.map((label, index) => (
+              <div key={label} className="flex min-w-0 flex-1 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(index)}
+                  className={`flex min-w-0 flex-1 items-center gap-2 rounded-full px-2 py-2 text-left text-xs font-semibold transition-colors ${
+                    step === index ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/80 text-[11px] text-slate-700">
+                    {index + 1}
+                  </span>
+                  <span className="truncate">{label}</span>
+                </button>
+                {index < STEPS.length - 1 && <span className="hidden h-px w-3 bg-slate-200 sm:block" />}
+              </div>
+            ))}
+          </div>
 
       <Card className="rounded-2xl border-slate-200 shadow-sm">
         <CardContent className="space-y-5 p-5 sm:p-6">
@@ -750,6 +900,8 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
         {step > 0 && <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="h-12 flex-1 rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" />戻る</Button>}
         {step < STEPS.length - 1 ? <Button type="button" onClick={() => setStep(step + 1)} className="h-12 flex-1 rounded-xl bg-sky-600 hover:bg-sky-700">次へ<ArrowRight className="ml-2 h-4 w-4" /></Button> : <Button type="submit" disabled={isCalculating} className="h-12 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700"><Calculator className="mr-2 h-4 w-4" />{isCalculating ? "計算中…" : "人生のお金を計算する"}</Button>}
       </div>
+        </>
+      )}
     </form>
   );
 }
