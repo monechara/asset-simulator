@@ -4,6 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -186,6 +187,13 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
   const [isSimpleMode, setIsSimpleMode] = useState(!initialInput);
   const [familyType, setFamilyType] = useState<"single" | "couple" | "family">("single");
 
+  // かんたんモード用の入力途中文字列state（空欄を完全に許容するため）
+  const [simpleAge, setSimpleAge] = useState<string>(String(initialInput?.currentAge ?? 30));
+  const [simpleIncome, setSimpleIncome] = useState<string>(String(Math.round((initialInput?.monthlyIncome ?? 300_000) / 10_000)));
+  const [simpleCash, setSimpleCash] = useState<string>(String(Math.round((initialInput?.currentCashAssets ?? 1_000_000) / 10_000)));
+  const [simpleInvest, setSimpleInvest] = useState<string>(String(Math.round((initialInput?.currentInvestmentAssets ?? 500_000) / 10_000)));
+  const [simpleSave, setSimpleSave] = useState<string>(String(Math.round((initialInput?.monthlyInvestmentContribution ?? 30_000) / 10_000)));
+
   const [step, setStep] = useState(0);
   const [input, setInput] = useState<SimulatorInput>(initialInput ?? {
     ...DEFAULT_INPUT,
@@ -293,8 +301,39 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
+
+    // かんたんモードの場合、送信直前にsimpleStateをパースしてinputへ同期
+    let finalInput: SimulatorInput;
+    if (isSimpleMode) {
+      const ageNum = parseInt(simpleAge);
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 80) {
+        toast.error("現在の年齢は18歳〜80歳の範囲で正しく入力してください。");
+        return;
+      }
+      const incomeNum = parseInt(simpleIncome);
+      const cashNum = parseInt(simpleCash);
+      const investNum = parseInt(simpleInvest);
+      const saveNum = parseInt(simpleSave);
+
+      if (isNaN(incomeNum) || isNaN(cashNum) || isNaN(investNum) || isNaN(saveNum)) {
+        toast.error("すべての数値を正しく入力してください。");
+        return;
+      }
+
+      finalInput = {
+        ...input,
+        currentAge: ageNum,
+        monthlyIncome: incomeNum * 10_000,
+        currentCashAssets: cashNum * 10_000,
+        currentInvestmentAssets: investNum * 10_000,
+        monthlyInvestmentContribution: saveNum * 10_000,
+        lifeEvents: buildEvents(),
+      };
+    } else {
+      finalInput = { ...input, lifeEvents: buildEvents() };
+    }
+
     setIsCalculating(true);
-    const finalInput: SimulatorInput = { ...input, lifeEvents: buildEvents() };
     window.setTimeout(() => {
       onCalculate(finalInput);
       setIsCalculating(false);
@@ -333,11 +372,18 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={input.currentAge}
-                  onChange={(e) => updateInput({ currentAge: Math.max(18, parseInt(e.target.value) || 30) })}
+                  value={simpleAge}
+                  onChange={(e) => setSimpleAge(e.target.value)}
+                  onBlur={() => {
+                    const parsed = parseInt(simpleAge);
+                    const val = isNaN(parsed) ? 30 : Math.max(18, Math.min(80, parsed));
+                    setSimpleAge(String(val));
+                    updateInput({ currentAge: val });
+                  }}
                   className="h-12 rounded-xl text-base font-bold"
                   min={18}
                   max={80}
+                  placeholder="30"
                 />
                 <span className="text-sm font-medium text-slate-600">歳</span>
               </div>
@@ -380,10 +426,17 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={Math.round(input.monthlyIncome / 10_000)}
-                  onChange={(e) => updateInput({ monthlyIncome: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  value={simpleIncome}
+                  onChange={(e) => setSimpleIncome(e.target.value)}
+                  onBlur={() => {
+                    const parsed = parseInt(simpleIncome);
+                    const val = isNaN(parsed) ? 0 : Math.max(0, parsed);
+                    setSimpleIncome(String(val));
+                    updateInput({ monthlyIncome: val * 10_000 });
+                  }}
                   className="h-12 rounded-xl text-base font-bold"
                   step={1}
+                  placeholder="30"
                 />
                 <span className="text-sm font-medium text-slate-600">万円 / 月</span>
               </div>
@@ -395,10 +448,17 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={Math.round(input.currentCashAssets / 10_000)}
-                  onChange={(e) => updateInput({ currentCashAssets: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  value={simpleCash}
+                  onChange={(e) => setSimpleCash(e.target.value)}
+                  onBlur={() => {
+                    const parsed = parseInt(simpleCash);
+                    const val = isNaN(parsed) ? 0 : Math.max(0, parsed);
+                    setSimpleCash(String(val));
+                    updateInput({ currentCashAssets: val * 10_000 });
+                  }}
                   className="h-12 rounded-xl text-base font-bold"
                   step={1}
+                  placeholder="100"
                 />
                 <span className="text-sm font-medium text-slate-600">万円</span>
               </div>
@@ -410,10 +470,17 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={Math.round(input.currentInvestmentAssets / 10_000)}
-                  onChange={(e) => updateInput({ currentInvestmentAssets: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  value={simpleInvest}
+                  onChange={(e) => setSimpleInvest(e.target.value)}
+                  onBlur={() => {
+                    const parsed = parseInt(simpleInvest);
+                    const val = isNaN(parsed) ? 0 : Math.max(0, parsed);
+                    setSimpleInvest(String(val));
+                    updateInput({ currentInvestmentAssets: val * 10_000 });
+                  }}
                   className="h-12 rounded-xl text-base font-bold"
                   step={1}
+                  placeholder="50"
                 />
                 <span className="text-sm font-medium text-slate-600">万円</span>
               </div>
@@ -425,10 +492,17 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
-                  value={Math.round(input.monthlyInvestmentContribution / 10_000)}
-                  onChange={(e) => updateInput({ monthlyInvestmentContribution: Math.max(0, (parseInt(e.target.value) || 0) * 10_000) })}
+                  value={simpleSave}
+                  onChange={(e) => setSimpleSave(e.target.value)}
+                  onBlur={() => {
+                    const parsed = parseInt(simpleSave);
+                    const val = isNaN(parsed) ? 0 : Math.max(0, parsed);
+                    setSimpleSave(String(val));
+                    updateInput({ monthlyInvestmentContribution: val * 10_000 });
+                  }}
                   className="h-12 rounded-xl text-base font-bold"
                   step={1}
+                  placeholder="3"
                 />
                 <span className="text-sm font-medium text-slate-600">万円 / 月</span>
               </div>
