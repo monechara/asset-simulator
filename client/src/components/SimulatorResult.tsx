@@ -198,17 +198,26 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2.5">
-          <div className="rounded-2xl border border-sky-100 bg-white/85 p-3">
-            <p className="text-[11px] font-medium text-slate-500">投資元本</p>
-            <p className="mt-1 text-lg font-black tabular-nums text-slate-900">{formatCurrency(result.totalPrincipalContributed)}</p>
-            <p className="mt-0.5 text-[10px] text-slate-500">積立の累計</p>
+        {/* 資金フローの内訳（累計投資元本・累計運用収益・累計取り崩し） */}
+        <div className="mt-3 rounded-2xl border border-sky-100 bg-white/90 p-4 shadow-sm">
+          <p className="text-xs font-bold text-sky-900">資金フローの内訳（{input.currentAge}〜{input.retirementEndAge}歳）</p>
+          <div className="mt-2.5 space-y-2 text-xs text-slate-700">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+              <span className="text-slate-600">＋ 累計投資元本</span>
+              <span className="font-bold tabular-nums text-slate-900">{formatCurrency(result.totalPrincipalContributed)}</span>
+            </div>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+              <span className="text-slate-600">＋ 累計運用収益</span>
+              <span className="font-bold tabular-nums text-emerald-700">+{formatCurrency(result.totalInvestmentGain)}</span>
+            </div>
+            <div className="flex items-center justify-between pb-0.5">
+              <span className="text-slate-600">− 投資資産からの累計取り崩し</span>
+              <span className="font-bold tabular-nums text-amber-800">-{formatCurrency(result.yearlyRecords.reduce((s, x) => s + x.investmentWithdrawal, 0))}</span>
+            </div>
           </div>
-          <div className="rounded-2xl border border-emerald-100 bg-white/85 p-3">
-            <p className="text-[11px] font-medium text-slate-500">運用益</p>
-            <p className="mt-1 text-lg font-black tabular-nums text-emerald-800">{formatCurrency(result.totalInvestmentGain)}</p>
-            <p className="mt-0.5 text-[10px] text-slate-500">想定利回りによる試算</p>
-          </div>
+          <p className="mt-2.5 text-[10px] text-slate-400 leading-relaxed">
+            ※初期投資＋実際に追加した積立の累計（取り崩しても減りません）。運用収益は全期間の合計であり、内部の残差 principal は表示していません。
+          </p>
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-violet-100 bg-violet-50/70 p-3">
