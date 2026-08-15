@@ -268,51 +268,99 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               <p className="text-xs text-slate-500 mt-1">{benchmarkData.sourceNote}の中央値データとの比較です。</p>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* ① 現在の金融資産比較 */}
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
-                  <span>現在の金融資産（現金＋投資）</span>
-                  <span className={currentTotalAssets >= benchmarkData.totalMedian ? "text-emerald-700" : "text-amber-700"}>
-                    {currentTotalAssets >= benchmarkData.totalMedian ? `同年代の中央値より +${(currentTotalAssets - benchmarkData.totalMedian).toLocaleString()}万円` : `同年代の中央値まで あと${(benchmarkData.totalMedian - currentTotalAssets).toLocaleString()}万円`}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="bg-white p-3 rounded-xl border border-sky-100 shadow-xs">
-                    <p className="text-[11px] text-slate-500">あなた</p>
-                    <p className="text-lg font-black text-slate-900 mt-0.5">{currentTotalAssets.toLocaleString()}万円</p>
-                  </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-xs">
-                    <p className="text-[11px] text-slate-500">同年代の目安（中央値）</p>
-                    <p className="text-lg font-bold text-slate-700 mt-0.5">{benchmarkData.totalMedian.toLocaleString()}万円</p>
-                  </div>
-                </div>
-                <div className="relative w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mt-2">
-                  <div className="absolute top-0 left-0 bg-sky-500 h-full rounded-full" style={{ width: markerPosition(currentTotalAssets) }} />
-                </div>
-              </div>
+              {/* ① 現在の金融資産比較（同一尺度マーカーバー） */}
+              {(() => {
+                const maxVal = Math.max(currentTotalAssets, benchmarkData.totalMedian, 100) * 1.3;
+                const userPercent = Math.min(100, Math.max(3, (currentTotalAssets / maxVal) * 100));
+                const medianPercent = Math.min(100, Math.max(3, (benchmarkData.totalMedian / maxVal) * 100));
+                const diff = currentTotalAssets - benchmarkData.totalMedian;
+                return (
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                      <span>現在の金融資産（現金＋投資）</span>
+                      <span className={diff >= 0 ? "text-emerald-700" : "text-amber-700"}>
+                        {diff >= 0 ? `中央値より +${diff.toLocaleString()}万円` : `中央値まで あこと${Math.abs(diff).toLocaleString()}万円`}
+                      </span>
+                    </div>
 
-              {/* ② 毎月の積立額比較 */}
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
-                  <span>毎月の積立額</span>
-                  <span className={currentMonthlySave >= benchmarkData.monthlySaveAvg ? "text-emerald-700" : "text-amber-700"}>
-                    {currentMonthlySave >= benchmarkData.monthlySaveAvg ? `同年代の目安より +${Math.round((currentMonthlySave - benchmarkData.monthlySaveAvg) * 10) / 10}万円 / 月` : `同年代の目安まで あこと${Math.round((benchmarkData.monthlySaveAvg - currentMonthlySave) * 10) / 10}万円 / 月`}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-xs">
-                    <p className="text-[11px] text-slate-500">あなた</p>
-                    <p className="text-lg font-black text-slate-900 mt-0.5">{currentMonthlySave}万円 / 月</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white p-3 rounded-xl border border-sky-100 shadow-xs">
+                        <p className="text-[11px] text-slate-500">あなた</p>
+                        <p className="text-lg font-black text-sky-700 mt-0.5">{currentTotalAssets.toLocaleString()}万円</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                        <p className="text-[11px] text-slate-500">同年代中央値</p>
+                        <p className="text-lg font-bold text-slate-700 mt-0.5">{benchmarkData.totalMedian.toLocaleString()}万円</p>
+                      </div>
+                    </div>
+
+                    {/* 同一尺度バー */}
+                    <div className="pt-6 pb-2 px-2">
+                      <div className="relative w-full bg-slate-200 h-3 rounded-full">
+                        {/* あなたのマーカー */}
+                        <div className="absolute -top-5 transform -translate-x-1/2 flex flex-col items-center transition-all duration-300" style={{ left: `${userPercent}%` }}>
+                          <span className="text-[10px] font-bold bg-sky-600 text-white px-1.5 py-0.5 rounded-md shadow-xs whitespace-nowrap">あなた ({currentTotalAssets}万)</span>
+                          <div className="w-0.5 h-3 bg-sky-600 mt-0.5" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-sky-600 -mt-0.5 ring-2 ring-white" />
+                        </div>
+                        {/* 中央値のマーカー */}
+                        <div className="absolute top-4 transform -translate-x-1/2 flex flex-col items-center transition-all duration-300" style={{ left: `${medianPercent}%` }}>
+                          <div className="w-2.5 h-2.5 rounded-full bg-slate-600 -mb-0.5 ring-2 ring-white" />
+                          <div className="w-0.5 h-3 bg-slate-600 mb-0.5" />
+                          <span className="text-[10px] font-bold bg-slate-700 text-white px-1.5 py-0.5 rounded-md shadow-xs whitespace-nowrap">中央値 ({benchmarkData.totalMedian}万)</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-xs">
-                    <p className="text-[11px] text-slate-500">同年代の目安（調査平均）</p>
-                    <p className="text-lg font-bold text-slate-700 mt-0.5">{benchmarkData.monthlySaveAvg}万円 / 月</p>
+                );
+              })()}
+
+              {/* ② 毎月の積立額比較（同一尺度マーカーバー） */}
+              {(() => {
+                const maxVal = Math.max(currentMonthlySave, benchmarkData.monthlySaveAvg, 5) * 1.4;
+                const userPercent = Math.min(100, Math.max(3, (currentMonthlySave / maxVal) * 100));
+                const avgPercent = Math.min(100, Math.max(3, (benchmarkData.monthlySaveAvg / maxVal) * 100));
+                const diff = Math.round((currentMonthlySave - benchmarkData.monthlySaveAvg) * 10) / 10;
+                return (
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                      <span>毎月の積立額</span>
+                      <span className={diff >= 0 ? "text-emerald-700" : "text-amber-700"}>
+                        {diff >= 0 ? `目安より +${diff}万円 / 月` : `目安まで あと${Math.abs(diff)}万円 / 月`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white p-3 rounded-xl border border-emerald-100 shadow-xs">
+                        <p className="text-[11px] text-slate-500">あなた</p>
+                        <p className="text-lg font-black text-emerald-700 mt-0.5">{currentMonthlySave}万円 / 月</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                        <p className="text-[11px] text-slate-500">同年代目安</p>
+                        <p className="text-lg font-bold text-slate-700 mt-0.5">{benchmarkData.monthlySaveAvg}万円 / 月</p>
+                      </div>
+                    </div>
+
+                    {/* 同一尺度バー */}
+                    <div className="pt-6 pb-2 px-2">
+                      <div className="relative w-full bg-slate-200 h-3 rounded-full">
+                        {/* あなたのマーカー */}
+                        <div className="absolute -top-5 transform -translate-x-1/2 flex flex-col items-center transition-all duration-300" style={{ left: `${userPercent}%` }}>
+                          <span className="text-[10px] font-bold bg-emerald-600 text-white px-1.5 py-0.5 rounded-md shadow-xs whitespace-nowrap">あなた ({currentMonthlySave}万)</span>
+                          <div className="w-0.5 h-3 bg-emerald-600 mt-0.5" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-emerald-600 -mt-0.5 ring-2 ring-white" />
+                        </div>
+                        {/* 平均のマーカー */}
+                        <div className="absolute top-4 transform -translate-x-1/2 flex flex-col items-center transition-all duration-300" style={{ left: `${avgPercent}%` }}>
+                          <div className="w-2.5 h-2.5 rounded-full bg-slate-600 -mb-0.5 ring-2 ring-white" />
+                          <div className="w-0.5 h-3 bg-slate-600 mb-0.5" />
+                          <span className="text-[10px] font-bold bg-slate-700 text-white px-1.5 py-0.5 rounded-md shadow-xs whitespace-nowrap">目安 ({benchmarkData.monthlySaveAvg}万)</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="relative w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mt-2">
-                  <div className="absolute top-0 left-0 bg-emerald-500 h-full rounded-full" style={{ width: `${Math.min(100, (currentMonthlySave / (benchmarkData.monthlySaveAvg * 2)) * 100)}%` }} />
-                </div>
-              </div>
+                );
+              })()}
             </CardContent>
           </Card>
 
