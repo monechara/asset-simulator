@@ -297,10 +297,11 @@ export default function SimulatorForm({ onCalculate }: Props) {
                 <h2 className="mt-1 text-xl font-bold text-slate-900">いまの状態を教えてください</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">まずは現在の金融資産と、いつまでの未来を見たいかを設定します。</p>
               </div>
-              <AgeField label="現在の年齢" value={input.currentAge} onChange={(value) => updateInput({ currentAge: value, targetAge: Math.max(value + 1, input.targetAge), retirementAge: Math.max(value, input.retirementAge) })} min={18} max={80} />
+              <AgeField label="現在の年齢" value={input.currentAge} onChange={(value) => updateInput({ currentAge: value, investmentEndAge: Math.max(value + 1, input.investmentEndAge), retirementEndAge: Math.max(value + 1, input.retirementEndAge), retirementAge: Math.max(value, input.retirementAge) })} min={18} max={80} />
               <NumberField label="現在の現金資産" value={input.currentCashAssets} onChange={(value) => updateInput({ currentCashAssets: value })} unit="万円" scale={10_000} min={0} hint="預金・普通預金など。100万円なら「100」と入力します。投資資産とは分けて入力します。" />
               <NumberField label="現在の投資資産" value={input.currentInvestmentAssets} onChange={(value) => updateInput({ currentInvestmentAssets: value })} unit="万円" scale={10_000} min={0} hint="投資信託・株式など、運用中の金融資産。" />
-              <NumberField label="計画終了年齢" value={input.targetAge} onChange={(value) => updateInput({ targetAge: value })} unit="歳" min={minimumTargetAge} max={100} />
+              <AgeField label="何歳まで積み立てますか？（積立終了年齢）" value={input.investmentEndAge} onChange={(value) => updateInput({ investmentEndAge: value })} min={input.currentAge + 1} max={100} />
+              <AgeField label="老後資金は何歳まで想定しますか？（想定終了年齢）" value={input.retirementEndAge} onChange={(value) => updateInput({ retirementEndAge: value, targetAge: value })} min={Math.max(input.currentAge + 1, input.retirementAge)} max={100} />
             </motion.div>
           )}
 

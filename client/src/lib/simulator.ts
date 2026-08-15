@@ -41,7 +41,10 @@ export interface LifeEvent {
 
 export interface SimulatorInput {
   currentAge: number;
-  targetAge: number;
+  /** 積立終了年齢（何歳まで積み立てるか） */
+  investmentEndAge: number;
+  /** 老後資金を何歳まで想定するか */
+  retirementEndAge: number;
   currentCashAssets: number;
   currentInvestmentAssets: number;
   monthlyIncome: number;
@@ -59,6 +62,8 @@ export interface SimulatorInput {
   targetAssets: number;
   householdSize: 1 | 2;
   lifeEvents: LifeEvent[];
+  /** 既存互換用（targetAgeは retirementEndAge と同期） */
+  targetAge: number;
 }
 
 export interface YearlyRecord {
@@ -143,9 +148,21 @@ function normalizeNonNegative(value: number): number {
 }
 
 export function validateSimulatorInput(input: SimulatorInput): void {
+  // 互換性のための同期
+  if (input.investmentEndAge === undefined) {
+    input.investmentEndAge = input.retirementAge ?? Math.min(100, input.currentAge + 35);
+  }
+  if (input.retirementEndAge === undefined) {
+    input.retirementEndAge = input.targetAge ?? 90;
+  }
+  if (input.targetAge === undefined) {
+    input.targetAge = input.retirementEndAge;
+  }
+
   const fields: Array<[number, string]> = [
     [input.currentAge, "現在の年齢"],
-    [input.targetAge, "計画終了年齢"],
+    [input.investmentEndAge, "積立終了年齢"],
+    [input.retirementEndAge, "老後想定終了年齢"],
     [input.currentCashAssets, "現在の現金資産"],
     [input.currentInvestmentAssets, "現在の投資資産"],
     [input.monthlyIncome, "手取り月収"],
@@ -164,8 +181,11 @@ export function validateSimulatorInput(input: SimulatorInput): void {
   if (input.currentAge < MIN_AGE || input.currentAge > 80) {
     throw new Error("現在の年齢は18〜80歳の範囲で入力してください");
   }
-  if (input.targetAge <= input.currentAge || input.targetAge > MAX_AGE) {
-    throw new Error("計画終了年齢は現在の年齢より大きく、100歳以下で入力してください");
+  if (input.investmentEndAge <= input.currentAge || input.investmentEndAge > MAX_AGE) {
+    throw new Error("積立終了年齢は現在の年齢より大きく、100歳以下で入力してください");
+  }
+  if (input.retirementEndAge <= input.currentAge || input.retirementEndAge > MAX_AGE) {
+    throw new Error("老後想定終了年齢は現在の年齢より大きく、100歳以下で入力してください");
   }
   if (input.currentCashAssets < 0 || input.currentInvestmentAssets < 0) {
     throw new Error("現在の資産は0以上で入力してください");
@@ -373,14 +393,15 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
     principal: Math.round(investmentAssets),
   });
 
-  for (let year = 1; year <= input.targetAge - input.currentAge; year += 1) {
+  for (let year = 1; year <= input.retirementEndAge - input.currentAge; year += 1) {
     const age = input.currentAge + year;
     const isRetired = age >= input.retirementAge;
+    const isInvesting = age <= input.investmentEndAge;
     const monthlyIncome = isRetired ? input.annualRetirementIncome / MONTHS_PER_YEAR : input.monthlyIncome;
     const retirementMonthlyLivingExpenses = input.retirementMonthlyLivingExpenses ?? input.monthlyLivingExpenses * input.retirementLivingExpenseRatio;
     const monthlyLivingExpenses = isRetired ? retirementMonthlyLivingExpenses : input.monthlyLivingExpenses;
-    const monthlyContribution = isRetired ? 0 : input.monthlyInvestmentContribution;
-    const annualBonusInvestment = isRetired ? 0 : input.annualBonusInvestment;
+    const monthlyContribution = isInvesting ? input.monthlyInvestmentContribution : 0;
+    const annualBonusInvestment = isInvesting ? input.annualBonusInvestment : 0;
     const annualIncome = monthlyIncome * MONTHS_PER_YEAR;
     const annualLivingExpenses = monthlyLivingExpenses * MONTHS_PER_YEAR;
     const annualMonthlyInvestmentContribution = monthlyContribution * MONTHS_PER_YEAR;
@@ -461,7 +482,7 @@ export function calculateSimulation(input: SimulatorInput): SimulatorResult {
   }
 
   const finalRecord = records[records.length - 1];
-  const targetRecord = records.find((record) => record.age === input.targetAge) ?? finalRecord;
+  const targetRecord = records.find((record) => record.age === input.retirementEndAge) ?? finalRecord;
 
   return {
     yearlyRecords: records,
@@ -562,7 +583,8 @@ export const DEFAULT_LIFE_EVENTS: LifeEvent[] = [];
 
 export const DEFAULT_INPUT: SimulatorInput = {
   currentAge: 30,
-  targetAge: 65,
+  investmentEndAge: 65,
+  retirementEndAge: 90,
   currentCashAssets: 1_000_000,
   currentInvestmentAssets: 0,
   monthlyIncome: 300_000,
@@ -577,6 +599,7 @@ export const DEFAULT_INPUT: SimulatorInput = {
   targetAssets: 30_000_000,
   householdSize: 2,
   lifeEvents: DEFAULT_LIFE_EVENTS,
+  targetAge: 90,
 };
 
 export const createHousingEvent = (params: {

@@ -120,7 +120,7 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
   const currentReturnRate = input.annualReturnRate;
   const retirementMonthlyLiving = Math.round((input.retirementMonthlyLivingExpenses ?? input.monthlyLivingExpenses * input.retirementLivingExpenseRatio) / 10_000);
   const retirementMonthlyIncome = Math.round(input.annualRetirementIncome / 12 / 10_000);
-  const retirementYears = Math.max(0, input.targetAge - input.retirementAge);
+  const retirementYears = Math.max(0, input.retirementEndAge - input.retirementAge);
   const totalRetirementLivingCost = retirementMonthlyLiving * 12 * retirementYears;
   const totalRetirementIncome = retirementMonthlyIncome * 12 * retirementYears;
   const netRetirementLivingNeed = Math.max(0, totalRetirementLivingCost - totalRetirementIncome);
@@ -129,8 +129,8 @@ export default function SimulatorResultView({ result, input, onReset }: Props) {
     ? "現在の条件では老後資金をまかなえる見込みです"
     : `現在の条件では老後資金が約${retirementShortfall.toLocaleString()}万円不足する見込みです`;
   const retirementGapDetail = retirementShortfall === 0
-    ? `老後期間（${input.retirementAge}〜${input.targetAge}歳）の生活費総額に対し、年金収入および65歳時点の資産で十分にまかなえる試算です。`
-    : `老後期間（${input.retirementAge}〜${input.targetAge}歳）の生活費総額（約${totalRetirementLivingCost.toLocaleString()}万円）に対し、年金収入（約${totalRetirementIncome.toLocaleString()}万円）と65歳時点の資産を差し引いた不足額です。`;
+    ? `老後期間（${input.retirementAge}〜${input.retirementEndAge}歳 / ${retirementYears}年間）の生活費総額に対し、年金収入および65歳時点の資産で十分にまかなえる試算です。`
+    : `老後期間（${input.retirementAge}〜${input.retirementEndAge}歳 / ${retirementYears}年間）の生活費総額（約${totalRetirementLivingCost.toLocaleString()}万円）に対し、年金収入（約${totalRetirementIncome.toLocaleString()}万円）と65歳時点の資産を差し引いた不足額です。`;
   const hasTargetAge = input.targetAssets > 0 && Boolean(result.targetAchievedAge);
 
   const chartData = useMemo(() => result.yearlyRecords

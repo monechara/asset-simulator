@@ -10,7 +10,8 @@ import {
 
 const base = (overrides: Partial<SimulatorInput> = {}): SimulatorInput => ({
   currentAge: 30,
-  targetAge: 31,
+  investmentEndAge: 31,
+  retirementEndAge: 31,
   currentCashAssets: 1_000_000,
   currentInvestmentAssets: 0,
   monthlyIncome: 0,
@@ -22,7 +23,9 @@ const base = (overrides: Partial<SimulatorInput> = {}): SimulatorInput => ({
   annualRetirementIncome: 0,
   retirementLivingExpenseRatio: 0.75,
   targetAssets: 0,
+  householdSize: 2,
   lifeEvents: [],
+  targetAge: 31,
   ...overrides,
 });
 
@@ -57,6 +60,8 @@ describe("人生全体マネープラン計算", () => {
   it("年金の年間収入は老後開始年齢以降の収支へ反映する", () => {
     const result = calculateSimulation(base({
       currentAge: 64,
+      investmentEndAge: 65,
+      retirementEndAge: 66,
       targetAge: 66,
       currentCashAssets: 0,
       monthlyLivingExpenses: 100_000,
@@ -71,6 +76,8 @@ describe("人生全体マネープラン計算", () => {
   it("老後の生活費は絶対額の指定を比率より優先する", () => {
     const result = calculateSimulation(base({
       currentAge: 64,
+      investmentEndAge: 65,
+      retirementEndAge: 66,
       targetAge: 66,
       currentCashAssets: 10_000_000,
       monthlyLivingExpenses: 100_000,
@@ -102,6 +109,8 @@ describe("人生全体マネープラン計算", () => {
       repaymentYears: 35,
     });
     const result = calculateSimulation(base({
+      investmentEndAge: 33,
+      retirementEndAge: 33,
       targetAge: 33,
       currentCashAssets: 10_000_000,
       lifeEvents: [event],
@@ -138,5 +147,22 @@ describe("人生全体マネープラン計算", () => {
     expect(() => calculateSimulation(base({ currentAge: 17 }))).toThrow();
     expect(() => calculateSimulation(base({ currentCashAssets: -1 }))).toThrow();
     expect(() => calculateSimulation(base({ monthlyIncome: Number.NaN }))).toThrow();
+  });
+
+  it("49歳開始、65歳積立終了、65歳退職、90歳想定終了のケースで老後期間が25年間になり、積立は65歳までになる", () => {
+    const result = calculateSimulation(base({
+      currentAge: 49,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      monthlyInvestmentContribution: 50_000,
+    }));
+    const records = result.yearlyRecords;
+    expect(records[records.length - 1].age).toBe(90);
+    const investingYear = records.find((r) => r.age === 65)!;
+    expect(investingYear.annualInvestmentContribution).toBe(600_000);
+    const postInvestingYear = records.find((r) => r.age === 66)!;
+    expect(postInvestingYear.annualInvestmentContribution).toBe(0);
   });
 });
