@@ -364,41 +364,32 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
             </CardContent>
           </Card>
 
-          {/* 4. 詳細設定への分かりやすいCTA */}
+          {/* 4. 詳細設定への分かりやすいCTA（直接詳細入力モードへ遷移） */}
           <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-600 to-sky-600 p-6 text-white text-center shadow-md space-y-3">
             <h4 className="text-lg font-black">もっと正確に未来を見てみませんか？</h4>
             <p className="text-xs text-emerald-100 max-w-md mx-auto leading-relaxed">実際の生活費、マイホーム購入、子育て費用などのライフイベントを個別に追加して、さらに精度の高いプランを作成できます。</p>
             <Button
               type="button"
               onClick={() => {
-                onReset();
+                if (onUpdateInput) {
+                  onUpdateInput(input);
+                }
               }}
               className="h-14 px-8 rounded-2xl bg-white text-emerald-800 font-bold text-sm hover:bg-emerald-50 shadow-sm"
             >
               詳細設定でシミュレーションする →
             </Button>
           </div>
+
+          {/* 詳しい分析についての簡単な予告案内 */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center text-xs text-slate-500 shadow-xs space-y-1">
+            <p className="font-bold text-slate-700">💡 詳しい分析（資金フロー・年齢別表・改善提案など）</p>
+            <p>詳細設定を入力すると、さらに詳しいマネープランの分析やカスタマイズが確認できます。</p>
+          </div>
         </>
       ) : (
         <>
-          {/* かんたんモード結果向けの案内バナー ＆ 詳細設定への引き継ぎ導線 */}
-          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-sky-50 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold text-emerald-900">✨ かんたんシミュレーション結果</p>
-              <p className="text-xs text-slate-600 mt-0.5">生活費・年金・利回りに標準の統計目安を仮定しています。ライフイベントや実際の生活費を設定して、もっと正確に見てみませんか？</p>
-            </div>
-            {onUpdateInput && (
-              <Button
-                type="button"
-                onClick={() => {
-                  onReset();
-                }}
-                className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white shrink-0 shadow-xs"
-              >
-                ✏️ 詳細設定でもっと正確に見る →
-              </Button>
-            )}
-          </div>
+
 
           {/* 比較プラン管理バー */}
           <div className="rounded-2xl border border-sky-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
