@@ -634,47 +634,31 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="order-5 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-sm sm:p-6">
         <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
           <TrendingUp className="h-4 w-4" />
-          <span>💡 1つ変えると…</span>
+          <span>{input.monthlyInvestmentContribution === 0 && improvement.bestProposal?.category === "monthly-investment"
+            ? `💡 まずは毎月${improvement.bestProposal.afterValueFormatted.replace("/月", "")}から積立を始めると…`
+            : "💡 1つ変えると…"}</span>
         </div>
 
         {improvement.bestProposal ? (
           <div className="mt-4 space-y-4">
-            <div>
-              <p className="text-base font-black tracking-tight text-slate-900">
-                {improvement.bestProposal.description}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-emerald-100 bg-white/80 p-3.5 text-xs text-slate-700">
-              <p className="font-bold text-slate-800">提案条件</p>
-              <p className="mt-1">{improvement.bestProposal.changedParamLabel}：{improvement.bestProposal.beforeValueFormatted} → <strong className="text-emerald-800">{improvement.bestProposal.afterValueFormatted}</strong></p>
-            </div>
-
             {improvementMetrics && (improvementMetrics.showShortfallImprovement || improvementMetrics.showLifeExtension) && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {improvementMetrics.showShortfallImprovement && (
-                  <div className={`rounded-2xl border p-3.5 ${improvementMetrics.primaryMetric === "shortfall" ? "border-emerald-200 bg-emerald-50/80 shadow-sm" : "border-slate-200 bg-white/80"}`}>
-                    <p className="text-xs font-medium text-slate-500">老後の不足見込み</p>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-sm font-bold text-slate-400 line-through">{improvement.bestProposal.beforeShortfall.toLocaleString()}万円</span>
-                      <span className="text-xs font-bold text-slate-400">→</span>
-                      <span className={`text-lg font-black ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-900"}`}>{improvement.bestProposal.afterShortfall.toLocaleString()}万円</span>
-                    </div>
-                    <p className={`mt-2 text-sm font-black ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-700"}`}>
+                  <div className={`rounded-2xl border p-4 ${improvementMetrics.primaryMetric === "shortfall" ? "border-emerald-200 bg-emerald-50/90 shadow-sm" : "border-slate-200 bg-white/80"}`}>
+                    <p className="text-xs font-bold text-slate-500">老後資金</p>
+                    <p className={`mt-1 text-2xl font-black tracking-tight ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-900"}`}>
                       {improvementMetrics.shortfallImprovement.toLocaleString()}万円改善
                     </p>
                   </div>
                 )}
 
                 {improvementMetrics.showLifeExtension && (
-                  <div className={`rounded-2xl border p-3.5 ${improvementMetrics.primaryMetric === "life" ? "border-emerald-200 bg-emerald-50/80 shadow-sm" : "border-slate-200 bg-white/80"}`}>
-                    <p className="text-xs font-medium text-slate-500">資産が持つ年齢（寿命）</p>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-sm font-bold text-slate-400 line-through">{improvementMetrics.beforeLifeLabel}</span>
-                      <span className="text-xs font-bold text-slate-400">→</span>
-                      <span className={`text-lg font-black ${improvementMetrics.primaryMetric === "life" ? "text-emerald-800" : "text-slate-900"}`}>{improvementMetrics.afterLifeLabel}</span>
-                    </div>
-                    <p className={`mt-2 text-sm font-black ${improvementMetrics.primaryMetric === "life" ? "text-emerald-800" : "text-slate-700"}`}>
+                  <div className={`rounded-2xl border p-4 ${improvementMetrics.primaryMetric === "life" ? "border-emerald-200 bg-emerald-50/90 shadow-sm" : "border-slate-200 bg-white/80"}`}>
+                    <p className="text-xs font-bold text-slate-500">資産寿命</p>
+                    <p className={`mt-1 text-xl font-black tracking-tight ${improvementMetrics.primaryMetric === "life" ? "text-emerald-800" : "text-slate-900"}`}>
+                      {improvementMetrics.beforeLifeLabel} → {improvementMetrics.afterLifeLabel}
+                    </p>
+                    <p className={`mt-1 text-sm font-black ${improvementMetrics.primaryMetric === "life" ? "text-emerald-800" : "text-slate-700"}`}>
                       {improvementMetrics.lifeExtensionYears}年延長
                     </p>
                   </div>
@@ -682,20 +666,30 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-xs text-slate-500">実測シミュレーションによる改善効果</span>
-              {onUpdateInput && (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    onUpdateInput(improvement.bestProposal!.updatedInput);
-                  }}
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 text-sm shadow-sm transition-all"
-                >
-                  この条件で試す
-                </Button>
-              )}
-            </div>
+            <Accordion type="single" collapsible className="rounded-2xl border border-emerald-100 bg-white/60 px-3">
+              <AccordionItem value="improvement-details" className="border-0">
+                <AccordionTrigger className="py-3 text-xs font-bold text-slate-600 hover:no-underline">計算条件を見る</AccordionTrigger>
+                <AccordionContent className="space-y-2 pb-3 text-xs leading-relaxed text-slate-500">
+                  <p>{improvement.bestProposal.changedParamLabel}：{improvement.bestProposal.beforeValueFormatted} → {improvement.bestProposal.afterValueFormatted}</p>
+                  {improvementMetrics?.showShortfallImprovement && (
+                    <p>不足額：{improvement.bestProposal.beforeShortfall.toLocaleString()}万円 → {improvement.bestProposal.afterShortfall.toLocaleString()}万円</p>
+                  )}
+                  <p>入力した条件をもとに、1つの変更だけを反映して再計算しています。</p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {onUpdateInput && (
+              <Button
+                type="button"
+                onClick={() => {
+                  onUpdateInput(improvement.bestProposal!.updatedInput);
+                }}
+                className="w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700"
+              >
+                この条件で試す
+              </Button>
+            )}
           </div>
         ) : improvement.status === "not-needed" ? (
           <div className="mt-3 space-y-2">
