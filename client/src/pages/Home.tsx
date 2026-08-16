@@ -74,18 +74,53 @@ export default function Home() {
   const [isSimpleResult, setIsSimpleResult] = useState(false);
 
   // SNSや外部リンクから簡易入力へ直接来た場合だけ、フォーム先頭を初期表示する。
+  // 初回のレイアウト計算やフォント読み込みより後に、固定ヘッダー分を差し引いた座標へ移動する。
   // 通常のトップページと既存の「無料でシミュレーションする」導線には影響させない。
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const isDirectSimple = params.get("start") === "simple" || window.location.pathname === "/simple";
     if (!isDirectSimple) return;
 
-    const timer = window.setTimeout(() => {
-      const formEl = document.getElementById("simulator-form-container");
-      formEl?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 180);
+    let cancelled = false;
+    let attempts = 0;
+    let timer: number | undefined;
 
-    return () => window.clearTimeout(timer);
+    const scrollToSimpleForm = () => {
+      if (cancelled) return;
+      const formEl = document.getElementById("simulator-form-container");
+      if (!formEl) {
+        if (attempts < 20) {
+          attempts += 1;
+          window.requestAnimationFrame(scrollToSimpleForm);
+        }
+        return;
+      }
+
+      const headerOffset = 80;
+      const targetTop = Math.max(0, formEl.getBoundingClientRect().top + window.scrollY - headerOffset);
+      window.scrollTo({ top: targetTop, behavior: "auto" });
+    };
+
+    const scheduleScroll = () => {
+      timer = window.setTimeout(() => {
+        scrollToSimpleForm();
+        // AnimatePresenceやフォント反映後のレイアウト変化にも追従する。
+        window.requestAnimationFrame(scrollToSimpleForm);
+      }, 0);
+    };
+
+    if (document.readyState === "complete") {
+      scheduleScroll();
+    } else {
+      window.addEventListener("load", scheduleScroll, { once: true });
+      scheduleScroll();
+    }
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+      window.removeEventListener("load", scheduleScroll);
+    };
   }, []);
 
   const handleCalculate = useCallback((input: SimulatorInput, isSimple?: boolean) => {
