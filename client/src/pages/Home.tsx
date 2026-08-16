@@ -3,7 +3,7 @@
  * SNSから来たユーザーが30秒でシミュレーションできるMVP
  * スマホ最優先
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import SimulatorForm from "@/components/SimulatorForm";
@@ -72,6 +72,21 @@ export default function Home() {
   const [result, setResult] = useState<ResultType | null>(null);
   const [lastInput, setLastInput] = useState<SimulatorInput | null>(null);
   const [isSimpleResult, setIsSimpleResult] = useState(false);
+
+  // SNSや外部リンクから簡易入力へ直接来た場合だけ、フォーム先頭を初期表示する。
+  // 通常のトップページと既存の「無料でシミュレーションする」導線には影響させない。
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isDirectSimple = params.get("start") === "simple" || window.location.pathname === "/simple";
+    if (!isDirectSimple) return;
+
+    const timer = window.setTimeout(() => {
+      const formEl = document.getElementById("simulator-form-container");
+      formEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleCalculate = useCallback((input: SimulatorInput, isSimple?: boolean) => {
     try {
