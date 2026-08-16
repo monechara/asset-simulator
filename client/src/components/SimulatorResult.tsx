@@ -642,7 +642,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
 
             <div className="rounded-2xl border border-emerald-100 bg-white/80 p-3.5 text-xs text-slate-700">
               <p className="font-bold text-slate-800">提案条件</p>
-              <p className="mt-1">毎月の積立：{formatCurrency(input.monthlyInvestmentContribution)} → <strong className="text-emerald-800">{formatCurrency(improvement.bestProposal.updatedInput.monthlyInvestmentContribution)}</strong></p>
+              <p className="mt-1">{improvement.bestProposal.changedParamLabel}：{improvement.bestProposal.beforeValueFormatted} → <strong className="text-emerald-800">{improvement.bestProposal.afterValueFormatted}</strong></p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

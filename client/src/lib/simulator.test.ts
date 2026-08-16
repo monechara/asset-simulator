@@ -317,6 +317,33 @@ describe("人生全体マネープラン計算", () => {
     expect(oneStepLess.isDepleted).toBe(true);
   });
 
+  it("改善提案：積立0円では月5,000円の開始案を最優先し、効果を実測する", () => {
+    const input = base({
+      currentAge: 49,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 0,
+      currentInvestmentAssets: 0,
+      monthlyIncome: 250_000,
+      monthlyLivingExpenses: 200_000,
+      monthlyInvestmentContribution: 0,
+      retirementMonthlyLivingExpenses: 150_000,
+      annualRetirementIncome: 1_200_000,
+      annualReturnRate: 5,
+    });
+    const improvement = calculateImprovementSimulation(input);
+
+    expect(improvement.status).toBe("increase");
+    expect(improvement.bestProposal?.category).toBe("monthly-investment");
+    expect(improvement.bestProposal?.updatedInput.monthlyInvestmentContribution).toBe(5_000);
+    expect(improvement.bestProposal?.description).toContain("5,000円");
+    expect(improvement.bestProposal?.afterDepletedAge).toBeGreaterThan(improvement.bestProposal?.beforeDepletedAge ?? 0);
+    expect(improvement.bestProposal?.updatedInput.monthlyInvestmentContribution).toBeLessThanOrEqual(input.monthlyIncome - input.monthlyLivingExpenses);
+    expect(improvement.suggestedResult?.isDepleted).toBe(false);
+  });
+
   it("改善探索：最初から想定終了年齢まで資産が残る場合は増額提案をしない", () => {
     const input = base({
       currentAge: 30,
@@ -357,7 +384,9 @@ describe("人生全体マネープラン計算", () => {
     });
     const improvement = calculateImprovementSimulation(input);
 
-    expect(improvement.status).toBe("no-capacity");
+    expect(improvement.status).toBe("increase");
+    expect(improvement.bestProposal?.category).toBe("retirement-living");
+    expect(improvement.bestProposal?.afterShortfall).toBeLessThan(improvement.bestProposal?.beforeShortfall ?? Infinity);
     expect(improvement.suggestedMonthlyInvestment).toBeNull();
     expect(improvement.maxAffordableMonthlyInvestment).toBe(0);
     expect(improvement.additionalMonthlyCapacity).toBe(0);
@@ -407,7 +436,9 @@ describe("人生全体マネープラン計算", () => {
 
     expect(result.depletedAge).toBe(77);
     expect(result.targetAgeAssets).toBe(0);
-    expect(improvement.status).toBe("no-capacity");
+    expect(improvement.status).toBe("increase");
+    expect(improvement.bestProposal?.category).toBe("retirement-living");
+    expect(improvement.bestProposal?.afterShortfall).toBeLessThan(improvement.bestProposal?.beforeShortfall ?? Infinity);
     expect(improvement.suggestedMonthlyInvestment).toBeNull();
     expect(improvement.maxAffordableMonthlyInvestment).toBe(20_000);
     expect(improvement.additionalMonthlyCapacity).toBe(0);

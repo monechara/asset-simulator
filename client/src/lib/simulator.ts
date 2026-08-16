@@ -122,7 +122,7 @@ export interface ComparisonResult {
 
 export type ImprovementSimulationStatus = "increase" | "not-needed" | "no-capacity" | "not-found";
 
-export type ImprovementCategory = "monthly-investment" | "bonus-investment" | "investment-end-age" | "retirement-living";
+export type ImprovementCategory = "monthly-investment" | "bonus-investment" | "investment-end-age" | "retirement-living" | "retirement-age";
 
 export interface ImprovementProposal {
   category: ImprovementCategory;
@@ -582,46 +582,29 @@ export function calculateImprovementSimulation(
     };
   }
 
-  if (additionalMonthlyCapacity < searchStep) {
-    return {
-      status: "no-capacity",
-      suggestedMonthlyInvestment: null,
-      additionalMonthlyInvestment: null,
-      suggestedResult: null,
-      bestProposal: null,
-      ...baseFields,
-    };
-  }
+  // 想定終了年齢まで枯渇しないために必要な積立額も別途探索する。
+  // これは既存の「完全解消額」情報として保持し、表示用の最小改善案とは分けて扱う。
+  let suggestedMonthlyInvestment: number | null = null;
+  let additionalMonthlyInvestment: number | null = null;
+  let suggestedResult: SimulatorResult | null = null;
+  if (additionalMonthlyCapacity >= searchStep) {
+    for (let additional = searchStep; additional <= additionalMonthlyCapacity; additional += searchStep) {
+      const candidateMonthlyInvestment = currentMonthlyInvestment + additional;
+      const candidateResult = calculateSimulation({
+        ...input,
+        monthlyInvestmentContribution: candidateMonthlyInvestment,
+      });
 
-  const candidateAdditionalAmounts: number[] = [];
-  for (let additional = searchStep; additional <= additionalMonthlyCapacity; additional += searchStep) {
-    candidateAdditionalAmounts.push(additional);
-  }
-  if (additionalMonthlyCapacity > 0 && additionalMonthlyCapacity % searchStep !== 0) {
-    candidateAdditionalAmounts.push(additionalMonthlyCapacity);
-  }
-
-  for (const additional of candidateAdditionalAmounts) {
-    const suggestedMonthlyInvestment = currentMonthlyInvestment + additional;
-    const suggestedResult = calculateSimulation({
-      ...input,
-      monthlyInvestmentContribution: suggestedMonthlyInvestment,
-    });
-
-    if (!suggestedResult.isDepleted) {
-      return {
-        ...baseFields,
-        status: "increase",
-        suggestedMonthlyInvestment,
-        additionalMonthlyInvestment: additional,
-        targetAgeAssets: suggestedResult.targetAgeAssets,
-        suggestedResult,
-        bestProposal: null,
-      };
+      if (!candidateResult.isDepleted) {
+        suggestedMonthlyInvestment = candidateMonthlyInvestment;
+        additionalMonthlyInvestment = additional;
+        suggestedResult = candidateResult;
+        break;
+      }
     }
   }
 
-  let bestProposal: ImprovementProposal | null = null;
+  const proposals: ImprovementProposal[] = [];
 
   // 補助関数：老後不足額（万円）の計算
   const calcShortfall = (inp: SimulatorInput, res: SimulatorResult): number => {
@@ -637,10 +620,19 @@ export function calculateImprovementSimulation(
   const baseShortfall = calcShortfall(input, baseResult);
   const baseDepletedAge = baseResult.depletedAge;
 
-  // 候補1：毎月の積立額を増やす（家計上限の範囲内、1万円単位など）
-  if (additionalMonthlyCapacity >= 10_000) {
-    // 試行する増額ステップ（1万円、3万円、または上限額）
-    const increments = [10_000, 20_000, 30_000, 50_000, additionalMonthlyCapacity].filter((v, idx, arr) => arr.indexOf(v) === idx && v <= additionalMonthlyCapacity);
+  // 候補1：毎月積立を始める／増額する。
+  // まず5,000円、次に1万円、その後は5,000円刻みで実測する。
+  // 上限は「手取り−現役生活費」であり、家計余力を超える候補は作らない。
+  if (additionalMonthlyCapacity > 0) {
+    const formatMonthlyContribution = (amount: number): string => (
+      amount > 0 && amount % 10_000 === 0 ? `${amount / 10_000}万円` : `${amount.toLocaleString()}円`
+    );
+    const increments = Array.from(
+      { length: Math.floor(additionalMonthlyCapacity / 5_000) },
+      (_, index) => (index + 1) * 5_000,
+    );
+    if (additionalMonthlyCapacity % 5_000 !== 0) increments.push(additionalMonthlyCapacity);
+
     for (const inc of increments) {
       const newMonthly = currentMonthlyInvestment + inc;
       const updatedInput: SimulatorInput = { ...input, monthlyInvestmentContribution: newMonthly };
@@ -648,15 +640,17 @@ export function calculateImprovementSimulation(
       const shortfall = calcShortfall(updatedInput, res);
       const ageDiff = (res.depletedAge ?? 999) - (baseDepletedAge ?? 999);
       const shortfallDiff = baseShortfall - shortfall;
-      const score = ageDiff * 10 + shortfallDiff * 2 + (inc / 10_000);
+      const score = ageDiff * 10 + shortfallDiff * 2 - inc / 5_000;
 
       const proposal: ImprovementProposal = {
         category: "monthly-investment",
-        title: "毎月の積立額を増やす",
-        description: `毎月の積立投資額を ${(currentMonthlyInvestment / 10_000).toFixed(1)}万円 → ${(newMonthly / 10_000).toFixed(1)}万円 に増やす`,
+        title: currentMonthlyInvestment === 0 ? "まずは積立を始める" : "毎月の積立額を増やす",
+        description: currentMonthlyInvestment === 0
+          ? `まずは毎月 ${formatMonthlyContribution(newMonthly)} から積立を始めると…`
+          : `毎月の積立投資額を ${formatMonthlyContribution(currentMonthlyInvestment)} → ${formatMonthlyContribution(newMonthly)} に増やす`,
         changedParamLabel: "毎月の積立額",
-        beforeValueFormatted: `${(currentMonthlyInvestment / 10_000).toFixed(1)}万円/月`,
-        afterValueFormatted: `${(newMonthly / 10_000).toFixed(1)}万円/月`,
+        beforeValueFormatted: `${formatMonthlyContribution(currentMonthlyInvestment)}/月`,
+        afterValueFormatted: `${formatMonthlyContribution(newMonthly)}/月`,
         beforeDepletedAge: baseDepletedAge,
         afterDepletedAge: res.depletedAge,
         beforeShortfall: baseShortfall,
@@ -666,9 +660,7 @@ export function calculateImprovementSimulation(
         updatedResult: res,
       };
 
-      if (!bestProposal || proposal.score > bestProposal.score) {
-        bestProposal = proposal;
-      }
+      proposals.push(proposal);
     }
   }
 
@@ -699,9 +691,7 @@ export function calculateImprovementSimulation(
       updatedResult: res,
     };
 
-    if (!bestProposal || proposal.score > bestProposal.score) {
-      bestProposal = proposal;
-    }
+    proposals.push(proposal);
   }
 
   // 候補3：積立終了年齢を1〜5年延長する
@@ -731,9 +721,7 @@ export function calculateImprovementSimulation(
       updatedResult: res,
     };
 
-    if (!bestProposal || proposal.score > bestProposal.score) {
-      bestProposal = proposal;
-    }
+    proposals.push(proposal);
   }
 
   // 候補4：老後の毎月生活費を1万円単位で下げる（最大20%程度または最大-3万円まで）
@@ -765,18 +753,72 @@ export function calculateImprovementSimulation(
       updatedResult: res,
     };
 
-    if (!bestProposal || proposal.score > bestProposal.score) {
-      bestProposal = proposal;
-    }
+    proposals.push(proposal);
   }
 
+  // 候補5：退職年齢を1〜3年遅らせる。
+  for (let years = 1; years <= 3; years += 1) {
+    const newRetirementAge = Math.min(input.retirementEndAge - 1, input.retirementAge + years);
+    if (newRetirementAge <= input.retirementAge) continue;
+    const updatedInput: SimulatorInput = { ...input, retirementAge: newRetirementAge };
+    const res = calculateSimulation(updatedInput);
+    const shortfall = calcShortfall(updatedInput, res);
+    const ageDiff = (res.depletedAge ?? 999) - (baseDepletedAge ?? 999);
+    const shortfallDiff = baseShortfall - shortfall;
+    const score = ageDiff * 10 + shortfallDiff * 3 - years;
+
+    proposals.push({
+      category: "retirement-age",
+      title: "退職時期を少し遅らせる",
+      description: `退職年齢を ${input.retirementAge}歳 → ${newRetirementAge}歳 に ${years}年 遅らせる`,
+      changedParamLabel: "退職年齢",
+      beforeValueFormatted: `${input.retirementAge}歳`,
+      afterValueFormatted: `${newRetirementAge}歳`,
+      beforeDepletedAge: baseDepletedAge,
+      afterDepletedAge: res.depletedAge,
+      beforeShortfall: baseShortfall,
+      afterShortfall: shortfall,
+      score,
+      updatedInput,
+      updatedResult: res,
+    });
+  }
+
+  const improvesOutcome = (proposal: ImprovementProposal): boolean => (
+    proposal.afterShortfall < baseShortfall
+    || (proposal.afterDepletedAge ?? 999) > (baseDepletedAge ?? 999)
+    || proposal.updatedResult.targetAgeAssets > baseResult.targetAgeAssets
+  );
+  const categoryPriority: Record<ImprovementCategory, number> = {
+    "monthly-investment": 1,
+    "retirement-living": 2,
+    "retirement-age": 3,
+    "investment-end-age": 4,
+    "bonus-investment": 5,
+  };
+  const rankedProposals = proposals
+    .filter(improvesOutcome)
+    .sort((a, b) => {
+      const categoryDiff = categoryPriority[a.category] - categoryPriority[b.category];
+      if (categoryDiff !== 0) return categoryDiff;
+      if (a.category === "monthly-investment" && b.category === "monthly-investment") {
+        return (a.updatedInput.monthlyInvestmentContribution - input.monthlyInvestmentContribution)
+          - (b.updatedInput.monthlyInvestmentContribution - input.monthlyInvestmentContribution);
+      }
+      if (a.afterShortfall !== b.afterShortfall) return a.afterShortfall - b.afterShortfall;
+      return b.score - a.score;
+    });
+  const bestProposal = rankedProposals[0] ?? null;
+  const hasImprovement = bestProposal !== null || suggestedResult !== null;
+
   return {
-    status: baseResult.isDepleted ? "increase" : "not-needed",
-    suggestedMonthlyInvestment: null,
-    additionalMonthlyInvestment: null,
-    suggestedResult: null,
-    bestProposal,
     ...baseFields,
+    status: hasImprovement ? "increase" : "no-capacity",
+    suggestedMonthlyInvestment,
+    additionalMonthlyInvestment,
+    targetAgeAssets: suggestedResult?.targetAgeAssets ?? bestProposal?.updatedResult.targetAgeAssets ?? baseResult.targetAgeAssets,
+    suggestedResult,
+    bestProposal,
   };
 }
 
