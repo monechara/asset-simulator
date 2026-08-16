@@ -185,6 +185,25 @@ function NumberField({
 
 export default function SimulatorForm({ onCalculate, initialInput }: Props) {
   const [isSimpleMode, setIsSimpleMode] = useState(!initialInput);
+
+  // 詳細モードに切り替わった際にSTEP 1セクションへ自動スクロール
+  useEffect(() => {
+    if (initialInput) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById("simulator-step1-section");
+        if (el) {
+          const headerOffset = 80;
+          const elementPosition = el.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [initialInput]);
   const [familyType, setFamilyType] = useState<"single" | "couple" | "family">("single");
 
   // かんたんモード用の入力途中文字列state（空欄を完全に許容するため）
@@ -539,9 +558,9 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
             ))}
           </div>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
-        <CardContent className="space-y-5 p-5 sm:p-6">
-          {step === 0 && (
+      <Card id="simulator-step1-section" className="rounded-2xl border-slate-200 shadow-sm scroll-mt-24">
+          <CardContent className="space-y-5 p-5 sm:p-6">
+            {step === 0 && (
             <motion.div initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-600">Step 1</p>
