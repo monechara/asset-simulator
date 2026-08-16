@@ -645,9 +645,8 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {improvementMetrics.showShortfallImprovement && (
                   <div className={`rounded-2xl border p-4 ${improvementMetrics.primaryMetric === "shortfall" ? "border-emerald-200 bg-emerald-50/90 shadow-sm" : "border-slate-200 bg-white/80"}`}>
-                    <p className="text-xs font-bold text-slate-500">老後資金</p>
-                    <p className={`mt-1 text-2xl font-black tracking-tight ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-900"}`}>
-                      {improvementMetrics.shortfallImprovement.toLocaleString()}万円改善
+                    <p className={`text-2xl font-black tracking-tight ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-900"}`}>
+                      老後資金が{improvementMetrics.shortfallImprovement.toLocaleString()}万円改善
                     </p>
                   </div>
                 )}
@@ -708,7 +707,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
         )}
 
         <p className="mt-4 text-[11px] leading-relaxed text-slate-400">
-          現在の入力条件を将来も一定とした場合の試算です。実際の運用成果、物価、収入、支出、年金額等により結果は変動します。
+          ※入力条件をもとにした試算です。
         </p>
       </motion.div>
 
