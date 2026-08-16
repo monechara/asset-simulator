@@ -8,6 +8,9 @@ export interface ImprovementDisplayMetrics {
   beforeLifeLabel: string;
   afterLifeLabel: string;
   lifeExtensionYears: number;
+  beforeTargetAgeAssets: number;
+  afterTargetAgeAssets: number;
+  targetAgeAssetIncrease: number;
   shortfallImprovement: number;
   showLifeExtension: boolean;
   showShortfallImprovement: boolean;
@@ -27,6 +30,9 @@ export function getImprovementDisplayMetrics(
   const beforeLifeAge = proposal.beforeDepletedAge ?? retirementEndAge;
   const afterLifeAge = proposal.afterDepletedAge ?? retirementEndAge;
   const lifeExtensionYears = Math.max(0, afterLifeAge - beforeLifeAge);
+  const beforeTargetAgeAssets = proposal.beforeTargetAgeAssets;
+  const afterTargetAgeAssets = proposal.updatedResult.targetAgeAssets;
+  const targetAgeAssetIncrease = afterTargetAgeAssets - beforeTargetAgeAssets;
   const shortfallImprovement = Math.max(0, proposal.beforeShortfall - proposal.afterShortfall);
   const showLifeExtension = lifeExtensionYears > 0;
   const showShortfallImprovement = shortfallImprovement > 0;
@@ -37,6 +43,9 @@ export function getImprovementDisplayMetrics(
     beforeLifeLabel: proposal.beforeDepletedAge === null ? `${retirementEndAge}歳以上` : `${beforeLifeAge}歳`,
     afterLifeLabel: proposal.afterDepletedAge === null ? `${retirementEndAge}歳以上` : `${afterLifeAge}歳`,
     lifeExtensionYears,
+    beforeTargetAgeAssets,
+    afterTargetAgeAssets,
+    targetAgeAssetIncrease,
     shortfallImprovement,
     showLifeExtension,
     showShortfallImprovement,

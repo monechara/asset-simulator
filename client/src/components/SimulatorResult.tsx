@@ -641,6 +641,28 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
 
         {improvement.bestProposal ? (
           <div className="mt-4 space-y-4">
+            {improvementMetrics && (
+              <div className="rounded-2xl border border-emerald-200 bg-white/90 p-4 shadow-sm">
+                <p className="text-xs font-bold text-slate-500">{input.retirementEndAge}歳時点の予想金融資産</p>
+                <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+                  <div>
+                    <p className="text-[11px] font-medium text-slate-500">現在のまま</p>
+                    <p className="mt-1 text-lg font-black tabular-nums text-slate-800">{formatCurrency(improvementMetrics.beforeTargetAgeAssets)}</p>
+                  </div>
+                  <span className="pb-1 text-sm font-bold text-slate-400">→</span>
+                  <div className="text-right">
+                    <p className="text-[11px] font-medium text-emerald-700">{improvement.bestProposal.afterValueFormatted.replace("/月", "")}に変更</p>
+                    <p className="mt-1 text-lg font-black tabular-nums text-emerald-800">{formatCurrency(improvementMetrics.afterTargetAgeAssets)}</p>
+                  </div>
+                </div>
+                <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-center text-base font-black text-emerald-800">
+                  {improvementMetrics.targetAgeAssetIncrease >= 0
+                    ? `将来資産が約${formatCurrency(improvementMetrics.targetAgeAssetIncrease)}アップ`
+                    : `将来資産が約${formatCurrency(Math.abs(improvementMetrics.targetAgeAssetIncrease))}減少`}
+                </p>
+              </div>
+            )}
+
             {improvementMetrics && (improvementMetrics.showShortfallImprovement || improvementMetrics.showLifeExtension) && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {improvementMetrics.showShortfallImprovement && (

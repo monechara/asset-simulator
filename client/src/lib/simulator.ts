@@ -131,6 +131,7 @@ export interface ImprovementProposal {
   changedParamLabel: string;
   beforeValueFormatted: string;
   afterValueFormatted: string;
+  beforeTargetAgeAssets: number;
   beforeDepletedAge: number | null;
   afterDepletedAge: number | null;
   beforeShortfall: number;
@@ -651,6 +652,7 @@ export function calculateImprovementSimulation(
         changedParamLabel: "毎月の積立額",
         beforeValueFormatted: `${formatMonthlyContribution(currentMonthlyInvestment)}/月`,
         afterValueFormatted: `${formatMonthlyContribution(newMonthly)}/月`,
+        beforeTargetAgeAssets: baseResult.targetAgeAssets,
         beforeDepletedAge: baseDepletedAge,
         afterDepletedAge: res.depletedAge,
         beforeShortfall: baseShortfall,
@@ -682,6 +684,7 @@ export function calculateImprovementSimulation(
       changedParamLabel: "年間ボーナス投資",
       beforeValueFormatted: `${(input.annualBonusInvestment / 10_000).toFixed(0)}万円/年`,
       afterValueFormatted: `${(newBonus / 10_000).toFixed(0)}万円/年`,
+      beforeTargetAgeAssets: baseResult.targetAgeAssets,
       beforeDepletedAge: baseDepletedAge,
       afterDepletedAge: res.depletedAge,
       beforeShortfall: baseShortfall,
@@ -712,6 +715,7 @@ export function calculateImprovementSimulation(
       changedParamLabel: "積立終了年齢",
       beforeValueFormatted: `${input.investmentEndAge}歳`,
       afterValueFormatted: `${newEndAge}歳`,
+      beforeTargetAgeAssets: baseResult.targetAgeAssets,
       beforeDepletedAge: baseDepletedAge,
       afterDepletedAge: res.depletedAge,
       beforeShortfall: baseShortfall,
@@ -744,6 +748,7 @@ export function calculateImprovementSimulation(
       changedParamLabel: "老後の毎月生活費",
       beforeValueFormatted: `${(currentRetirementLivingYen / 10_000).toFixed(1)}万円/月`,
       afterValueFormatted: `${(newLivingYen / 10_000).toFixed(1)}万円/月`,
+      beforeTargetAgeAssets: baseResult.targetAgeAssets,
       beforeDepletedAge: baseDepletedAge,
       afterDepletedAge: res.depletedAge,
       beforeShortfall: baseShortfall,
@@ -774,6 +779,7 @@ export function calculateImprovementSimulation(
       changedParamLabel: "退職年齢",
       beforeValueFormatted: `${input.retirementAge}歳`,
       afterValueFormatted: `${newRetirementAge}歳`,
+      beforeTargetAgeAssets: baseResult.targetAgeAssets,
       beforeDepletedAge: baseDepletedAge,
       afterDepletedAge: res.depletedAge,
       beforeShortfall: baseShortfall,

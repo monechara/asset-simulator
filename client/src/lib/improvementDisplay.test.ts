@@ -9,6 +9,7 @@ const proposal = (overrides: Partial<ImprovementProposal> = {}): ImprovementProp
   changedParamLabel: "毎月の積立額",
   beforeValueFormatted: "0円/月",
   afterValueFormatted: "5,000円/月",
+  beforeTargetAgeAssets: 0,
   beforeDepletedAge: 32,
   afterDepletedAge: 32,
   beforeShortfall: 2_700,
@@ -21,12 +22,15 @@ const proposal = (overrides: Partial<ImprovementProposal> = {}): ImprovementProp
 
 describe("improvement display metrics", () => {
   it("不​​足額だけが改善した場合は改善額を返し、寿命指標を隠す", () => {
-    const metrics = getImprovementDisplayMetrics(proposal({ afterShortfall: 2_432 }), 90)!;
+    const metrics = getImprovementDisplayMetrics(proposal({ afterShortfall: 2_432, updatedResult: { targetAgeAssets: 1_370 } as ImprovementProposal["updatedResult"] }), 90)!;
 
     expect(metrics.showShortfallImprovement).toBe(true);
     expect(metrics.shortfallImprovement).toBe(268);
     expect(metrics.showLifeExtension).toBe(false);
     expect(metrics.primaryMetric).toBe("shortfall");
+    expect(metrics.beforeTargetAgeAssets).toBe(0);
+    expect(metrics.afterTargetAgeAssets).toBe(1_370);
+    expect(metrics.targetAgeAssetIncrease).toBe(1_370);
   });
 
   it("資産寿命だけが延びた場合は延長年数を返し、不足額指標を隠す", () => {
