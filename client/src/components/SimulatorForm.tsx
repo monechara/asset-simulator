@@ -223,10 +223,7 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
     monthlyInvestmentContribution: 30_000,
     lifeEvents: [],
   });
-  const [lifeEvents, setLifeEvents] = useState<any[]>([
-    { id: "marriage-32", type: "marriage", title: "結婚", age: 32, cost: 3_000_000 },
-    { id: "housing-38", type: "housing", title: "住宅購入", age: 38, cost: 5_000_000, housingLoan: { propertyPrice: 40_000_000, downPayment: 5_000_000, loanAmount: 35_000_000, annualInterestRate: 1, repaymentYears: 35, loanStartAge: 38, loanEndAge: 73 } }
-  ]);
+  const [lifeEvents, setLifeEvents] = useState<any[]>(initialInput?.lifeEvents && initialInput.lifeEvents.length > 0 ? initialInput.lifeEvents : []);
   const [activeModalType, setActiveModalType] = useState<string | null>(null);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
 
