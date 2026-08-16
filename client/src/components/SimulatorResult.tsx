@@ -184,6 +184,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
           age: record.age,
           現金資産: Math.round(record.cashEnd / 10_000),
           投資資産: Math.round(record.investmentEnd / 10_000),
+          総金融資産: Math.round(record.totalFinancialAssets / 10_000),
           プランA_金融資産: Math.round(record.totalFinancialAssets / 10_000),
           プランA_現金: Math.round(record.cashEnd / 10_000),
           プランA_投資: Math.round(record.investmentEnd / 10_000),
@@ -251,8 +252,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
                   <XAxis dataKey="age" tickFormatter={(value) => `${value}歳`} tick={{ fontSize: 11, fill: "#64748b" }} />
                   <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(value) => `${value}`} width={42} />
                   <Tooltip labelFormatter={(value) => `${value}歳`} formatter={(value) => [`${Number(value).toLocaleString()}万円`, ""]} />
-                  <Area type="monotone" dataKey="現金資産" stackId="assets" stroke="#0ea5e9" fill="url(#cashFill)" />
-                  <Area type="monotone" dataKey="投資資産" stackId="assets" stroke="#10b981" fill="url(#investmentFill)" />
+                  <Area type="monotone" dataKey="総金融資産" stroke="#10b981" strokeWidth={2.5} fill="url(#investmentFill)" />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
