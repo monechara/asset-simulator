@@ -176,37 +176,16 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
   const planBMin = useMemo(() => planBResult ? getMinAssetInfo(planBResult.yearlyRecords) : null, [planBResult]);
 
   const chartData = useMemo(() => {
-    const map = new Map<number, any>();
-    result.yearlyRecords
-      .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === input.targetAge || record.activeEvents.length > 0)
-      .forEach((record) => {
-        map.set(record.age, {
-          age: record.age,
-          現金資産: Math.round(record.cashEnd / 10_000),
-          投資資産: Math.round(record.investmentEnd / 10_000),
-          総金融資産: Math.round(record.totalFinancialAssets / 10_000),
-          プランA_金融資産: Math.round(record.totalFinancialAssets / 10_000),
-          プランA_現金: Math.round(record.cashEnd / 10_000),
-          プランA_投資: Math.round(record.investmentEnd / 10_000),
-        });
-      });
-
-    if (planBResult) {
-      planBResult.yearlyRecords
-        .filter((record) => record.year === 0 || record.year % 5 === 0 || record.age === planBInput.targetAge || record.activeEvents.length > 0)
-        .forEach((record) => {
-          const existing = map.get(record.age) || { age: record.age };
-          existing.現金資産 = Math.round(record.cashEnd / 10_000);
-          existing.投資資産 = Math.round(record.investmentEnd / 10_000);
-          existing.プランB_金融資産 = Math.round(record.totalFinancialAssets / 10_000);
-          existing.プランB_現金 = Math.round(record.cashEnd / 10_000);
-          existing.プランB_投資 = Math.round(record.investmentEnd / 10_000);
-          map.set(record.age, existing);
-        });
-    }
-
-    return Array.from(map.values()).sort((a, b) => a.age - b.age);
-  }, [result.yearlyRecords, planBResult, input.targetAge, planBInput.targetAge]);
+    return result.yearlyRecords.map((record) => ({
+      age: record.age,
+      現金資産: Math.round(record.cashEnd / 10_000),
+      投資資産: Math.round(record.investmentEnd / 10_000),
+      総金融資産: Math.round(record.totalFinancialAssets / 10_000),
+      プランA_金融資産: Math.round(record.totalFinancialAssets / 10_000),
+      プランA_現金: Math.round(record.cashEnd / 10_000),
+      プランA_投資: Math.round(record.investmentEnd / 10_000),
+    })).sort((a, b) => a.age - b.age);
+  }, [result.yearlyRecords]);
 
   const monthlyComparisons = useMemo(
     () => calculateMonthlyComparison(input, [10_000, 30_000]),
