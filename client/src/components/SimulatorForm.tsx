@@ -30,7 +30,7 @@ interface Props {
   initialInput?: SimulatorInput;
 }
 
-const STEPS = ["基本情報", "家計と運用", "ライフイベント"];
+const STEPS = ["基本情報", "家計と運用", "ライフプラン", "老後とその他"];
 const PENSION_OPTIONS = [100_000, 150_000, 200_000, 250_000, 300_000];
 const RETIREMENT_LIVING_EXPENSE_OPTIONS = [150_000, 200_000, 250_000, 300_000];
 const PENSION_BENCHMARK = 150_000;
