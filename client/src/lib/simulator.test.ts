@@ -144,6 +144,58 @@ describe("人生全体マネープラン計算", () => {
     expect(comparison.difference).toBe(-3_000_000);
   });
 
+  it("詳細設定の入力値と40歳500万円の車イベントがyearlyRecordsへ反映される", () => {
+    const simpleInput = base({
+      currentAge: 32,
+      investmentEndAge: 65,
+      retirementAge: 65,
+      retirementEndAge: 90,
+      targetAge: 90,
+      currentCashAssets: 1_000_000,
+      currentInvestmentAssets: 1_000_000,
+      monthlyIncome: 500_000,
+      monthlyLivingExpenses: 150_000,
+      monthlyInvestmentContribution: 50_000,
+      annualReturnRate: 5,
+      retirementMonthlyLivingExpenses: 270_000,
+      annualRetirementIncome: 2_200_000,
+      lifeEvents: [],
+    });
+    const simpleResult = calculateSimulation(simpleInput);
+    const event = createEvent({ id: "car-40", type: "other", title: "車購入", age: 40, cost: 5_000_000 });
+    const detailedResult = calculateSimulation({ ...simpleInput, lifeEvents: [event] });
+
+    const simple40 = simpleResult.yearlyRecords.find((record) => record.age === 40)!;
+    const detailed40 = detailedResult.yearlyRecords.find((record) => record.age === 40)!;
+    expect(simple40.eventCost).toBe(0);
+    expect(detailed40.eventCost).toBe(5_000_000);
+    expect(detailed40.activeEvents).toContain("車購入");
+    expect(detailed40.totalFinancialAssets - simple40.totalFinancialAssets).toBe(-5_000_000);
+
+    const changedInput = {
+      ...simpleInput,
+      monthlyLivingExpenses: 300_000,
+      monthlyInvestmentContribution: 100_000,
+      annualReturnRate: 3,
+      retirementAge: 60,
+      annualRetirementIncome: 1_500_000,
+      retirementMonthlyLivingExpenses: 250_000,
+      lifeEvents: [event],
+    };
+    const changedResult = calculateSimulation(changedInput);
+    const changed50 = changedResult.yearlyRecords.find((record) => record.age === 50)!;
+    const changed60 = changedResult.yearlyRecords.find((record) => record.age === 60)!;
+    const simple50 = simpleResult.yearlyRecords.find((record) => record.age === 50)!;
+    const simple60 = simpleResult.yearlyRecords.find((record) => record.age === 60)!;
+
+    expect(changed50.annualLivingExpenses).toBe(3_600_000);
+    expect(changed50.annualInvestmentContribution).toBe(1_200_000);
+    expect(changed50.investmentGain).not.toBe(simple50.investmentGain);
+    expect(changed60.annualIncome).toBe(1_500_000);
+    expect(changed60.annualLivingExpenses).toBe(3_000_000);
+    expect(changedResult.targetAgeAssets).not.toBe(simpleResult.targetAgeAssets);
+  });
+
   it("不正な年齢・負数・非有限値を安全に拒否する", () => {
     expect(() => calculateSimulation(base({ currentAge: 17 }))).toThrow();
     expect(() => calculateSimulation(base({ currentCashAssets: -1 }))).toThrow();

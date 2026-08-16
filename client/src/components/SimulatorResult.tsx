@@ -4,12 +4,13 @@
  */
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Calendar, ChevronDown, ChevronUp, MapPin, RotateCcw, ShieldAlert, Target, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { SimulatorInput, SimulatorResult } from "@/lib/simulator";
 import { calculateImprovementSimulation, calculateMonthlyComparison, calculateStartAgeComparison, formatCurrency } from "@/lib/simulator";
+import { buildAssetChartData, mergePlanBChartData } from "@/lib/chartData";
 
 interface Props {
   result: SimulatorResult;
@@ -176,16 +177,11 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
   const planBMin = useMemo(() => planBResult ? getMinAssetInfo(planBResult.yearlyRecords) : null, [planBResult]);
 
   const chartData = useMemo(() => {
-    return result.yearlyRecords.map((record) => ({
-      age: record.age,
-      現金資産: Math.round(record.cashEnd / 10_000),
-      投資資産: Math.round(record.investmentEnd / 10_000),
-      総金融資産: Math.round(record.totalFinancialAssets / 10_000),
-      プランA_金融資産: Math.round(record.totalFinancialAssets / 10_000),
-      プランA_現金: Math.round(record.cashEnd / 10_000),
-      プランA_投資: Math.round(record.investmentEnd / 10_000),
-    })).sort((a, b) => a.age - b.age);
-  }, [result.yearlyRecords]);
+    const planAData = buildAssetChartData(result.yearlyRecords);
+    return planBResult
+      ? mergePlanBChartData(planAData, planBResult.yearlyRecords)
+      : planAData;
+  }, [result.yearlyRecords, planBResult]);
 
   const monthlyComparisons = useMemo(
     () => calculateMonthlyComparison(input, [10_000, 30_000]),
@@ -939,17 +935,12 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               <XAxis dataKey="age" tickFormatter={(value) => `${value}歳`} tick={{ fontSize: 11, fill: "#64748b" }} />
               <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickFormatter={(value) => `${value}`} width={42} />
               <Tooltip labelFormatter={(value) => `${value}歳`} formatter={(value, name) => [`${Number(value).toLocaleString()}万円`, name]} />
-              {!hasPlanB ? (
-                <>
-                  <Area type="monotone" dataKey="現金資産" stackId="assets" stroke="#0ea5e9" fill="url(#planAFill)" />
-                  <Area type="monotone" dataKey="投資資産" stackId="assets" stroke="#10b981" fill="url(#planBFill)" />
-                </>
-              ) : (
-                <>
-                  <Area type="monotone" dataKey="プランA_金融資産" stroke="#0284c7" strokeWidth={2} fill="url(#planAFill)" name="プランA(金融資産)" />
-                  <Area type="monotone" dataKey="プランB_金融資産" stroke="#10b981" strokeWidth={2} fill="url(#planBFill)" name="プランB(金融資産)" />
-                </>
-              )}
+              {/* RechartsではFragment内の系列が走査されないため、すべてAreaChart直下に置きhideで切り替える。 */}
+              <Area hide={hasPlanB} type="monotone" dataKey="現金資産" stackId="assets" stroke="#0ea5e9" fill="url(#planAFill)" name="現金資産" />
+              <Area hide={hasPlanB} type="monotone" dataKey="投資資産" stackId="assets" stroke="#10b981" fill="url(#planBFill)" name="投資資産" />
+              <Line hide={hasPlanB} type="monotone" dataKey="総金融資産" stroke="#0f766e" strokeWidth={2.5} dot={{ r: 2, strokeWidth: 1, fill: "#0f766e" }} name="総金融資産" />
+              <Area hide={!hasPlanB} type="monotone" dataKey="プランA_金融資産" stroke="#0284c7" strokeWidth={2} fill="url(#planAFill)" name="プランA(金融資産)" />
+              <Area hide={!hasPlanB} type="monotone" dataKey="プランB_金融資産" stroke="#10b981" strokeWidth={2} fill="url(#planBFill)" name="プランB(金融資産)" />
             </AreaChart>
           </ResponsiveContainer>
         </CardContent>

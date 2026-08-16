@@ -75,9 +75,19 @@ export default function Home() {
 
   const handleCalculate = useCallback((input: SimulatorInput, isSimple?: boolean) => {
     try {
-      setLastInput(input);
+      // FormのdraftやlifeEvents配列をそのまま保持せず、送信時点の入力を
+      // 結果表示と計算の両方で共有する不変スナップショットにする。
+      // これにより、詳細設定の再計算前に古いsimple結果を参照する経路を作らない。
+      const submittedInput: SimulatorInput = {
+        ...input,
+        lifeEvents: input.lifeEvents.map((event) => ({
+          ...event,
+          housingLoan: event.housingLoan ? { ...event.housingLoan } : undefined,
+        })),
+      };
+      const calculatedResult = calculateSimulation(submittedInput);
+      setLastInput(submittedInput);
       setIsSimpleResult(Boolean(isSimple));
-      const calculatedResult = calculateSimulation(input);
       setResult(calculatedResult);
       // スクロール
       setTimeout(() => {
