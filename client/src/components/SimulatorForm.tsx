@@ -185,25 +185,27 @@ function NumberField({
 
 export default function SimulatorForm({ onCalculate, initialInput }: Props) {
   const [isSimpleMode, setIsSimpleMode] = useState(!initialInput);
+  const [step, setStep] = useState(0);
 
-  // 詳細モードに切り替わった際にSTEP 1セクションへ自動スクロール
+  // 詳細フォームの表示時とStep変更時は、現在のStepの先頭を固定ヘッダー下へ表示する。
+  // setTimeoutでDOM更新後に実行し、モバイルSafariでも切り替え直後の位置を安定させる。
   useEffect(() => {
-    if (initialInput) {
-      const timer = setTimeout(() => {
-        const el = document.getElementById("simulator-step1-section");
-        if (el) {
-          const headerOffset = 80;
-          const elementPosition = el.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth"
-          });
-        }
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [initialInput]);
+    if (isSimpleMode) return;
+
+    const timer = window.setTimeout(() => {
+      const el = document.getElementById("simulator-detailed-step-section");
+      if (!el) return;
+
+      const headerOffset = 80;
+      const targetTop = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: "smooth",
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [initialInput, isSimpleMode, step]);
   const [familyType, setFamilyType] = useState<"single" | "couple" | "family">("single");
 
   // かんたんモード用の入力途中文字列state（空欄を完全に許容するため）
@@ -213,7 +215,6 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
   const [simpleInvest, setSimpleInvest] = useState<string>(String(Math.round((initialInput?.currentInvestmentAssets ?? 500_000) / 10_000)));
   const [simpleSave, setSimpleSave] = useState<string>(String(Math.round((initialInput?.monthlyInvestmentContribution ?? 30_000) / 10_000)));
 
-  const [step, setStep] = useState(0);
   const [input, setInput] = useState<SimulatorInput>(initialInput ?? {
     ...DEFAULT_INPUT,
     monthlyLivingExpenses: 150_000,
@@ -535,6 +536,7 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
         </Card>
       ) : (
         <>
+          <div id="simulator-detailed-step-section" className="space-y-5 scroll-mt-24">
           <div className="flex items-center gap-2" aria-label="入力ステップ">
             {STEPS.map((label, index) => (
               <div key={label} className="flex min-w-0 flex-1 items-center gap-2">
@@ -990,6 +992,7 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
         {step > 0 && <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="h-12 flex-1 rounded-xl"><ArrowLeft className="mr-2 h-4 w-4" />戻る</Button>}
         {step < STEPS.length - 1 ? <Button type="button" onClick={() => setStep(step + 1)} className="h-12 flex-1 rounded-xl bg-sky-600 hover:bg-sky-700">次へ<ArrowRight className="ml-2 h-4 w-4" /></Button> : <Button type="submit" disabled={isCalculating} className="h-12 flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700"><Calculator className="mr-2 h-4 w-4" />{isCalculating ? "計算中…" : "人生のお金を計算する"}</Button>}
       </div>
+          </div>
         </>
       )}
     </form>
