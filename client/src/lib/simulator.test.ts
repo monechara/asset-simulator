@@ -352,6 +352,7 @@ describe("人生全体マネープラン計算", () => {
       retirementEndAge: 90,
       targetAge: 90,
       currentCashAssets: 1_000_000,
+      currentInvestmentAssets: 5_000_000,
       monthlyIncome: 300_000,
       monthlyLivingExpenses: 200_000,
       monthlyInvestmentContribution: 50_000,

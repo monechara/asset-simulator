@@ -558,6 +558,7 @@ export function calculateImprovementSimulation(
   const searchStep = 1_000;
   const baseResult = currentResult ?? calculateSimulation(input);
   const currentMonthlyInvestment = input.monthlyInvestmentContribution;
+  const baseDepletedAge = baseResult.depletedAge;
   // 現役期間の給与から捻出できる毎月積立額の上限。
   // 積立額を増やした結果、現金不足を投資資産から補填する循環を改善探索へ持ち込まない。
   const maxAffordableMonthlyInvestment = Math.max(0, Math.round(input.monthlyIncome - input.monthlyLivingExpenses));
@@ -573,6 +574,58 @@ export function calculateImprovementSimulation(
   };
 
   if (!baseResult.isDepleted) {
+    // 資産が枯渇しない場合でも、現金・投資資産の状況から「ひとつ足すなら」の余裕資金投資配分提案を検討する。
+    // ① 投資資産が0円の場合、または ② 現金は十分あるが投資割合が低い場合
+    const totalCurrentAssets = input.currentCashAssets + input.currentInvestmentAssets;
+    const investmentRatio = totalCurrentAssets > 0 ? input.currentInvestmentAssets / totalCurrentAssets : 0;
+    
+    // 生活防衛資金（生活費の3〜6ヶ月分、または最低100万円）と近いライフイベント支出の合算を保護する
+    const emergencyFund = Math.max(1_000_000, input.monthlyLivingExpenses * 6);
+    const nearEventCost = input.lifeEvents
+      .filter((ev) => ev.age >= input.currentAge && ev.age <= input.currentAge + 3)
+      .reduce((sum, ev) => sum + ev.cost, 0);
+    const protectedCash = emergencyFund + nearEventCost;
+    const surplusCash = input.currentCashAssets - protectedCash;
+
+    // 投資額が0円、または（現金余剰が十分あり、かつ投資割合が20%未満）の場合にソフトな提案を生成する
+    if (input.currentInvestmentAssets === 0 || (surplusCash >= 1_000_000 && investmentRatio < 0.20)) {
+      const suggestedMonthly = input.currentInvestmentAssets === 0 ? 10_000 : Math.min(maxAffordableMonthlyInvestment, 30_000);
+      const updatedInput: SimulatorInput = {
+        ...input,
+        monthlyInvestmentContribution: Math.max(input.monthlyInvestmentContribution, suggestedMonthly),
+      };
+      const res = calculateSimulation(updatedInput);
+      const isZeroInvest = input.currentInvestmentAssets === 0;
+
+      const proposal: ImprovementProposal = {
+        category: "monthly-investment",
+        title: isZeroInvest ? "まずは少額から投資を始める" : "余裕資金の一部を投資に回す",
+        description: isZeroInvest
+          ? "現金に余裕があるなら、まずは少額から投資を始めるのも選択肢です。長期ではインフレによる現金の実質的な目減りへの備えにもなります。"
+          : "現金はしっかり確保できています。すぐに使う予定のない余裕資金があるなら、一部を投資に回すことでインフレへの備えもできます。",
+        changedParamLabel: "投資への取り組み",
+        beforeValueFormatted: isZeroInvest ? "投資0円" : `投資割合 ${(investmentRatio * 100).toFixed(0)}%`,
+        afterValueFormatted: "余裕資金の投資活用",
+        beforeTargetAgeAssets: baseResult.targetAgeAssets,
+        beforeDepletedAge: baseDepletedAge,
+        afterDepletedAge: res.depletedAge,
+        beforeShortfall: 0,
+        afterShortfall: 0,
+        score: 100,
+        updatedInput,
+        updatedResult: res,
+      };
+
+      return {
+        status: "increase",
+        suggestedMonthlyInvestment: suggestedMonthly,
+        additionalMonthlyInvestment: suggestedMonthly - currentMonthlyInvestment,
+        suggestedResult: res,
+        bestProposal: proposal,
+        ...baseFields,
+      };
+    }
+
     return {
       status: "not-needed",
       suggestedMonthlyInvestment: null,
@@ -619,7 +672,6 @@ export function calculateImprovementSimulation(
   };
 
   const baseShortfall = calcShortfall(input, baseResult);
-  const baseDepletedAge = baseResult.depletedAge;
 
   // 候補1：毎月積立を始める／増額する。
   // まず5,000円、次に1万円、その後は5,000円刻みで実測する。
