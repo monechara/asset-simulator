@@ -200,7 +200,7 @@ export default function Home() {
 
               {/* 入力フォーム */}
               <div id="simulator-form-container" className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6 sm:p-8 scroll-mt-20">
-                <SimulatorForm onCalculate={handleCalculate} />
+                <SimulatorForm onCalculate={handleCalculate} initialInput={lastInput ?? undefined} />
               </div>
 
               {/* 注意書き */}
@@ -226,10 +226,8 @@ export default function Home() {
                 isSimpleResult={isSimpleResult}
                 onUpdateInput={(updatedInput) => {
                   setLastInput(updatedInput);
-                  setIsSimpleResult(false); // 詳細設定に切り替え
-                  const newResult = calculateSimulation(updatedInput);
-                  setResult(newResult);
-                  toast.success("詳細設定モードに切り替えました！");
+                  setResult(null); // 結果を解除して詳細入力フォームを開く
+                  toast.success("詳細設定画面を開きました。必要項目を調整してください！");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               />

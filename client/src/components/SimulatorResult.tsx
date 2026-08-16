@@ -364,7 +364,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
             </CardContent>
           </Card>
 
-          {/* 4. 詳細設定への分かりやすいCTA（直接詳細入力モードへ遷移） */}
+          {/* 4. 詳細設定への分かりやすいCTA（入力値を引き継いで詳細設定フォームを直接開く） */}
           <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-600 to-sky-600 p-6 text-white text-center shadow-md space-y-3">
             <h4 className="text-lg font-black">もっと正確に未来を見てみませんか？</h4>
             <p className="text-xs text-emerald-100 max-w-md mx-auto leading-relaxed">実際の生活費、マイホーム購入、子育て費用などのライフイベントを個別に追加して、さらに精度の高いプランを作成できます。</p>
