@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import type { SimulatorInput, SimulatorResult } from "@/lib/simulator";
 import { calculateImprovementSimulation, calculateMonthlyComparison, calculateStartAgeComparison, formatCurrency } from "@/lib/simulator";
 import { buildAssetChartData, mergePlanBChartData } from "@/lib/chartData";
+import { getImprovementDisplayMetrics } from "@/lib/improvementDisplay";
 
 interface Props {
   result: SimulatorResult;
@@ -58,6 +59,10 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
   }, [hasPlanB, planBInput]);
 
   const improvement = useMemo(() => calculateImprovementSimulation(input, result), [input, result]);
+  const improvementMetrics = useMemo(
+    () => getImprovementDisplayMetrics(improvement.bestProposal, input.retirementEndAge),
+    [improvement.bestProposal, input.retirementEndAge],
+  );
 
   // 年齢に応じた公的統計目安の取得（金融広報中央委員会「家計の金融行動に関する世論調査」等に基づく）
   const ageGroupLabel = useMemo(() => {
@@ -645,31 +650,37 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               <p className="mt-1">{improvement.bestProposal.changedParamLabel}：{improvement.bestProposal.beforeValueFormatted} → <strong className="text-emerald-800">{improvement.bestProposal.afterValueFormatted}</strong></p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-slate-200 bg-white/80 p-3.5">
-                <p className="text-xs font-medium text-slate-500">資産が持つ年齢（寿命）</p>
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-sm font-bold text-slate-400 line-through">
-                    {improvement.bestProposal.beforeDepletedAge ? `${improvement.bestProposal.beforeDepletedAge}歳` : `${input.retirementEndAge}歳以上`}
-                  </span>
-                  <span className="text-lg font-black text-emerald-800">
-                    {improvement.bestProposal.afterDepletedAge ? `${improvement.bestProposal.afterDepletedAge}歳` : `${input.retirementEndAge}歳以上`}
-                  </span>
-                </div>
-              </div>
+            {improvementMetrics && (improvementMetrics.showShortfallImprovement || improvementMetrics.showLifeExtension) && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {improvementMetrics.showShortfallImprovement && (
+                  <div className={`rounded-2xl border p-3.5 ${improvementMetrics.primaryMetric === "shortfall" ? "border-emerald-200 bg-emerald-50/80 shadow-sm" : "border-slate-200 bg-white/80"}`}>
+                    <p className="text-xs font-medium text-slate-500">老後の不足見込み</p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-sm font-bold text-slate-400 line-through">{improvement.bestProposal.beforeShortfall.toLocaleString()}万円</span>
+                      <span className="text-xs font-bold text-slate-400">→</span>
+                      <span className={`text-lg font-black ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-900"}`}>{improvement.bestProposal.afterShortfall.toLocaleString()}万円</span>
+                    </div>
+                    <p className={`mt-2 text-sm font-black ${improvementMetrics.primaryMetric === "shortfall" ? "text-emerald-800" : "text-slate-700"}`}>
+                      {improvementMetrics.shortfallImprovement.toLocaleString()}万円改善
+                    </p>
+                  </div>
+                )}
 
-              <div className="rounded-2xl border border-slate-200 bg-white/80 p-3.5">
-                <p className="text-xs font-medium text-slate-500">老後の不足見込み</p>
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-sm font-bold text-slate-400 line-through">
-                    {improvement.bestProposal.beforeShortfall.toLocaleString()}万円
-                  </span>
-                  <span className="text-lg font-black text-emerald-800">
-                    {improvement.bestProposal.afterShortfall.toLocaleString()}万円
-                  </span>
-                </div>
+                {improvementMetrics.showLifeExtension && (
+                  <div className={`rounded-2xl border p-3.5 ${improvementMetrics.primaryMetric === "life" ? "border-emerald-200 bg-emerald-50/80 shadow-sm" : "border-slate-200 bg-white/80"}`}>
+                    <p className="text-xs font-medium text-slate-500">資産が持つ年齢（寿命）</p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-sm font-bold text-slate-400 line-through">{improvementMetrics.beforeLifeLabel}</span>
+                      <span className="text-xs font-bold text-slate-400">→</span>
+                      <span className={`text-lg font-black ${improvementMetrics.primaryMetric === "life" ? "text-emerald-800" : "text-slate-900"}`}>{improvementMetrics.afterLifeLabel}</span>
+                    </div>
+                    <p className={`mt-2 text-sm font-black ${improvementMetrics.primaryMetric === "life" ? "text-emerald-800" : "text-slate-700"}`}>
+                      {improvementMetrics.lifeExtensionYears}年延長
+                    </p>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
             <div className="flex items-center justify-between pt-1">
               <span className="text-xs text-slate-500">実測シミュレーションによる改善効果</span>
