@@ -529,7 +529,7 @@ export default function SimulatorForm({ onCalculate, initialInput }: Props) {
               disabled={isCalculating}
               className="h-14 w-full rounded-2xl bg-gradient-to-r from-sky-600 to-emerald-600 text-base font-bold text-white shadow-md hover:from-sky-700 hover:to-emerald-700"
             >
-              {isCalculating ? "計算中..." : "この条件でシミュレーションする 🚀"}
+              {isCalculating ? "計算中..." : "この条件で試す"}
             </Button>
           </CardContent>
         </Card>
