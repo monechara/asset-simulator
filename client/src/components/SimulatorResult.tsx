@@ -200,7 +200,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
   const eventRecords = result.yearlyRecords.filter((record) => record.activeEvents.length > 0);
 
   return (
-    <div className={isSimpleResult ? "flex flex-col gap-5" : "space-y-5"}>
+    <div className="flex flex-col gap-5">
       {isSimpleResult ? (
         <>
           {/* 1. 予想金融資産（最上部） */}
@@ -528,7 +528,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       )}
 
       {/* 1. 3秒で理解できる将来のシミュレーション結果 */}
-      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
+      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="order-1 rounded-3xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm ring-1 ring-sky-100 sm:p-7">
         <div className="flex items-center justify-center gap-2 text-sm font-bold text-sky-800">
           <Target className="h-4 w-4" />
           <span>あなたのシミュレーション結果</span>
@@ -557,8 +557,14 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
           </div>
         </div>
 
+        <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-violet-100 bg-violet-50/70 p-3">
+          <div><p className="text-[11px] font-medium text-slate-500">退職</p><p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{input.retirementAge}歳</p></div>
+          <div><p className="text-[11px] font-medium text-slate-500">老後生活費</p><p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{retirementMonthlyLiving}万円/月</p></div>
+          <div><p className="text-[11px] font-medium text-slate-500">年金</p><p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{retirementMonthlyIncome}万円/月</p></div>
+        </div>
+
         {/* 資金フローの内訳（累計投資元本・累計運用収益・累計取り崩し） */}
-        <div className="mt-3 rounded-2xl border border-sky-100 bg-white/90 p-4 shadow-sm">
+        <div className="hidden mt-3 rounded-2xl border border-sky-100 bg-white/90 p-4 shadow-sm">
           <p className="text-xs font-bold text-sky-900">資金フローの内訳（{input.currentAge}〜{input.retirementEndAge}歳）</p>
           <div className="mt-2.5 space-y-2 text-xs text-slate-700">
             <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
@@ -579,7 +585,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
           </p>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-violet-100 bg-violet-50/70 p-3">
+        <div className="hidden mt-3 grid grid-cols-3 gap-2 rounded-2xl border border-violet-100 bg-violet-50/70 p-3">
           <div>
             <p className="text-[11px] font-medium text-slate-500">退職</p>
             <p className="mt-0.5 text-sm font-black tabular-nums text-slate-900">{input.retirementAge}歳</p>
@@ -620,7 +626,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       )}
 
       {/* 💡 1つ変えた場合の改善シミュレーションカード（Before→After） */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-sm sm:p-6">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="order-5 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-sm sm:p-6">
         <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
           <TrendingUp className="h-4 w-4" />
           <span>💡 1つ変えると…</span>
@@ -632,6 +638,11 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
               <p className="text-base font-black tracking-tight text-slate-900">
                 {improvement.bestProposal.description}
               </p>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-100 bg-white/80 p-3.5 text-xs text-slate-700">
+              <p className="font-bold text-slate-800">提案条件</p>
+              <p className="mt-1">毎月の積立：{formatCurrency(input.monthlyInvestmentContribution)} → <strong className="text-emerald-800">{formatCurrency(improvement.bestProposal.updatedInput.monthlyInvestmentContribution)}</strong></p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -697,7 +708,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       </motion.div>
 
       {/* 2. あなたの現在地・同年代比較 */}
-      <Card className="border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">
+      <Card className="hidden border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -822,7 +833,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       </Card>
 
       {/* 3. 現在の積立ペース */}
-      <Card className="border-violet-100 shadow-sm bg-violet-50/30">
+      <Card className="hidden border-violet-100 shadow-sm bg-violet-50/30">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-violet-700" />
@@ -841,7 +852,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
       </Card>
 
       {/* 4. 統計上の目安（生活費・年金）との比較カード */}
-      <Card className="border-sky-100 shadow-sm bg-gradient-to-b from-white to-sky-50/40">
+      <Card className="hidden border-sky-100 shadow-sm bg-gradient-to-b from-white to-sky-50/40">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -937,7 +948,7 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200 shadow-sm">
+      <Card className="order-2 border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-base">年齢ごとの金融資産推移 {hasPlanB && "(プランA ＆ プランB比較)"}</CardTitle>
           <p className="text-xs text-slate-500">単位：万円。イベントのある年はグラフ上の点で確認できます。</p>
@@ -964,18 +975,57 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
         </CardContent>
       </Card>
 
-      {/* 6. 詳細なシミュレーション結果 */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* 6. 詳細なシミュレーション結果（資産ピークは資金フロー内に保持） */}
+      <div className="hidden grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SummaryMetric label="資産ピーク" value={formatCurrency(result.peakFinancialAssets)} detail={`${result.peakAge}歳時点`} />
       </div>
 
-      {eventRecords.length > 0 && <Card className="border-amber-100 shadow-sm"><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Calendar className="h-4 w-4 text-amber-600" />ライフイベントの影響</CardTitle></CardHeader><CardContent className="space-y-2">{eventRecords.map((record) => <div key={record.age} className="flex items-center justify-between rounded-xl bg-amber-50 p-3"><div><p className="text-sm font-semibold text-slate-800">{record.age}歳：{record.activeEvents.join("・")}</p><p className="text-xs text-slate-500">イベント費 {formatCurrency(record.eventCost)} / ローン返済 {formatCurrency(record.loanRepayment)}</p></div><p className="text-sm font-bold text-slate-900">{formatCurrency(record.totalFinancialAssets)}</p></div>)}</CardContent></Card>}
+      <Card className="order-3 border-amber-100 shadow-sm">
+        <CardHeader className="pb-3"><CardTitle className="flex items-center gap-2 text-base"><Calendar className="h-4 w-4 text-amber-600" />ライフイベントと資産への影響</CardTitle></CardHeader>
+        <CardContent className="space-y-2">
+          {eventRecords.length > 0 ? eventRecords.map((record) => <div key={record.age} className="flex items-center justify-between gap-3 rounded-xl bg-amber-50 p-3"><div><p className="text-sm font-semibold text-slate-800">{record.age}歳：{record.activeEvents.join("・")}</p><p className="text-xs text-slate-500">イベント費 {formatCurrency(record.eventCost)} / ローン返済 {formatCurrency(record.loanRepayment)}</p></div><p className="shrink-0 text-sm font-bold text-slate-900">{formatCurrency(record.totalFinancialAssets)}</p></div>) : <p className="text-sm text-slate-500">登録したライフイベントはありません。</p>}
+        </CardContent>
+      </Card>
 
+      <Card className="order-4 border-sky-100 shadow-sm">
+        <CardHeader className="pb-3"><CardTitle className="text-base">資金フローの内訳</CardTitle><p className="text-xs text-slate-500">積立・運用・取り崩しの累計を確認できます。</p></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2 text-xs"><span className="text-slate-600">＋ 累計投資元本</span><span className="font-bold tabular-nums text-slate-900">{formatCurrency(result.totalPrincipalContributed)}</span></div>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2 text-xs"><span className="text-slate-600">＋ 累計運用収益</span><span className="font-bold tabular-nums text-emerald-700">+{formatCurrency(result.totalInvestmentGain)}</span></div>
+          <div className="flex items-center justify-between text-xs"><span className="text-slate-600">− 累計取り崩し</span><span className="font-bold tabular-nums text-amber-800">-{formatCurrency(result.yearlyRecords.reduce((sum, record) => sum + record.investmentWithdrawal, 0))}</span></div>
+          <p className="text-[10px] leading-relaxed text-slate-400">※初期投資＋実際に追加した積立の累計。運用収益は全期間の合計です。</p>
+          <p className="text-xs text-slate-600">資産ピーク：<strong className="text-slate-900">{formatCurrency(result.peakFinancialAssets)}</strong>（{result.peakAge}歳）</p>
+        </CardContent>
+      </Card>
+
+      <Accordion type="single" collapsible className="order-6 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm">
+        <AccordionItem value="detailed-comparisons" className="border-b-0">
+          <AccordionTrigger className="py-4 text-sm font-bold text-slate-900">同年代との比較を見る</AccordionTrigger>
+          <AccordionContent className="space-y-4 pb-4">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+              <p className="text-xs font-bold text-emerald-800">現在の金融資産（{ageGroupLabel}の目安）</p>
+              <div className="mt-2 flex items-end justify-between gap-3"><div><p className="text-[11px] text-slate-500">あなた</p><p className="text-2xl font-black tabular-nums text-slate-900">{currentTotalAssets}万円</p></div><div className="text-right text-xs text-slate-600"><p>平均 約{benchmarkData.totalAvg}万円</p><p>中央値 約{benchmarkData.totalMedian}万円</p></div></div>
+              <div className="relative mt-5 h-3 rounded-full bg-gradient-to-r from-slate-200 via-sky-100 to-emerald-200"><div className="absolute -top-1 h-5 w-px bg-slate-500/70" style={{ left: markerPosition(benchmarkData.totalMedian) }} /><div className="absolute -top-1 h-5 w-px bg-emerald-700" style={{ left: markerPosition(currentTotalAssets) }} /><div className="absolute -top-1 h-5 w-px bg-slate-700/80" style={{ left: markerPosition(benchmarkData.totalAvg) }} /><div className="absolute -top-1.5 h-6 w-6 -translate-x-1/2 rounded-full border-4 border-white bg-emerald-600 shadow" style={{ left: markerPosition(currentTotalAssets) }} /></div>
+              <div className="relative mt-2 h-9 text-[10px]"><span className="absolute -translate-x-1/2 text-center text-slate-600" style={{ left: markerPosition(benchmarkData.totalMedian) }}>中央値<br />約{benchmarkData.totalMedian}万</span><span className="absolute -translate-x-1/2 text-center font-black text-emerald-800" style={{ left: markerPosition(currentTotalAssets) }}>あなた<br />{currentTotalAssets}万</span><span className="absolute -translate-x-1/2 text-center text-slate-700" style={{ left: markerPosition(benchmarkData.totalAvg) }}>平均<br />約{benchmarkData.totalAvg}万</span></div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 p-3 text-xs"><p className="font-bold text-slate-700">現金資産</p><p className="mt-1">あなた：{currentCash}万円</p><p className="text-slate-500">平均 約{benchmarkData.cashAvg}万／中央値 約{benchmarkData.cashMedian}万</p></div>
+              <div className="rounded-2xl border border-slate-200 p-3 text-xs"><p className="font-bold text-slate-700">投資資産</p><p className="mt-1">あなた：{currentInvest}万円</p><p className="text-slate-500">平均 約{benchmarkData.investAvg}万／中央値 約{benchmarkData.investMedian}万</p></div>
+            </div>
+            <div className="rounded-2xl border border-emerald-200 p-3 text-xs"><p className="font-bold text-slate-700">毎月の積立額</p><p className="mt-1">あなた：{currentMonthlySave}万円／月　{ageGroupLabel}平均：約{benchmarkData.monthlySaveAvg}万円／月</p></div>
+            <div className="rounded-2xl border border-slate-200 p-3 text-xs text-slate-700"><p className="font-bold text-slate-800">老後生活費・年金の比較</p><p className="mt-1">老後生活費：{retirementMonthlyLiving}万円／月（平均 約26万円・中央値 約24万円）</p><p>年金収入：{retirementMonthlyIncome}万円／月（平均 約15万円・中央値 約14万円）</p></div>
+            <div className="rounded-2xl bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600"><p><strong>平均：</strong>全体の合計を人数で割った値。<br /><strong>中央値：</strong>金額を少ない順に並べた中央の値。</p><p className="mt-1">出典：{benchmarkData.sourceNote}。比較用の参考値です。</p></div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <div className="hidden">
       <ComparisonPanel title="毎月の積立を増やしたら？" icon={<TrendingUp className="h-4 w-4 text-sky-600" />} open={showMonthly} onToggle={() => setShowMonthly(!showMonthly)}>
         <div className="space-y-2">{monthlyComparisons.map((comparison) => <div key={comparison.monthlyInvestment} className="flex items-center justify-between rounded-xl bg-sky-50 p-3"><div><p className="text-sm font-semibold text-slate-800">毎月 {formatCurrency(comparison.monthlyInvestment)}</p><p className="text-xs text-slate-500">基準との差 {comparison.difference >= 0 ? "+" : ""}{formatCurrency(comparison.difference)}</p></div><p className="font-bold text-sky-700">{formatCurrency(comparison.finalAssets)}</p></div>)}</div>
       </ComparisonPanel>
 
       {startComparisons.length > 0 && <ComparisonPanel title="もっと早く始めたら？" icon={<Calendar className="h-4 w-4 text-emerald-600" />} open={showStartAge} onToggle={() => setShowStartAge(!showStartAge)}><div className="space-y-2">{startComparisons.map((comparison) => <div key={comparison.startAge} className="flex items-center justify-between rounded-xl bg-emerald-50 p-3"><div><p className="text-sm font-semibold text-slate-800">{comparison.startAge}歳から開始</p><p className="text-xs text-slate-500">基準との差 {comparison.difference >= 0 ? "+" : ""}{formatCurrency(comparison.difference)}</p></div><p className="font-bold text-emerald-700">{formatCurrency(comparison.finalAssets)}</p></div>)}</div></ComparisonPanel>}
+      </div>
 
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950"><strong>注意：</strong>本結果は入力条件に基づく試算であり、将来の運用成果を保証するものではありません。実際の資産運用では価格変動や元本割れの可能性があります。特定の金融商品や証券会社を推奨するものではありません。</div>
       <Button onClick={onReset} variant="outline" className="h-12 w-full rounded-xl"><RotateCcw className="mr-2 h-4 w-4" />条件を変更する</Button>
