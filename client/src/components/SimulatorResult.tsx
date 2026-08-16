@@ -630,12 +630,38 @@ export default function SimulatorResultView({ result, input, onReset, onUpdateIn
         </div>
       )}
 
+      {/* 🔮 アフィリエイトCTA設定領域（将来の収益化用・デフォルト非表示） */}
+      {/* 
+        将来の収益化に備えて用意された拡張領域です。
+        以下の設定オブジェクトやPropsを経由して、後から簡単にON/OFF・文言・リンクURLを変更できます。
+      */}
+      {false && (
+        <div className="order-5 rounded-3xl border border-sky-200 bg-sky-50/70 p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-sky-900">PR / おすすめサービス</span>
+            <span className="text-[10px] bg-sky-200 text-sky-800 px-2 py-0.5 rounded font-semibold">広告枠</span>
+          </div>
+          <div className="mt-3 space-y-2">
+            <p className="text-sm font-bold text-slate-900">証券口座開設・資産形成の第一歩を踏み出す</p>
+            <p className="text-xs text-slate-600">NISAやつみたて投資枠におすすめのネット証券を比較・詳細チェックできます。</p>
+            <a
+              href="https://example.com/affiliate-link"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-sky-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-sky-700"
+            >
+              おすすめの証券会社を見る →
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* 💡 1つ変えた場合の改善シミュレーションカード（Before→After） */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="order-5 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5 shadow-sm sm:p-6">
         <div className="flex items-center gap-2 text-sm font-bold text-emerald-800">
           <TrendingUp className="h-4 w-4" />
           <span>{input.monthlyInvestmentContribution === 0 && improvement.bestProposal?.category === "monthly-investment"
-            ? `💡 まずは毎月${improvement.bestProposal.afterValueFormatted.replace("/月", "")}から積立を始めると…`
+            ? `💡 まずは毎月${improvement.bestProposal.afterValueFormatted.replace("/月", "")}から積立を始めてみる`
             : "💡 1つ変えると…"}</span>
         </div>
 
