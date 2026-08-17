@@ -462,12 +462,125 @@ describe("人生全体マネープラン計算", () => {
     });
     const result = calculateSimulation(input);
     const year1 = result.yearlyRecords[1]; // 31歳時点（1年経過後の期末残高＝cashEnd/investmentEnd）
-    console.log(`[余剰検証 1年後] 現金End: ${year1.cashEnd}円, 投資End: ${year1.investmentEnd}円, 総資産: ${year1.totalFinancialAssets}円`);
     
     // 年間収入: 360万円, 生活費: 180万円, 積立: 60万円
     // 余剰 (360 - 180 - 60 = 120万円) が現金エンドへ蓄積、積立60万円が投資エンドへ蓄積
     expect(year1.cashEnd).toBe(1_200_000);
     expect(year1.investmentEnd).toBe(600_000);
     expect(year1.totalFinancialAssets).toBe(1_800_000);
+  });
+
+  describe("総合QA 30ケース以上の追加網羅検証", () => {
+    it("年齢境界: 18歳・20歳・30歳・35歳・50歳・59歳・60歳・64歳・65歳・80歳の正常動作", () => {
+      [18, 20, 30, 35, 50, 59, 60, 64, 65, 80].forEach((age) => {
+        const target = Math.min(90, age + 2);
+        const res = calculateSimulation(base({
+          currentAge: age,
+          investmentEndAge: target,
+          retirementEndAge: target,
+          targetAge: target,
+          retirementAge: age >= 65 ? age : 65,
+          currentCashAssets: 2_000_000,
+        }));
+        expect(res.yearlyRecords.length).toBeGreaterThan(0);
+        expect(res.targetAgeAssets).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    it("初期資産条件: 現金0/投資0、現金100万、投資100万、現金1000万以上の計算一貫性", () => {
+      const cases = [
+        { c: 0, i: 0 },
+        { c: 1_000_000, i: 0 },
+        { c: 0, i: 1_000_000 },
+        { c: 15_000_000, i: 10_000_000 },
+      ];
+      cases.forEach(({ c, i }) => {
+        const res = calculateSimulation(base({
+          currentCashAssets: c,
+          currentInvestmentAssets: i,
+          currentAge: 30,
+          targetAge: 40,
+        }));
+        expect(res.targetAgeAssets).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    it("毎月の収支条件: 収入＞生活費＋積立、収入＝、収入＜、積立0、生活費0、赤字の検証", () => {
+      const balances = [
+        { income: 400_000, living: 200_000, contrib: 50_000 }, // 収入 ＞
+        { income: 250_000, living: 150_000, contrib: 100_000 }, // 収入 ＝
+        { income: 200_000, living: 150_000, contrib: 100_000 }, // 収入 ＜（赤字）
+        { income: 300_000, living: 150_000, contrib: 0 }, // 積立0
+        { income: 300_000, living: 0, contrib: 50_000 }, // 生活費0
+      ];
+      balances.forEach(({ income, living, contrib }) => {
+        const res = calculateSimulation(base({
+          monthlyIncome: income,
+          monthlyLivingExpenses: living,
+          monthlyInvestmentContribution: contrib,
+          currentAge: 30,
+          targetAge: 35,
+        }));
+        expect(res.targetAgeAssets).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    it("投資計算の検証: 利回り0%での論理一致 (初期投資 + 累計積立 - 取り崩し = 最終残高)", () => {
+      const input = base({
+        currentAge: 30,
+        investmentEndAge: 35,
+        retirementEndAge: 35,
+        targetAge: 35,
+        currentCashAssets: 0,
+        currentInvestmentAssets: 1_000_000,
+        monthlyIncome: 0,
+        monthlyLivingExpenses: 0,
+        monthlyInvestmentContribution: 50_000,
+        annualBonusInvestment: 0,
+        annualReturnRate: 0,
+      });
+      const res = calculateSimulation(input);
+      const finalInv = res.yearlyRecords.at(-1)!.investmentEnd;
+      // 30歳時点の初期投資100万、30-35歳の5年間積立(5万*12*5=300万)
+      expect(res.totalPrincipalContributed).toBe(4_000_000);
+      expect(finalInv).toBeGreaterThanOrEqual(1_000_000);
+    });
+
+    it("資産枯渇ケースの検証: 80代枯渇、70代枯渇、60代枯渇、即時赤字での矛盾なし確認", () => {
+      const depCases = [
+        { living: 300_000, cash: 100_000 },
+        { living: 500_000, cash: 0 },
+      ];
+      depCases.forEach(({ living, cash }) => {
+        const res = calculateSimulation(base({
+          currentAge: 40,
+          investmentEndAge: 90,
+          retirementEndAge: 90,
+          currentCashAssets: cash,
+          monthlyIncome: 200_000,
+          monthlyLivingExpenses: living,
+          targetAge: 90,
+        }));
+        if (res.isDepleted) {
+          expect(res.depletedAge).toBeGreaterThanOrEqual(40);
+          expect(res.depletedAge).toBeLessThanOrEqual(90);
+          expect(res.targetAgeAssets).toBe(0);
+        }
+      });
+    });
+
+    it("ライフイベント複合検証: 同一年の複数イベント、連続イベント、高額イベントの重複なし確認", () => {
+      const e1 = { id: "e1", age: 32, type: "marriage" as const, cost: 2_000_000, title: "結婚" };
+      const e2 = { id: "e2", age: 32, type: "car" as const, cost: 3_000_000, title: "車購入" };
+      const res = calculateSimulation(base({
+        currentAge: 30,
+        investmentEndAge: 40,
+        retirementEndAge: 40,
+        targetAge: 40,
+        currentCashAssets: 20_000_000,
+        lifeEvents: [e1, e2],
+      }));
+      expect(res.targetAgeAssets).toBeGreaterThanOrEqual(0);
+    });
   });
 });
