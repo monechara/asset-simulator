@@ -232,18 +232,18 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                   <div className="inline-flex items-center rounded-full border-2 border-[#b8e3d5] bg-white px-3 py-1 text-xs font-black tracking-wide text-[#078c72] shadow-sm">
                     無料・登録不要｜約30秒
                   </div>
-                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_8rem] items-center gap-2 sm:block">
+                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_9rem] items-center gap-1 sm:block">
                     <h2 className="min-w-0 text-[1.9rem] font-black leading-[1.08] tracking-tight text-[#10243a] sm:max-w-xl sm:text-5xl">
                       あなたの家計、<br /><span className="text-[#078c72]">将来のお金は<br />足りる？</span>
                     </h2>
-                    <div className="relative flex h-32 w-32 items-center justify-center sm:absolute sm:right-1 sm:top-20 sm:h-36 sm:w-40">
-                      <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="relative z-10 h-24 w-28 object-contain object-bottom sm:h-32 sm:w-36" />
-                      <img src="/manus-storage/family_c463d90b.png" alt="" className="pointer-events-none absolute -left-8 top-0 z-0 h-8 w-9 object-contain" />
-                      <img src="/manus-storage/chart_f85808cb.png" alt="" className="pointer-events-none absolute -right-5 top-5 z-0 h-8 w-8 object-contain" />
-                      <img src="/manus-storage/house_b52001d0.png" alt="" className="pointer-events-none absolute -right-5 bottom-1 z-0 h-8 w-8 object-contain" />
-                      <img src="/manus-storage/yen_0f83aee8.png" alt="" className="pointer-events-none absolute -left-5 bottom-0 z-0 h-8 w-8 object-contain" />
-                      <img src="/manus-storage/sparkles_e6caba58.png" alt="" className="pointer-events-none absolute left-4 -top-4 z-0 h-7 w-10 object-contain" />
-                      <img src="/manus-storage/plus_cdc09ee2.png" alt="" className="pointer-events-none absolute -right-1 -top-4 z-0 h-6 w-6 object-contain" />
+                    <div className="relative flex h-36 w-36 items-center justify-center sm:absolute sm:right-1 sm:top-20 sm:h-40 sm:w-44">
+                      <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="relative z-10 h-32 w-36 object-contain object-bottom sm:h-36 sm:w-40" />
+                      <img src="/manus-storage/family_c463d90b.png" alt="" className="pointer-events-none absolute -left-3 top-1 z-0 h-9 w-10 object-contain" />
+                      <img src="/manus-storage/chart_f85808cb.png" alt="" className="pointer-events-none absolute -right-1 top-7 z-0 h-9 w-9 object-contain" />
+                      <img src="/manus-storage/house_b52001d0.png" alt="" className="pointer-events-none absolute -right-1 bottom-2 z-0 h-9 w-9 object-contain" />
+                      <img src="/manus-storage/yen_0f83aee8.png" alt="" className="pointer-events-none absolute -left-1 bottom-1 z-0 h-9 w-9 object-contain" />
+                      <img src="/manus-storage/sparkles_e6caba58.png" alt="" className="pointer-events-none absolute left-7 -top-2 z-0 h-8 w-12 object-contain" />
+                      <img src="/manus-storage/plus_cdc09ee2.png" alt="" className="pointer-events-none absolute right-2 -top-2 z-0 h-7 w-7 object-contain" />
                     </div>
                   </div>
                   <p className="mt-3 max-w-[20rem] text-[13px] leading-6 text-slate-600 sm:max-w-lg sm:text-base">
