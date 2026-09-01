@@ -232,16 +232,19 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                   <div className="inline-flex items-center rounded-full border-2 border-[#b8e3d5] bg-white px-3 py-1 text-xs font-black tracking-wide text-[#078c72] shadow-sm">
                     無料・登録不要｜約30秒
                   </div>
-                  <h2 className="mt-3 max-w-[20rem] text-[1.9rem] font-black leading-[1.08] tracking-tight text-[#10243a] sm:max-w-xl sm:text-5xl">
-                    あなたの家計、<br className="sm:hidden" /><span className="text-[#078c72]">将来のお金は足りる？</span>
-                  </h2>
+                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-2 sm:block">
+                    <h2 className="min-w-0 text-[1.9rem] font-black leading-[1.08] tracking-tight text-[#10243a] sm:max-w-xl sm:text-5xl">
+                      あなたの家計、<br /><span className="text-[#078c72]">将来のお金は足りる？</span>
+                    </h2>
+                    <div className="relative flex items-center justify-center sm:absolute sm:right-1 sm:top-20 sm:h-28 sm:w-32">
+                      <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-24 w-28 object-contain object-bottom sm:h-28 sm:w-32" />
+                      <img src="/manus-storage/yellow-burst_06356c6b.png" alt="" className="pointer-events-none absolute -right-1 top-0 h-8 w-7 object-contain sm:-right-3" />
+                    </div>
+                  </div>
                   <p className="mt-3 max-w-[17rem] text-[13px] leading-6 text-slate-600 sm:max-w-lg sm:text-base">
                     年収・貯金・家族構成から、将来の資産をかんたんチェック
                   </p>
-                  <div className="pointer-events-none absolute right-1 top-20 z-0 sm:right-8 sm:top-20" aria-hidden="true">
-                    <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-24 w-28 object-contain object-bottom sm:h-44 sm:w-48" />
-                  </div>
-                  <div className="relative mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                                    <div className="relative mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                     <button
                       onClick={() => {
                         trackFunnelEvent("simple_input_start");
@@ -258,15 +261,13 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>まずは少ない項目だけ</p>
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>あとから教育・住宅・老後まで詳しく設定できます</p>
                   </div>
-                  <span className="pointer-events-none absolute right-5 top-20 text-2xl text-[#f7c948]" aria-hidden="true">✦</span>
-                  <span className="pointer-events-none absolute right-16 top-8 text-xl text-[#f19ab5]" aria-hidden="true">＋</span>
+                  
                 </div>
               </section>
 
               <section className="mb-3 px-2 py-3 sm:px-8 sm:py-5">
                 <div className="text-center">
-                  <p className="text-[11px] font-black tracking-[0.12em] text-[#078c72]">まずは、ここをチェック</p>
-                  <h3 className="mt-1 whitespace-nowrap text-[17px] font-black leading-7 tracking-tight text-[#10243a] sm:text-xl"><span className="mr-2 text-[#078c72]">＼</span>このシミュレーションでわかること<span className="ml-2 text-[#078c72]">／</span></h3>
+                  <h3 className="whitespace-nowrap text-[17px] font-black leading-7 tracking-tight text-[#10243a] sm:text-xl"><span className="mr-2 text-[#078c72]">＼</span>このシミュレーションでわかること<span className="ml-2 text-[#078c72]">／</span></h3>
                 </div>
                 <div className="mx-0 mt-3 grid grid-cols-3 divide-x divide-[#e4eee9] overflow-hidden rounded-2xl border-2 border-white bg-white shadow-[0_4px_16px_rgba(31,97,80,0.06)]">
                   {[
