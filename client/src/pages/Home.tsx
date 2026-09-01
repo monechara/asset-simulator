@@ -237,13 +237,17 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                       あなたの家計、<br /><span className="text-[#078c72]">将来のお金は<br />足りる？</span>
                     </h2>
                     <div className="relative flex h-36 w-36 items-center justify-center sm:absolute sm:right-1 sm:top-20 sm:h-40 sm:w-44">
-                      <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="relative z-10 h-32 w-36 object-contain object-bottom sm:h-36 sm:w-40" />
-                      <img src="/manus-storage/family_c463d90b.png" alt="" className="pointer-events-none absolute -left-3 top-1 z-0 h-9 w-10 object-contain" />
-                      <img src="/manus-storage/chart_f85808cb.png" alt="" className="pointer-events-none absolute -right-1 top-7 z-0 h-9 w-9 object-contain" />
-                      <img src="/manus-storage/house_b52001d0.png" alt="" className="pointer-events-none absolute -right-1 bottom-2 z-0 h-9 w-9 object-contain" />
-                      <img src="/manus-storage/yen_0f83aee8.png" alt="" className="pointer-events-none absolute -left-1 bottom-1 z-0 h-9 w-9 object-contain" />
-                      <img src="/manus-storage/sparkles_e6caba58.png" alt="" className="pointer-events-none absolute left-7 -top-2 z-0 h-8 w-12 object-contain" />
-                      <img src="/manus-storage/plus_cdc09ee2.png" alt="" className="pointer-events-none absolute right-2 -top-2 z-0 h-7 w-7 object-contain" />
+                      <img src="/manus-storage/3BCF6477-5B38-4B76-8DB8-73822B64BF25(16)_a7f7d9be.png" alt="" className="relative z-10 h-32 w-36 object-contain object-bottom sm:h-36 sm:w-40" />
+                      <img src="/manus-storage/07_family_b2662bac.png" alt="" className="pointer-events-none absolute -left-3 top-1 z-0 h-9 w-10 object-contain" />
+                      <img src="/manus-storage/08_graph_da2b1368.png" alt="" className="pointer-events-none absolute -right-1 top-7 z-0 h-9 w-9 object-contain" />
+                      <img src="/manus-storage/09_house_7a2ef6b7.png" alt="" className="pointer-events-none absolute -right-1 bottom-2 z-0 h-9 w-9 object-contain" />
+                      <img src="/manus-storage/10_yen_0ff05e07.png" alt="" className="pointer-events-none absolute -left-1 bottom-1 z-0 h-9 w-9 object-contain" />
+                      <img src="/manus-storage/01_yellow_star_4664eedb.png" alt="" className="pointer-events-none absolute left-7 -top-2 z-0 h-7 w-7 object-contain" />
+                      <img src="/manus-storage/02_pink_star_f20fd6d8.png" alt="" className="pointer-events-none absolute left-1 top-5 z-0 h-6 w-6 object-contain" />
+                      <img src="/manus-storage/03_mint_plus_e2a6cd90.png" alt="" className="pointer-events-none absolute right-2 -top-2 z-0 h-7 w-7 object-contain" />
+                      <img src="/manus-storage/04_yellow_dots_dd29dbae.png" alt="" className="pointer-events-none absolute -right-2 bottom-8 z-0 h-7 w-7 object-contain" />
+                      <img src="/manus-storage/05_yellow_marks_ed2d81a5.png" alt="" className="pointer-events-none absolute -left-1 bottom-8 z-0 h-7 w-7 object-contain" />
+                      <img src="/manus-storage/06_yellow_dot_4e0ded55.png" alt="" className="pointer-events-none absolute right-7 top-3 z-0 h-3 w-3 object-contain" />
                     </div>
                   </div>
                   <p className="mt-3 max-w-[20rem] text-[13px] leading-6 text-slate-600 sm:max-w-lg sm:text-base">
