@@ -216,7 +216,7 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
+      <main className="mx-auto max-w-4xl px-3 py-2 sm:px-6 sm:py-4">
         <AnimatePresence mode="wait">
           {!result ? (
             <motion.div
@@ -227,33 +227,34 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
               transition={{ duration: 0.3 }}
             >
               {/* ファーストビュー：家計全体を30秒で確認できる入口 */}
-              <section className="relative mb-5 overflow-hidden rounded-[1.75rem] border-2 border-[#b8e3d5] bg-[#fffaf0] px-4 pb-4 pt-5 shadow-[0_8px_24px_rgba(31,97,80,0.08)] sm:px-10 sm:pt-7">
+              <section className="relative mb-3 overflow-visible px-2 pb-3 pt-2 sm:px-8 sm:pt-5">
                 <div className="relative z-10 max-w-2xl pr-0 sm:pr-48">
-                  <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white/85 px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-800 shadow-xs">
+                  <div className="inline-flex items-center rounded-full border-2 border-[#b8e3d5] bg-white px-3 py-1 text-xs font-black tracking-wide text-[#078c72] shadow-sm">
                     無料・登録不要｜約30秒
                   </div>
-                  <h2 className="mt-3 max-w-xl text-[1.88rem] font-black leading-[1.1] tracking-tight text-[#10243a] sm:text-5xl">
+                  <h2 className="mt-3 max-w-[20rem] text-[1.9rem] font-black leading-[1.08] tracking-tight text-[#10243a] sm:max-w-xl sm:text-5xl">
                     あなたの家計、<br className="sm:hidden" /><span className="text-[#078c72]">将来のお金は足りる？</span>
                   </h2>
-                  <p className="mt-3 max-w-lg text-[13px] leading-6 text-slate-600 sm:text-base">
+                  <p className="mt-3 max-w-[17rem] text-[13px] leading-6 text-slate-600 sm:max-w-lg sm:text-base">
                     年収・貯金・家族構成から、将来の資産をかんたんチェック
                   </p>
-                  <div className="-mt-1 flex h-20 items-end justify-end pr-1 sm:absolute sm:right-8 sm:top-24 sm:mt-0 sm:h-auto">
-                    <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-20 w-24 object-contain object-bottom sm:h-40 sm:w-44" />
+                  <div className="pointer-events-none absolute right-1 top-20 z-0 sm:right-8 sm:top-20" aria-hidden="true">
+                    <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-24 w-28 object-contain object-bottom sm:h-44 sm:w-48" />
                   </div>
-                  <div className="mt-1 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                  <div className="relative mt-3 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                     <button
                       onClick={() => {
                         trackFunnelEvent("simple_input_start");
                         const formEl = document.getElementById("simulator-form-container");
                         formEl?.scrollIntoView({ behavior: "smooth", block: "start" });
                       }}
-                      className="w-full whitespace-nowrap rounded-2xl bg-[#078c72] px-4 py-3.5 text-[15px] font-black text-white shadow-[0_8px_16px_rgba(7,140,114,0.2)] transition-transform hover:bg-[#06765f] active:scale-[0.98] sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
+                      className="w-full whitespace-nowrap rounded-2xl border-b-4 border-[#056a59] bg-[#078c72] px-4 py-3.5 text-[15px] font-black text-white shadow-[0_8px_16px_rgba(7,140,114,0.2)] transition-transform hover:bg-[#06765f] active:translate-y-0.5 active:border-b-2 sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
                     >
                       30秒でシミュレーションする <span aria-hidden="true">→</span>
                     </button>
+                    <span className="absolute -bottom-11 right-0 rounded-[1.25rem] border-2 border-[#b8e3d5] bg-white px-2.5 py-1 text-center text-[10px] font-black leading-4 text-[#078c72] shadow-sm sm:-bottom-12 sm:right-0">かんたん入力から<br />詳しく設定まで <b className="text-[#e887aa]">2STEP!</b></span>
                   </div>
-                  <div className="mt-3 space-y-0.5 text-xs font-semibold leading-5 text-slate-600">
+                  <div className="mt-3 space-y-0.5 pr-36 text-xs font-semibold leading-5 text-slate-600">
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>まずは少ない項目だけ</p>
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>あとから教育・住宅・老後まで詳しく設定できます</p>
                   </div>
@@ -262,22 +263,19 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                 </div>
               </section>
 
-              <section className="mb-5 rounded-3xl border-2 border-[#d6eee5] bg-white p-4 shadow-[0_6px_20px_rgba(31,97,80,0.06)] sm:p-7">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold tracking-[0.12em] text-[#078c72]">まずは、ここをチェック</p>
-                    <h3 className="mt-1 whitespace-nowrap text-[17px] font-black leading-7 tracking-tight text-[#10243a] sm:text-xl">このシミュレーションでわかること</h3>
-                  </div>
-                  <GrowthIcon className="mt-1 h-6 w-6 shrink-0 text-emerald-600" />
+              <section className="mb-3 px-2 py-3 sm:px-8 sm:py-5">
+                <div className="text-center">
+                  <p className="text-[11px] font-black tracking-[0.12em] text-[#078c72]">まずは、ここをチェック</p>
+                  <h3 className="mt-1 whitespace-nowrap text-[17px] font-black leading-7 tracking-tight text-[#10243a] sm:text-xl"><span className="mr-2 text-[#078c72]">＼</span>このシミュレーションでわかること<span className="ml-2 text-[#078c72]">／</span></h3>
                 </div>
-                <div className="mt-4 grid grid-cols-3 divide-x divide-[#e4eee9] overflow-hidden rounded-2xl border border-[#edf3ef] bg-[#fffdf7]">
+                <div className="mx-0 mt-3 grid grid-cols-3 divide-x divide-[#e4eee9] overflow-hidden rounded-2xl border-2 border-white bg-white shadow-[0_4px_16px_rgba(31,97,80,0.06)]">
                   {[
-                    [<EducationIcon className="h-7 w-7" />, "教育費", "足りる？", "text-[#39a980]", "bg-[#e7f5ee]"],
-                    [<HomeIcon className="h-7 w-7" />, "住宅", "買っても大丈夫？", "text-[#e6b51e]", "bg-[#fff5cf]"],
-                    [<RetirementIcon className="h-7 w-7" />, "老後", "いくら残る？", "text-[#e887aa]", "bg-[#fde9f0]"],
+                    ["/manus-storage/education_0880faf1.png", "教育費", "足りる？", "text-[#39a980]", "bg-[#e7f5ee]"],
+                    ["/manus-storage/housing_d87c99a1.png", "住宅", "買っても大丈夫？", "text-[#e6b51e]", "bg-[#fff5cf]"],
+                    ["/manus-storage/retirement_bd8ef11b.png", "老後", "いくら残る？", "text-[#e887aa]", "bg-[#fde9f0]"],
                   ].map(([icon, title, subtitle, tone, iconBg]) => (
                     <div key={title as string} className="flex min-w-0 flex-col items-center px-1.5 py-3 text-center">
-                      <div className={`mb-1.5 rounded-full p-2 ${iconBg as string} ${tone as string}`}>{icon}</div>
+                      <div className={`mb-1.5 rounded-full p-1.5 ${iconBg as string}`}><img src={icon as string} alt="" className="h-8 w-8 object-contain" /></div>
                       <p className={`text-[12px] font-black leading-5 ${tone as string}`}>{title}</p>
                       <p className="text-[11px] font-black leading-4 text-[#10243a]">{subtitle}</p>
                     </div>
@@ -286,11 +284,14 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
               </section>
 
               {/* 既存コンテンツはファーストビューの下で維持 */}
-              <div className="grid grid-cols-1 gap-3.5 text-left sm:grid-cols-3">
-                {[{ icon: <CompareIcon className="h-5 w-5" />, title: "統計上の目安と比較", text: "あなたの老後の生活費や年金を、統計上の目安と比較できます。", tone: "text-blue-700", border: "border-blue-100/80" }, { icon: <SavingsIcon className="h-5 w-5" />, title: "必要な老後資金が分かる", text: "現在の資産や積立額などから、老後に必要な資金をシミュレーションできます。", tone: "text-emerald-700", border: "border-emerald-100/80" }, { icon: <GrowthIcon className="h-5 w-5" />, title: "今から必要な積立額が分かる", text: "毎月の積立額やボーナス投資から、将来の準備額を確認できます。", tone: "text-amber-700", border: "border-amber-100/80" }].map((feature) => (
-                  <div key={feature.title} className={`rounded-2xl border ${feature.border} bg-white/90 p-4 shadow-xs`}>
-                    <div className={`mb-1 flex items-center gap-2 text-sm font-bold ${feature.tone}`}>{feature.icon}<span>{feature.title}</span></div>
-                    <p className="text-xs leading-relaxed text-gray-600">{feature.text}</p>
+              <div className="grid grid-cols-1 gap-2.5 text-left">
+                {[{ icon: "/manus-storage/statistics_256b62d1.png", title: "統計上の目安と比較", text: "あなたの老後の生活費や年金を、統計上の目安と比較できます。", tone: "text-blue-700", border: "border-blue-100/80", iconBg: "bg-[#e7f5ee]" }, { icon: "/manus-storage/retirement-fund_d4791d18.png", title: "必要な老後資金が分かる", text: "現在の資産や積立額などから、老後に必要な資金をシミュレーションできます。", tone: "text-emerald-700", border: "border-emerald-100/80", iconBg: "bg-[#fff5cf]" }, { icon: "/manus-storage/contribution_feb14823.png", title: "今から必要な積立額が分かる", text: "毎月の積立額やボーナス投資から、将来の準備額を確認できます。", tone: "text-amber-700", border: "border-amber-100/80", iconBg: "bg-[#fde9f0]" }].map((feature) => (
+                  <div key={feature.title} className={`flex items-center gap-3 rounded-2xl border ${feature.border} bg-white px-3 py-2.5 shadow-sm`}>
+                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${feature.iconBg}`}><img src={feature.icon} alt="" className="h-10 w-10 object-contain" /></div>
+                    <div className="min-w-0">
+                      <div className={`mb-0.5 flex items-center gap-1.5 text-sm font-black ${feature.tone}`}><span>{feature.title}</span></div>
+                      <p className="text-xs leading-5 text-gray-600">{feature.text}</p>
+                    </div>
                   </div>
                 ))}
               </div>
