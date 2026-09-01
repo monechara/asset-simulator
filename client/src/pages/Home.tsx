@@ -11,6 +11,7 @@ import SimulatorResultView from "@/components/SimulatorResult";
 import type { SimulatorResult as ResultType } from "@/lib/simulator";
 import { SimulatorInput, calculateSimulation } from "@/lib/simulator";
 import { ChevronLeft } from "lucide-react";
+import { trackFunnelEvent } from "@/lib/funnelAnalytics";
 
 /**
  * アイコン方針: 絵文字ではなく、strokeWidth=1.8・round linecap・24px viewBoxの
@@ -83,6 +84,7 @@ export default function Home() {
 
     let cancelled = false;
     let attempts = 0;
+    let hasTrackedStart = false;
     let timer: number | undefined;
 
     const scrollToSimpleForm = () => {
@@ -99,6 +101,10 @@ export default function Home() {
       const headerOffset = 80;
       const targetTop = Math.max(0, formEl.getBoundingClientRect().top + window.scrollY - headerOffset);
       window.scrollTo({ top: targetTop, behavior: "auto" });
+      if (!hasTrackedStart) {
+        hasTrackedStart = true;
+        trackFunnelEvent("simple_input_start");
+      }
     };
 
     const scheduleScroll = () => {
@@ -136,6 +142,7 @@ export default function Home() {
         })),
       };
       const calculatedResult = calculateSimulation(submittedInput);
+      trackFunnelEvent(isSimple ? "simple_result_view" : "detailed_result_view");
       setLastInput(submittedInput);
       setIsSimpleResult(Boolean(isSimple));
       setResult(calculatedResult);
@@ -190,72 +197,70 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* スタート画面 / 導入部 */}
-              <div className="mb-8 text-center space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold tracking-wide">
-                  <CompareIcon className="w-4 h-4" />
-                  <span>統計データと比較できる</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
-                  あなたの老後、いくら必要？
-                </h2>
-                <p className="text-base text-gray-600 max-w-xl mx-auto leading-relaxed">
-                  統計上の目安と比べながら、あなたに必要な老後資金をシミュレーション
-                </p>
-
-                {/* 3つの特徴 */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 my-6 text-left">
-                  <div className="bg-white/90 backdrop-blur border border-blue-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-blue-700 font-bold text-sm mb-1">
-                        <CompareIcon className="w-5 h-5" />
-                        <span>統計上の目安と比較</span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        あなたの老後の生活費や年金を、統計上の目安と比較できます。
-                      </p>
-                    </div>
+              {/* ファーストビュー：家計全体を30秒で確認できる入口 */}
+              <section className="relative mb-8 overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-[#fffdf5] via-white to-[#eafaf3] px-5 pb-5 pt-7 shadow-sm sm:px-10 sm:pt-9">
+                <div className="relative z-10 max-w-2xl pr-0 sm:pr-48">
+                  <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white/85 px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-800 shadow-xs">
+                    無料・登録不要｜約30秒
                   </div>
-
-                  <div className="bg-white/90 backdrop-blur border border-emerald-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm mb-1">
-                        <SavingsIcon className="w-5 h-5" />
-                        <span>必要な老後資金が分かる</span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        現在の資産や積立額などから、老後に必要な資金をシミュレーションできます。
-                      </p>
-                    </div>
+                  <h2 className="mt-4 max-w-xl text-[2.15rem] font-black leading-[1.16] tracking-tight text-slate-950 sm:text-5xl">
+                    あなたの家計、<br className="sm:hidden" />将来のお金は足りる？
+                  </h2>
+                  <p className="mt-4 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
+                    年収・貯金・家族構成から、将来の資産をかんたんチェック
+                  </p>
+                  <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    <button
+                      onClick={() => {
+                        trackFunnelEvent("simple_input_start");
+                        const formEl = document.getElementById("simulator-form-container");
+                        formEl?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                      className="w-full whitespace-nowrap rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-600 px-4 py-4 text-[15px] font-black text-white shadow-lg shadow-emerald-900/10 transition-transform hover:from-blue-700 hover:to-emerald-700 active:scale-[0.98] sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
+                    >
+                      30秒でシミュレーションする <span aria-hidden="true">→</span>
+                    </button>
                   </div>
-
-                  <div className="bg-white/90 backdrop-blur border border-amber-100/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-amber-700 font-bold text-sm mb-1">
-                        <GrowthIcon className="w-5 h-5" />
-                        <span>今から必要な積立額が分かる</span>
-                      </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        毎月の積立額やボーナス投資をもとに、将来どのくらい資産を準備できるか確認できます。
-                      </p>
-                    </div>
+                  <div className="mt-4 space-y-1 text-xs font-semibold leading-5 text-slate-600">
+                    <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>まずは少ない項目だけ</p>
+                    <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>あとから教育・住宅・老後まで詳しく設定できます</p>
+                  </div>
+                  <div className="mt-1 flex justify-end sm:absolute sm:bottom-3 sm:right-6 sm:mt-0" aria-hidden="true">
+                    <img src="/manus-storage/tsumitate-penguin-tighter_440c164c.png" alt="" className="h-16 w-14 object-contain object-bottom sm:h-32 sm:w-24" />
                   </div>
                 </div>
+              </section>
 
-                {/* CTAボタン */}
-                <div className="pt-2">
-                  <button
-                    onClick={() => {
-                      const formEl = document.getElementById("simulator-form-container");
-                      formEl?.scrollIntoView({ behavior: "smooth" });
-                    }}
-                    className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-bold text-base rounded-2xl shadow-md hover:from-blue-700 hover:to-emerald-700 transition-all transform active:scale-95 flex items-center justify-center gap-2 mx-auto"
-                  >
-                    <span>無料でシミュレーションする</span>
-                    <span className="text-lg">↓</span>
-                  </button>
-                  <p className="mt-2 text-xs text-gray-500">会員登録不要・30秒で簡単にお試しいただけます</p>
+              <section className="mb-8 rounded-3xl border border-emerald-100 bg-white/80 p-5 shadow-xs sm:p-7">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold tracking-[0.16em] text-emerald-700">CHECK THE WHOLE PLAN</p>
+                    <h3 className="mt-1 text-xl font-black tracking-tight text-slate-900">このシミュレーションでわかること</h3>
+                  </div>
+                  <GrowthIcon className="h-7 w-7 shrink-0 text-emerald-600" />
                 </div>
+                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {[
+                    ["教育費は足りる？", "子どもの成長に合わせた支出も見通せます。"],
+                    ["住宅を買っても大丈夫？", "購入時の支出やローンも計画に重ねられます。"],
+                    ["老後はいくら残る？", "積立・運用・取り崩しをまとめて確認できます。"],
+                  ].map(([title, description]) => (
+                    <div key={title} className="rounded-2xl bg-slate-50 px-4 py-3.5">
+                      <p className="text-sm font-black text-slate-900">{title}</p>
+                      <p className="mt-1 text-xs leading-5 text-slate-600">{description}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* 既存コンテンツはファーストビューの下で維持 */}
+              <div className="grid grid-cols-1 gap-3.5 text-left sm:grid-cols-3">
+                {[{ icon: <CompareIcon className="h-5 w-5" />, title: "統計上の目安と比較", text: "あなたの老後の生活費や年金を、統計上の目安と比較できます。", tone: "text-blue-700", border: "border-blue-100/80" }, { icon: <SavingsIcon className="h-5 w-5" />, title: "必要な老後資金が分かる", text: "現在の資産や積立額などから、老後に必要な資金をシミュレーションできます。", tone: "text-emerald-700", border: "border-emerald-100/80" }, { icon: <GrowthIcon className="h-5 w-5" />, title: "今から必要な積立額が分かる", text: "毎月の積立額やボーナス投資から、将来の準備額を確認できます。", tone: "text-amber-700", border: "border-amber-100/80" }].map((feature) => (
+                  <div key={feature.title} className={`rounded-2xl border ${feature.border} bg-white/90 p-4 shadow-xs`}>
+                    <div className={`mb-1 flex items-center gap-2 text-sm font-bold ${feature.tone}`}>{feature.icon}<span>{feature.title}</span></div>
+                    <p className="text-xs leading-relaxed text-gray-600">{feature.text}</p>
+                  </div>
+                ))}
               </div>
 
               {/* 入力フォーム */}
@@ -285,6 +290,7 @@ export default function Home() {
                 onReset={handleReset}
                 isSimpleResult={isSimpleResult}
                 onUpdateInput={(updatedInput) => {
+                  trackFunnelEvent("detailed_input_start");
                   setLastInput(updatedInput);
                   setResult(null); // 結果を解除して詳細入力フォームを開く
                   toast.success("詳細設定画面を開きました。必要項目を調整してください！");
