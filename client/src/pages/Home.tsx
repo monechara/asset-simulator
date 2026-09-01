@@ -69,7 +69,9 @@ function NoticeIcon({ className = "" }: LineIconProps) {
   );
 }
 
-export default function Home() {
+type HomeProps = { forceSimpleStart?: boolean };
+
+export default function Home({ forceSimpleStart = false }: HomeProps) {
   const [result, setResult] = useState<ResultType | null>(null);
   const [lastInput, setLastInput] = useState<SimulatorInput | null>(null);
   const [isSimpleResult, setIsSimpleResult] = useState(false);
@@ -79,7 +81,7 @@ export default function Home() {
   // 通常のトップページと既存の「無料でシミュレーションする」導線には影響させない。
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const isDirectSimple = params.get("start") === "simple" || window.location.pathname === "/simple";
+    const isDirectSimple = forceSimpleStart || params.get("start") === "simple" || window.location.pathname.replace(/\/$/, "") === "/simple";
     if (!isDirectSimple) return;
 
     let cancelled = false;
@@ -162,7 +164,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
+    <div className="min-h-screen bg-[#fffdf7]">
       {/* ヘッダー */}
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-blue-100 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -198,13 +200,13 @@ export default function Home() {
               transition={{ duration: 0.3 }}
             >
               {/* ファーストビュー：家計全体を30秒で確認できる入口 */}
-              <section className="relative mb-8 overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-[#fffdf5] via-white to-[#eafaf3] px-5 pb-5 pt-7 shadow-sm sm:px-10 sm:pt-9">
+              <section className="relative mb-8 overflow-hidden rounded-[2rem] border-2 border-[#b8e3d5] bg-[#fffaf0] px-5 pb-5 pt-7 shadow-[0_8px_24px_rgba(31,97,80,0.08)] sm:px-10 sm:pt-9">
                 <div className="relative z-10 max-w-2xl pr-0 sm:pr-48">
                   <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white/85 px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-800 shadow-xs">
                     無料・登録不要｜約30秒
                   </div>
-                  <h2 className="mt-4 max-w-xl text-[2.15rem] font-black leading-[1.16] tracking-tight text-slate-950 sm:text-5xl">
-                    あなたの家計、<br className="sm:hidden" />将来のお金は足りる？
+                  <h2 className="mt-4 max-w-xl text-[2.15rem] font-black leading-[1.16] tracking-tight text-[#10243a] sm:text-5xl">
+                    あなたの家計、<br className="sm:hidden" /><span className="text-[#078c72]">将来のお金は足りる？</span>
                   </h2>
                   <p className="mt-4 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
                     年収・貯金・家族構成から、将来の資産をかんたんチェック
@@ -216,7 +218,7 @@ export default function Home() {
                         const formEl = document.getElementById("simulator-form-container");
                         formEl?.scrollIntoView({ behavior: "smooth", block: "start" });
                       }}
-                      className="w-full whitespace-nowrap rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-600 px-4 py-4 text-[15px] font-black text-white shadow-lg shadow-emerald-900/10 transition-transform hover:from-blue-700 hover:to-emerald-700 active:scale-[0.98] sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
+                      className="w-full whitespace-nowrap rounded-2xl bg-[#078c72] px-4 py-4 text-[15px] font-black text-white shadow-[0_8px_16px_rgba(7,140,114,0.2)] transition-transform hover:bg-[#06765f] active:scale-[0.98] sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
                     >
                       30秒でシミュレーションする <span aria-hidden="true">→</span>
                     </button>
@@ -226,16 +228,16 @@ export default function Home() {
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>あとから教育・住宅・老後まで詳しく設定できます</p>
                   </div>
                   <div className="mt-1 flex justify-end sm:absolute sm:bottom-3 sm:right-6 sm:mt-0" aria-hidden="true">
-                    <img src="/manus-storage/tsumitate-penguin-tighter_440c164c.png" alt="" className="h-16 w-14 object-contain object-bottom sm:h-32 sm:w-24" />
+                    <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-16 w-14 object-contain object-bottom sm:h-32 sm:w-24" />
                   </div>
                 </div>
               </section>
 
-              <section className="mb-8 rounded-3xl border border-emerald-100 bg-white/80 p-5 shadow-xs sm:p-7">
+              <section className="mb-8 rounded-3xl border-2 border-[#d6eee5] bg-white p-5 shadow-[0_6px_20px_rgba(31,97,80,0.06)] sm:p-7">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold tracking-[0.16em] text-emerald-700">CHECK THE WHOLE PLAN</p>
-                    <h3 className="mt-1 text-xl font-black tracking-tight text-slate-900">このシミュレーションでわかること</h3>
+                    <p className="text-xs font-bold tracking-[0.12em] text-[#078c72]">まずは、ここをチェック</p>
+                    <h3 className="mt-1 text-xl font-black tracking-tight text-[#10243a]">このシミュレーションでわかること</h3>
                   </div>
                   <GrowthIcon className="h-7 w-7 shrink-0 text-emerald-600" />
                 </div>

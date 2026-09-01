@@ -6,12 +6,19 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
+function RootHome() {
+  return <Home />;
+}
+
+function SimpleHome() {
+  return <Home forceSimpleStart />;
+}
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/simple"} component={Home} />
+      <Route path={"/"} component={RootHome} />
+      <Route path={"/simple"} component={SimpleHome} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
