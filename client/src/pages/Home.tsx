@@ -14,8 +14,7 @@ import { ChevronLeft } from "lucide-react";
 import { trackFunnelEvent } from "@/lib/funnelAnalytics";
 
 /**
- * アイコン方針: 絵文字ではなく、strokeWidth=1.8・round linecap・24px viewBoxの
- * オリジナル線画SVGで統一。白基調の画面に、青・ミント・アンバーを小さなアクセントとして使う。
+ * デザイン方針: Instagram投稿と揃う淡いクリーム地、青緑を主役に黄色・ピンク・水色を小さく差す。ファーストビューは短く、見出しとCTAを最優先にする。アイコンはstrokeWidth=1.8の丸い線画SVGで統一する。
  */
 type LineIconProps = { className?: string };
 
@@ -56,6 +55,34 @@ function GrowthIcon({ className = "" }: LineIconProps) {
       <path d="M4.5 19.5V5.5M4.5 19.5h15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       <path d="m7 15.5 3.2-3.2 2.4 2 4.6-5.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M14.5 8.5h2.7v2.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function EducationIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path d="m3.5 9 8.5-4 8.5 4-8.5 4-8.5-4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M7 11.2v4.1c2.7 2.1 7.3 2.1 10 0v-4.1M20.5 9v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HomeIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path d="m4 10.5 8-6 8 6v8.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19v-8.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M9.5 20.5v-6h5v6" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function RetirementIcon({ className = "" }: LineIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <circle cx="9" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="16" cy="8.5" r="2.2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4.5 19c.4-3.5 2-5.3 4.5-5.3s4.1 1.8 4.5 5.3M12.5 19c.3-2.8 1.6-4.4 3.7-4.4 2 0 3.1 1.4 3.3 4.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -200,56 +227,59 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
               transition={{ duration: 0.3 }}
             >
               {/* ファーストビュー：家計全体を30秒で確認できる入口 */}
-              <section className="relative mb-8 overflow-hidden rounded-[2rem] border-2 border-[#b8e3d5] bg-[#fffaf0] px-5 pb-5 pt-7 shadow-[0_8px_24px_rgba(31,97,80,0.08)] sm:px-10 sm:pt-9">
+              <section className="relative mb-5 overflow-hidden rounded-[1.75rem] border-2 border-[#b8e3d5] bg-[#fffaf0] px-4 pb-4 pt-5 shadow-[0_8px_24px_rgba(31,97,80,0.08)] sm:px-10 sm:pt-7">
                 <div className="relative z-10 max-w-2xl pr-0 sm:pr-48">
                   <div className="inline-flex items-center rounded-full border border-emerald-200 bg-white/85 px-3.5 py-1.5 text-xs font-bold tracking-wide text-emerald-800 shadow-xs">
                     無料・登録不要｜約30秒
                   </div>
-                  <h2 className="mt-4 max-w-xl text-[2.15rem] font-black leading-[1.16] tracking-tight text-[#10243a] sm:text-5xl">
+                  <h2 className="mt-3 max-w-xl text-[1.88rem] font-black leading-[1.1] tracking-tight text-[#10243a] sm:text-5xl">
                     あなたの家計、<br className="sm:hidden" /><span className="text-[#078c72]">将来のお金は足りる？</span>
                   </h2>
-                  <p className="mt-4 max-w-lg text-sm leading-7 text-slate-600 sm:text-base">
+                  <p className="mt-3 max-w-lg text-[13px] leading-6 text-slate-600 sm:text-base">
                     年収・貯金・家族構成から、将来の資産をかんたんチェック
                   </p>
-                  <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                  <div className="-mt-1 flex h-20 items-end justify-end pr-1 sm:absolute sm:right-8 sm:top-24 sm:mt-0 sm:h-auto">
+                    <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-20 w-24 object-contain object-bottom sm:h-40 sm:w-44" />
+                  </div>
+                  <div className="mt-1 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                     <button
                       onClick={() => {
                         trackFunnelEvent("simple_input_start");
                         const formEl = document.getElementById("simulator-form-container");
                         formEl?.scrollIntoView({ behavior: "smooth", block: "start" });
                       }}
-                      className="w-full whitespace-nowrap rounded-2xl bg-[#078c72] px-4 py-4 text-[15px] font-black text-white shadow-[0_8px_16px_rgba(7,140,114,0.2)] transition-transform hover:bg-[#06765f] active:scale-[0.98] sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
+                      className="w-full whitespace-nowrap rounded-2xl bg-[#078c72] px-4 py-3.5 text-[15px] font-black text-white shadow-[0_8px_16px_rgba(7,140,114,0.2)] transition-transform hover:bg-[#06765f] active:scale-[0.98] sm:w-auto sm:min-w-[18rem] sm:px-6 sm:text-base"
                     >
                       30秒でシミュレーションする <span aria-hidden="true">→</span>
                     </button>
                   </div>
-                  <div className="mt-4 space-y-1 text-xs font-semibold leading-5 text-slate-600">
+                  <div className="mt-3 space-y-0.5 text-xs font-semibold leading-5 text-slate-600">
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>まずは少ない項目だけ</p>
                     <p className="flex items-center gap-2"><span className="text-emerald-600">✓</span>あとから教育・住宅・老後まで詳しく設定できます</p>
                   </div>
-                  <div className="mt-1 flex justify-end sm:absolute sm:bottom-3 sm:right-6 sm:mt-0" aria-hidden="true">
-                    <img src="/manus-storage/tsumitate-penguin-formal_e07c3ab5.png" alt="" className="h-16 w-14 object-contain object-bottom sm:h-32 sm:w-24" />
-                  </div>
+                  <span className="pointer-events-none absolute right-5 top-20 text-2xl text-[#f7c948]" aria-hidden="true">✦</span>
+                  <span className="pointer-events-none absolute right-16 top-8 text-xl text-[#f19ab5]" aria-hidden="true">＋</span>
                 </div>
               </section>
 
-              <section className="mb-8 rounded-3xl border-2 border-[#d6eee5] bg-white p-5 shadow-[0_6px_20px_rgba(31,97,80,0.06)] sm:p-7">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
+              <section className="mb-5 rounded-3xl border-2 border-[#d6eee5] bg-white p-4 shadow-[0_6px_20px_rgba(31,97,80,0.06)] sm:p-7">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-xs font-bold tracking-[0.12em] text-[#078c72]">まずは、ここをチェック</p>
-                    <h3 className="mt-1 text-xl font-black tracking-tight text-[#10243a]">このシミュレーションでわかること</h3>
+                    <h3 className="mt-1 whitespace-nowrap text-[17px] font-black leading-7 tracking-tight text-[#10243a] sm:text-xl">このシミュレーションでわかること</h3>
                   </div>
-                  <GrowthIcon className="h-7 w-7 shrink-0 text-emerald-600" />
+                  <GrowthIcon className="mt-1 h-6 w-6 shrink-0 text-emerald-600" />
                 </div>
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="mt-4 grid grid-cols-3 divide-x divide-[#e4eee9] overflow-hidden rounded-2xl border border-[#edf3ef] bg-[#fffdf7]">
                   {[
-                    ["教育費は足りる？", "子どもの成長に合わせた支出も見通せます。"],
-                    ["住宅を買っても大丈夫？", "購入時の支出やローンも計画に重ねられます。"],
-                    ["老後はいくら残る？", "積立・運用・取り崩しをまとめて確認できます。"],
-                  ].map(([title, description]) => (
-                    <div key={title} className="rounded-2xl bg-slate-50 px-4 py-3.5">
-                      <p className="text-sm font-black text-slate-900">{title}</p>
-                      <p className="mt-1 text-xs leading-5 text-slate-600">{description}</p>
+                    [<EducationIcon className="h-7 w-7" />, "教育費", "足りる？", "text-[#39a980]", "bg-[#e7f5ee]"],
+                    [<HomeIcon className="h-7 w-7" />, "住宅", "買っても大丈夫？", "text-[#e6b51e]", "bg-[#fff5cf]"],
+                    [<RetirementIcon className="h-7 w-7" />, "老後", "いくら残る？", "text-[#e887aa]", "bg-[#fde9f0]"],
+                  ].map(([icon, title, subtitle, tone, iconBg]) => (
+                    <div key={title as string} className="flex min-w-0 flex-col items-center px-1.5 py-3 text-center">
+                      <div className={`mb-1.5 rounded-full p-2 ${iconBg as string} ${tone as string}`}>{icon}</div>
+                      <p className={`text-[12px] font-black leading-5 ${tone as string}`}>{title}</p>
+                      <p className="text-[11px] font-black leading-4 text-[#10243a]">{subtitle}</p>
                     </div>
                   ))}
                 </div>
