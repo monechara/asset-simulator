@@ -1,0 +1,6 @@
+# SPA fallback for Wouter routes on Apache/XServer Static
+RewriteEngine On
+RewriteBase /
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
