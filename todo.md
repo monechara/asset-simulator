@@ -198,7 +198,7 @@
 - [x] スマートフォン表示と本番ビルドを確認して公開状態を保存する
 
 ## XServer Static・GitHub main同期
-- [ ] 現行プロジェクト、GitHub接続、静的公開制約を確認する
-- [ ] XServer Static向けビルド成果物と公開ディレクトリ構成を整える
-- [ ] GitHubのasset-simulator mainブランチへ同期する
-- [ ] 静的成果物の動作確認と公開ディレクトリを報告する
+- [x] 現行プロジェクト、GitHub接続、静的公開制約を確認する
+- [x] XServer Static向けビルド成果物と公開ディレクトリ構成を整える
+- [x] GitHubのasset-simulator mainブランチへ同期する
+- [x] 静的成果物の動作確認と公開ディレクトリを報告する
