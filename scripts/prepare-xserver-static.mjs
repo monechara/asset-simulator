@@ -64,6 +64,15 @@ for (const [manusPath, [sourceCandidate, outputName]] of Object.entries(assetMap
   }
 }
 
+const indexPath = path.join(outputDir, "index.html");
+const indexHtml = await readFile(indexPath, "utf8");
+await writeFile(
+  indexPath,
+  indexHtml
+    .replace(/(src=\"\/assets\/[^\"]+\.js)\"/g, "$1?v=static-assets-1\"")
+    .replace(/(href=\"\/assets\/[^\"]+\.css)\"/g, "$1?v=static-assets-1\""),
+);
+
 await writeFile(
   path.join(outputDir, ".htaccess"),
   "RewriteEngine On\nRewriteBase /\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^ index.html [L]\n",
