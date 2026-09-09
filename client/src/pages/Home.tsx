@@ -392,7 +392,7 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                   <div className="inline-flex items-center rounded-full border-2 border-[#b8e3d5] bg-white px-3 py-1 text-xs font-black tracking-wide text-[#078c72] shadow-sm">
                     無料・登録不要｜約30秒
                   </div>
-                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_9rem] items-center gap-1 sm:block">
+                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_8rem] items-center gap-1 sm:block">
                     <h2 className="min-w-0 text-[1.9rem] font-black leading-[1.08] tracking-tight text-[#10243a] sm:max-w-xl sm:text-5xl">
                       あなたの家計、
                       <br />
@@ -402,31 +402,31 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                         足りる？
                       </span>
                     </h2>
-                    <div className="relative flex h-36 w-36 items-center justify-center sm:absolute sm:right-1 sm:top-20 sm:h-40 sm:w-44">
+                    <div className="relative flex h-32 w-32 items-center justify-center sm:absolute sm:right-1 sm:top-20 sm:h-40 sm:w-44">
                       <img
                         src="/manus-storage/3BCF6477-5B38-4B76-8DB8-73822B64BF25(16)_a7f7d9be.png"
                         alt=""
-                        className="relative z-10 h-32 w-36 object-contain object-bottom sm:h-36 sm:w-40"
+                        className="relative z-10 h-28 w-32 object-contain object-bottom sm:h-36 sm:w-40"
                       />
                       <img
                         src="/manus-storage/07_family_b2662bac.png"
                         alt=""
-                        className="pointer-events-none absolute -left-3 top-1 z-0 h-9 w-10 object-contain"
+                        className="pointer-events-none absolute -left-3 top-1 z-0 hidden h-9 w-10 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/08_graph_da2b1368.png"
                         alt=""
-                        className="pointer-events-none absolute -right-1 top-7 z-0 h-9 w-9 object-contain"
+                        className="pointer-events-none absolute -right-1 top-7 z-0 hidden h-9 w-9 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/09_house_7a2ef6b7.png"
                         alt=""
-                        className="pointer-events-none absolute -right-1 bottom-2 z-0 h-9 w-9 object-contain"
+                        className="pointer-events-none absolute -right-1 bottom-2 z-0 hidden h-9 w-9 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/10_yen_0ff05e07.png"
                         alt=""
-                        className="pointer-events-none absolute -left-1 bottom-1 z-0 h-9 w-9 object-contain"
+                        className="pointer-events-none absolute -left-1 bottom-1 z-0 hidden h-9 w-9 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/01_yellow_star_4664eedb.png"
@@ -436,27 +436,27 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                       <img
                         src="/manus-storage/02_pink_star_f20fd6d8.png"
                         alt=""
-                        className="pointer-events-none absolute left-1 top-5 z-0 h-6 w-6 object-contain"
+                        className="pointer-events-none absolute left-1 top-5 z-0 hidden h-6 w-6 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/03_mint_plus_e2a6cd90.png"
                         alt=""
-                        className="pointer-events-none absolute right-2 -top-2 z-0 h-7 w-7 object-contain"
+                        className="pointer-events-none absolute right-2 -top-2 z-0 hidden h-7 w-7 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/04_yellow_dots_dd29dbae.png"
                         alt=""
-                        className="pointer-events-none absolute -right-2 bottom-8 z-0 h-7 w-7 object-contain"
+                        className="pointer-events-none absolute -right-2 bottom-8 z-0 hidden h-7 w-7 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/05_yellow_marks_ed2d81a5.png"
                         alt=""
-                        className="pointer-events-none absolute -left-1 bottom-8 z-0 h-7 w-7 object-contain"
+                        className="pointer-events-none absolute -left-1 bottom-8 z-0 hidden h-7 w-7 object-contain sm:block"
                       />
                       <img
                         src="/manus-storage/06_yellow_dot_4e0ded55.png"
                         alt=""
-                        className="pointer-events-none absolute right-7 top-3 z-0 h-3 w-3 object-contain"
+                        className="pointer-events-none absolute right-7 top-3 z-0 hidden h-3 w-3 object-contain sm:block"
                       />
                     </div>
                   </div>
