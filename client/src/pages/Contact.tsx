@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import SiteFooter from "@/components/SiteFooter";
-import { trpc } from "@/lib/trpc";
+import { submitContactToFormspree } from "@/lib/formspreeContact";
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -10,32 +10,33 @@ export default function Contact() {
   const [message, setMessage] = useState("");
   const [website, setWebsite] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const submitContact = trpc.contact.submit.useMutation({
-    onSuccess: result => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+
+    setSubmitted(false);
+    setSubmitError(false);
+    setIsSubmitting(true);
+
+    try {
+      await submitContactToFormspree({ name, email, message, website });
       setSubmitted(true);
       setName("");
       setEmail("");
       setMessage("");
       setWebsite("");
-      toast.success(
-        result.operatorNotified
-          ? "お問い合わせを送信しました。"
-          : "お問い合わせを受け付けました。確認のうえ対応します。",
-        { duration: 5000 }
-      );
-    },
-    onError: error => {
-      toast.error(
-        error.message || "送信に失敗しました。時間をおいてお試しください。",
-        { duration: 5000 }
-      );
-    },
-  });
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmitted(false);
-    submitContact.mutate({ name, email, message, website });
+      toast.success("お問い合わせを送信しました。", { duration: 5000 });
+    } catch {
+      setSubmitError(true);
+      toast.error("送信に失敗しました。時間をおいて再度お試しください。", {
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -162,12 +163,12 @@ export default function Contact() {
             </p>
             <button
               type="submit"
-              disabled={submitContact.isPending}
+              disabled={isSubmitting}
               className="mt-6 w-full rounded-xl bg-[#087f6e] px-5 py-3.5 text-sm font-bold text-white shadow-[0_8px_18px_rgba(8,127,110,0.18)] transition hover:bg-[#066b5d] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitContact.isPending ? "送信中…" : "お問い合わせを送信"}
+              {isSubmitting ? "送信中…" : "お問い合わせを送信"}
             </button>
-            {submitContact.isError && (
+            {submitError && (
               <p
                 role="alert"
                 className="mt-4 text-center text-sm font-bold text-[#c55d56]"
