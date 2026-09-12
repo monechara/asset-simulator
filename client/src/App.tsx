@@ -3,6 +3,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import Policy from "@/pages/Policy";
 import Contact from "@/pages/Contact";
+import GuideIndex from "@/pages/GuideIndex";
+import GuideArticle from "@/pages/GuideArticle";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -23,6 +25,9 @@ function Router() {
       <Route path={"/simple"} component={SimpleHome} />
       <Route path={"/policy"} component={Policy} />
       <Route path={"/contact"} component={Contact} />
+      <Route path={"/guide/"} component={GuideIndex} />
+      <Route path={"/guide"} component={GuideIndex} />
+      <Route path={"/guide/:slug"} component={GuideArticle} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

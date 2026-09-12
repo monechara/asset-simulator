@@ -17,6 +17,15 @@ export default function SiteFooter() {
           |
         </span>
         <Link
+          href="/guide/"
+          className="transition-colors hover:text-[#087f6e] hover:underline"
+        >
+          お金のガイド
+        </Link>
+        <span aria-hidden="true" className="text-[#b8c9c2]">
+          |
+        </span>
+        <Link
           href="/contact"
           className="transition-colors hover:text-[#087f6e] hover:underline"
         >

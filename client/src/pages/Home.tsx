@@ -11,6 +11,9 @@ import SimulatorResultView from "@/components/SimulatorResult";
 import type { SimulatorResult as ResultType } from "@/lib/simulator";
 import { SimulatorInput, calculateSimulation } from "@/lib/simulator";
 import { ChevronLeft } from "lucide-react";
+import { Link } from "wouter";
+import GuideCard from "@/components/GuideCard";
+import { guides } from "@/content/guides";
 import { trackFunnelEvent } from "@/lib/funnelAnalytics";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -352,8 +355,8 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
     <div className="min-h-screen bg-[#fffdf7]">
       {/* ヘッダー */}
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-blue-100 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center text-white">
               <BrandMarkIcon className="w-5 h-5" />
             </div>
@@ -364,14 +367,22 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
               <p className="text-xs text-gray-500">将来の資産を計画しよう</p>
             </div>
           </div>
-          {result && (
-            <button
-              onClick={handleReset}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/guide/"
+              className="rounded-full px-2 py-1 text-xs font-black text-[#078c72] transition hover:bg-[#eaf8f2] sm:px-3"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
-          )}
+              お金のガイド
+            </Link>
+            {result && (
+              <button
+                onClick={handleReset}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -613,6 +624,33 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                   </div>
                 ))}
               </div>
+
+              <section className="mt-6 rounded-[2rem] bg-[#eaf8f2] px-4 py-6 sm:px-8 sm:py-8">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black tracking-[0.16em] text-[#078c72]">
+                      MONEY GUIDE
+                    </p>
+                    <h3 className="mt-1 text-2xl font-black tracking-tight text-[#10243a]">
+                      お金のガイド
+                    </h3>
+                    <p className="mt-1 text-sm leading-6 text-[#61726c]">
+                      暮らしに役立つお金の情報を、わかりやすく。
+                    </p>
+                  </div>
+                  <Link
+                    href="/guide/"
+                    className="shrink-0 text-xs font-black text-[#078c72] hover:underline sm:text-sm"
+                  >
+                    お金のガイドをもっと見る →
+                  </Link>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  {guides.slice(0, 3).map(article => (
+                    <GuideCard key={article.slug} article={article} compact />
+                  ))}
+                </div>
+              </section>
 
               {/* 入力フォーム */}
               <div
