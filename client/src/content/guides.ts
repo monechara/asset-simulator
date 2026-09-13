@@ -20,22 +20,18 @@ export type GuideArticle = {
   isDraft: boolean;
 };
 
-const draftNotice =
-  "※この記事は公開前確認用の仮データです。数値・本文・出典は正式公開前に確認・更新します。";
-
 export const guides: GuideArticle[] = [
   {
     slug: "house-price-by-household-income",
     title: "世帯年収別に見る、無理なく買える家の価格とは？",
     category: "住宅",
-    publishedAt: "2025.09.07",
+    publishedAt: "2026.01.15",
     thumbnail: "/manus-storage/housing_d87c99a1.png",
     heroImage: "/manus-storage/09_house_7a2ef6b7.png",
     summary:
       "世帯年収と住まいにかけられる費用の考え方を、仮のケースでわかりやすく整理します。",
     tags: ["住宅", "家計", "ライフプラン"],
     body: [
-      { type: "paragraph", text: draftNotice },
       { type: "heading", text: "家の価格は年収だけで決めない" },
       {
         type: "paragraph",
@@ -71,14 +67,13 @@ export const guides: GuideArticle[] = [
     slug: "fixed-or-variable-mortgage",
     title: "住宅ローンは固定と変動どっち？メリット・デメリットを徹底比較",
     category: "住宅ローン",
-    publishedAt: "2025.09.05",
+    publishedAt: "2026.01.10",
     thumbnail: "/manus-storage/09_house_7a2ef6b7.png",
     heroImage: "/manus-storage/housing_d87c99a1.png",
     summary:
       "固定金利と変動金利の違いを、比較するときの視点とともに仮データで整理します。",
     tags: ["住宅ローン", "住宅", "金利"],
     body: [
-      { type: "paragraph", text: draftNotice },
       { type: "heading", text: "固定金利と変動金利の違い" },
       {
         type: "paragraph",
@@ -114,14 +109,13 @@ export const guides: GuideArticle[] = [
     slug: "child-cost-by-age",
     title: "子ども1人にかかるお金はいくら？年齢別の費用をわかりやすく解説",
     category: "教育費",
-    publishedAt: "2025.09.02",
+    publishedAt: "2026.01.05",
     thumbnail: "/manus-storage/education_0880faf1.png",
     heroImage: "/manus-storage/education_0880faf1.png",
     summary:
       "子どもの年齢ごとに変わる支出を、教育費と日常費に分けて考えるための入門記事です。",
     tags: ["教育費", "子育て", "家計"],
     body: [
-      { type: "paragraph", text: draftNotice },
       { type: "heading", text: "年齢によって支出の種類が変わる" },
       {
         type: "paragraph",

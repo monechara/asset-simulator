@@ -10,6 +10,11 @@ describe("money guide content", () => {
       "child-cost-by-age",
     ]);
     expect(guides.every(article => article.isDraft)).toBe(true);
+    expect(guides.map(article => article.publishedAt)).toEqual([
+      "2026.01.15",
+      "2026.01.10",
+      "2026.01.05",
+    ]);
   });
 
   it("resolves an article and returns only existing related articles", () => {
