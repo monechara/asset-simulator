@@ -1,9 +1,30 @@
+import { useEffect } from "react";
 import { Link } from "wouter";
 import SiteFooter from "@/components/SiteFooter";
 import GuideCard from "@/components/GuideCard";
 import { guides } from "@/content/guides";
 
+const GUIDE_INDEX_SCROLL_KEY = "guide-index-scroll-y";
+
 export default function GuideIndex() {
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem(GUIDE_INDEX_SCROLL_KEY);
+    if (savedPosition) {
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: Number(savedPosition),
+          left: 0,
+          behavior: "auto",
+        });
+      });
+      sessionStorage.removeItem(GUIDE_INDEX_SCROLL_KEY);
+    }
+
+    return () => {
+      sessionStorage.setItem(GUIDE_INDEX_SCROLL_KEY, String(window.scrollY));
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#fffdf7] text-[#183b35]">
       <header className="border-b border-[#d8e8df] bg-white/95 px-4 py-4 shadow-sm backdrop-blur sm:px-8">

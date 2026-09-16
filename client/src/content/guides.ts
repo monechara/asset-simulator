@@ -15,6 +15,7 @@ export type GuideArticle = {
   thumbnail: string;
   heroImage: string;
   instagramImage?: string;
+  imageNote?: string;
   summary: string;
   ctaTitle?: string;
   ctaDescription?: string;
@@ -23,7 +24,7 @@ export type GuideArticle = {
   body: GuideBodyBlock[];
   assumptions: string[];
   cautions: string[];
-  sources: string[];
+  sources: { label: string; url: string }[];
   isDraft: boolean;
 };
 
@@ -43,6 +44,8 @@ export const guides: GuideArticle[] = [
     thumbnail: incomeComparisonImage,
     heroImage: incomeComparisonImage,
     instagramImage: incomeComparisonImage,
+    imageNote:
+      "掲載画像は内容を理解するための図解であり、本文の計算条件・数値とは異なる場合があります。",
     summary:
       "世帯年収だけで住宅価格を決めず、生活費・教育費・老後資金まで含めて考える方法を、仮定ケースで整理します。",
     ctaTitle: "あなたの年収・貯金・家族構成なら、住宅購入後のお金はどうなる？",
@@ -64,12 +67,6 @@ export const guides: GuideArticle[] = [
       {
         type: "paragraph",
         text: "無理なく買える家の価格は、世帯年収だけでは決まりません。借りられる金額と、住宅購入後も生活費・教育費・車・老後資金を確保しながら返せる金額は別です。この記事では、公的統計を「購入者やローン利用者の実態」として確認しながら、年収400万円・600万円・800万円の仮定ケースで返済イメージを比較します。ここで示す価格は推奨値や安全基準ではありません。",
-      },
-      {
-        type: "imagePlaceholder",
-        label: "世帯年収別の正式Instagram投稿画像",
-        alt: "世帯年収600万円で3000万円の家を買えるかを比較するInstagram投稿画像",
-        src: incomeComparisonImage,
       },
       { type: "heading", text: "「年収○倍まで買える」だけで判断できない理由" },
       {
@@ -208,11 +205,26 @@ export const guides: GuideArticle[] = [
       "本サイトのシミュレーション結果は入力条件と一定の仮定に基づく参考値で、将来の成果を保証しません。",
     ],
     sources: [
-      "[1] 住宅金融支援機構「住宅ローン利用者の実態調査」 https://www.jhf.go.jp/about/research/loan/user/index.html",
-      "[2] 住宅金融支援機構「住宅ローン利用者調査（2026年1月調査）」 https://www.jhf.go.jp/files/topics/4955_ext_99_2.pdf",
-      "[3] 文部科学省「令和5年度 子供の学習費調査」 https://www.mext.go.jp/b_menu/toukei/chousa03/gakushuuhi/kekka/k_detail/mext_00002.html",
-      "[4] 国土交通省「住宅市場動向調査」 https://www.mlit.go.jp/report/press/content/002012180.pdf",
-      "[5] 住宅金融支援機構「フラット35 ご利用条件」 https://www.flat35.com/loan/lineup/flat35/conditions/index.html",
+      {
+        label: "[1] 住宅金融支援機構「住宅ローン利用者の実態調査」",
+        url: "https://www.jhf.go.jp/about/research/loan/user/index.html",
+      },
+      {
+        label: "[2] 住宅金融支援機構「住宅ローン利用者調査（2026年1月調査）」",
+        url: "https://www.jhf.go.jp/files/topics/4955_ext_99_2.pdf",
+      },
+      {
+        label: "[3] 文部科学省「令和5年度 子供の学習費調査」",
+        url: "https://www.mext.go.jp/b_menu/toukei/chousa03/gakushuuhi/kekka/k_detail/mext_00002.html",
+      },
+      {
+        label: "[4] 国土交通省「住宅市場動向調査」",
+        url: "https://www.mlit.go.jp/report/press/content/002012180.pdf",
+      },
+      {
+        label: "[5] 住宅金融支援機構「フラット35 ご利用条件」",
+        url: "https://www.flat35.com/loan/lineup/flat35/conditions/index.html",
+      },
     ],
     isDraft: false,
   },
@@ -241,12 +253,6 @@ export const guides: GuideArticle[] = [
           "返済額を確定させたいか、当初負担を抑えたいか",
           "教育費・老後資金・収入変化への備えがあるか",
         ],
-      },
-      {
-        type: "imagePlaceholder",
-        label: "固定金利と変動金利の正式Instagram投稿画像",
-        alt: "固定金利と変動金利の特徴を比較するInstagram投稿画像",
-        src: fixedVariableImage,
       },
       { type: "heading", text: "固定金利とは" },
       {
@@ -371,9 +377,18 @@ export const guides: GuideArticle[] = [
       "本サイトのシミュレーション結果は入力条件と一定の仮定に基づく参考値です。",
     ],
     sources: [
-      "[1] 住宅金融支援機構「フラット35 金利情報（2026年9月）」 https://www.flat35.com/kinri/index.html",
-      "[2] 住宅金融支援機構「住宅ローン利用者の実態調査」 https://www.jhf.go.jp/about/research/loan/user/index.html",
-      "[3] 住宅金融支援機構「2026年1月調査 結果データ」 https://www.jhf.go.jp/files/topics/4955_ext_99_2.pdf",
+      {
+        label: "[1] 住宅金融支援機構「フラット35 金利情報（2026年9月）」",
+        url: "https://www.flat35.com/kinri/index.html",
+      },
+      {
+        label: "[2] 住宅金融支援機構「住宅ローン利用者の実態調査」",
+        url: "https://www.jhf.go.jp/about/research/loan/user/index.html",
+      },
+      {
+        label: "[3] 住宅金融支援機構「2026年1月調査 結果データ」",
+        url: "https://www.jhf.go.jp/files/topics/4955_ext_99_2.pdf",
+      },
     ],
     isDraft: false,
   },
@@ -402,12 +417,6 @@ export const guides: GuideArticle[] = [
           "幼児期から高校までの学習費は定義を分けて見る",
           "大学費用、生活費、保育費は別の資料・別の予算で考える",
         ],
-      },
-      {
-        type: "imagePlaceholder",
-        label: "子ども1人の年齢別費用を示す正式Instagram投稿画像",
-        alt: "子ども1人の0歳から22歳までの費用の時期を示すInstagram投稿画像",
-        src: childCostImage,
       },
       { type: "heading", text: "0〜5歳" },
       {
@@ -473,9 +482,20 @@ export const guides: GuideArticle[] = [
       "本サイトのシミュレーション結果は入力条件と一定の仮定に基づく参考値です。",
     ],
     sources: [
-      "[1] 文部科学省「令和5年度 子供の学習費調査」 https://www.mext.go.jp/b_menu/toukei/chousa03/gakushuuhi/kekka/k_detail/mext_00002.html",
-      "[2] 文部科学省「私立大学等の令和5年度入学者に係る学生納付金等調査結果」 https://www.mext.go.jp/a_menu/koutou/shinkou/07021403/1412031_00005.htm",
-      "[3] 文部科学省「令和5年度子供の学習費調査結果のポイント（訂正版）」 https://www.mext.go.jp/content/20260116-mxt_chousa01-000039333_1.pdf",
+      {
+        label: "[1] 文部科学省「令和5年度 子供の学習費調査」",
+        url: "https://www.mext.go.jp/b_menu/toukei/chousa03/gakushuuhi/kekka/k_detail/mext_00002.html",
+      },
+      {
+        label:
+          "[2] 文部科学省「私立大学等の令和5年度入学者に係る学生納付金等調査結果」",
+        url: "https://www.mext.go.jp/a_menu/koutou/shinkou/07021403/1412031_00005.htm",
+      },
+      {
+        label:
+          "[3] 文部科学省「令和5年度子供の学習費調査結果のポイント（訂正版）」",
+        url: "https://www.mext.go.jp/content/20260116-mxt_chousa01-000039333_1.pdf",
+      },
     ],
     isDraft: false,
   },

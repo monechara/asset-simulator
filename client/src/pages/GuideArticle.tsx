@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useRoute } from "wouter";
 import SiteFooter from "@/components/SiteFooter";
 import GuideCard from "@/components/GuideCard";
@@ -6,6 +7,10 @@ import { getGuideBySlug, getRelatedGuides } from "@/content/guides";
 export default function GuideArticle() {
   const [, params] = useRoute("/guide/:slug");
   const article = params?.slug ? getGuideBySlug(params.slug) : undefined;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [params?.slug]);
 
   if (!article) {
     return (
@@ -80,6 +85,11 @@ export default function GuideArticle() {
               className="mx-auto max-h-64 w-full object-contain"
             />
           </div>
+          {article.imageNote && (
+            <p className="mt-3 text-xs leading-5 text-[#61726c]">
+              {article.imageNote}
+            </p>
+          )}
 
           <div className="mt-8 space-y-6">
             {article.body.map((block, index) => {
@@ -317,7 +327,7 @@ function InfoBox({
   tone,
 }: {
   title: string;
-  items: string[];
+  items: string[] | { label: string; url: string }[];
   tone: string;
 }) {
   return (
@@ -325,7 +335,20 @@ function InfoBox({
       <h2 className="text-sm font-black text-[#10243a]">{title}</h2>
       <ul className="mt-2 space-y-1.5 text-xs leading-5 text-[#61726c]">
         {items.map(item => (
-          <li key={item}>{item}</li>
+          <li key={typeof item === "string" ? item : item.url}>
+            {typeof item === "string" ? (
+              item
+            ) : (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-[#078c72] underline decoration-[#9ad8c7] underline-offset-2 hover:text-[#056b5e]"
+              >
+                {item.label}
+              </a>
+            )}
+          </li>
         ))}
       </ul>
     </section>
