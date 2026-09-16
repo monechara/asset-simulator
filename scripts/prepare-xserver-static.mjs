@@ -12,22 +12,77 @@ const assetMap = {
     "tsumitate-penguin-formal.png",
     "penguin.png",
   ],
-  "/manus-storage/07_family_b2662bac.png": ["hero-decor/family.png", "family.png"],
+  "/manus-storage/07_family_b2662bac.png": [
+    "hero-decor/family.png",
+    "family.png",
+  ],
   "/manus-storage/08_graph_da2b1368.png": ["hero-decor/chart.png", "chart.png"],
   "/manus-storage/09_house_7a2ef6b7.png": ["hero-decor/house.png", "house.png"],
   "/manus-storage/10_yen_0ff05e07.png": ["hero-decor/yen.png", "yen.png"],
-  "/manus-storage/01_yellow_star_4664eedb.png": ["material-decor/sparkle.png", "yellow-star.png"],
-  "/manus-storage/02_pink_star_f20fd6d8.png": ["hero-decor/sparkles.png", "pink-star.png"],
-  "/manus-storage/03_mint_plus_e2a6cd90.png": ["hero-decor/plus.png", "mint-plus.png"],
-  "/manus-storage/04_yellow_dots_dd29dbae.png": ["material-decor/yellow-burst.png", "yellow-dots.png"],
-  "/manus-storage/05_yellow_marks_ed2d81a5.png": ["material-decor/yellow-burst.png", "yellow-marks.png"],
-  "/manus-storage/06_yellow_dot_4e0ded55.png": ["material-decor/sparkle.png", "yellow-dot.png"],
-  "/manus-storage/education_0880faf1.png": ["material-icons-clean/education.png", "education.png"],
-  "/manus-storage/housing_d87c99a1.png": ["material-icons-clean/housing.png", "housing.png"],
-  "/manus-storage/retirement_bd8ef11b.png": ["material-icons-clean/retirement.png", "retirement.png"],
-  "/manus-storage/statistics_256b62d1.png": ["material-icons-clean/statistics.png", "statistics.png"],
-  "/manus-storage/retirement-fund_d4791d18.png": ["material-icons-clean/retirement-fund.png", "retirement-fund.png"],
-  "/manus-storage/contribution_feb14823.png": ["material-icons-clean/contribution.png", "contribution.png"],
+  "/manus-storage/01_yellow_star_4664eedb.png": [
+    "material-decor/sparkle.png",
+    "yellow-star.png",
+  ],
+  "/manus-storage/02_pink_star_f20fd6d8.png": [
+    "hero-decor/sparkles.png",
+    "pink-star.png",
+  ],
+  "/manus-storage/03_mint_plus_e2a6cd90.png": [
+    "hero-decor/plus.png",
+    "mint-plus.png",
+  ],
+  "/manus-storage/04_yellow_dots_dd29dbae.png": [
+    "material-decor/yellow-burst.png",
+    "yellow-dots.png",
+  ],
+  "/manus-storage/05_yellow_marks_ed2d81a5.png": [
+    "material-decor/yellow-burst.png",
+    "yellow-marks.png",
+  ],
+  "/manus-storage/06_yellow_dot_4e0ded55.png": [
+    "material-decor/sparkle.png",
+    "yellow-dot.png",
+  ],
+  "/manus-storage/education_0880faf1.png": [
+    "material-icons-clean/education.png",
+    "education.png",
+  ],
+  "/manus-storage/housing_d87c99a1.png": [
+    "material-icons-clean/housing.png",
+    "housing.png",
+  ],
+  "/manus-storage/retirement_bd8ef11b.png": [
+    "material-icons-clean/retirement.png",
+    "retirement.png",
+  ],
+  "/manus-storage/statistics_256b62d1.png": [
+    "material-icons-clean/statistics.png",
+    "statistics.png",
+  ],
+  "/manus-storage/retirement-fund_d4791d18.png": [
+    "material-icons-clean/retirement-fund.png",
+    "retirement-fund.png",
+  ],
+  "/manus-storage/contribution_feb14823.png": [
+    "material-icons-clean/contribution.png",
+    "contribution.png",
+  ],
+  "/manus-storage/household-income-comparison_3e62db4b.png": [
+    "guides/household-income-comparison.png",
+    "guides/household-income-comparison.png",
+  ],
+  "/manus-storage/household-income-family-comparison_2945fe6a.png": [
+    "guides/household-income-family-comparison.png",
+    "guides/household-income-family-comparison.png",
+  ],
+  "/manus-storage/fixed-vs-variable_86adf65e.png": [
+    "guides/fixed-vs-variable.png",
+    "guides/fixed-vs-variable.png",
+  ],
+  "/manus-storage/child-cost-by-age_af6850df.png": [
+    "guides/child-cost-by-age.png",
+    "guides/child-cost-by-age.png",
+  ],
 };
 
 async function resolveSource(candidates) {
@@ -47,15 +102,24 @@ await rm(outputDir, { recursive: true, force: true });
 await cp(builtPublicDir, outputDir, { recursive: true });
 await mkdir(staticAssetDir, { recursive: true });
 
-for (const [manusPath, [sourceCandidate, outputName]] of Object.entries(assetMap)) {
+for (const [manusPath, [sourceCandidate, outputName]] of Object.entries(
+  assetMap
+)) {
   const source = await resolveSource([sourceCandidate]);
   const destination = path.join(staticAssetDir, outputName);
   await cp(source, destination);
 
   const staticPath = `/assets/site/${outputName}`;
-  const files = await import("node:fs/promises").then(({ readdir }) => readdir(outputDir, { recursive: true }));
+  const files = await import("node:fs/promises").then(({ readdir }) =>
+    readdir(outputDir, { recursive: true })
+  );
   for (const relative of files) {
-    if (!relative.endsWith(".js") && !relative.endsWith(".css") && !relative.endsWith(".html")) continue;
+    if (
+      !relative.endsWith(".js") &&
+      !relative.endsWith(".css") &&
+      !relative.endsWith(".html")
+    )
+      continue;
     const filePath = path.join(outputDir, relative);
     const content = await readFile(filePath, "utf8");
     if (content.includes(manusPath)) {
@@ -69,14 +133,16 @@ const indexHtml = await readFile(indexPath, "utf8");
 await writeFile(
   indexPath,
   indexHtml
-    .replace(/(src=\"\/assets\/[^\"]+\.js)\"/g, "$1?v=static-assets-1\"")
-    .replace(/(href=\"\/assets\/[^\"]+\.css)\"/g, "$1?v=static-assets-1\""),
+    .replace(/(src=\"\/assets\/[^\"]+\.js)\"/g, '$1?v=static-assets-1"')
+    .replace(/(href=\"\/assets\/[^\"]+\.css)\"/g, '$1?v=static-assets-1"')
 );
 
 await writeFile(
   path.join(outputDir, ".htaccess"),
-  "RewriteEngine On\nRewriteBase /\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^ index.html [L]\n",
+  "RewriteEngine On\nRewriteBase /\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^ index.html [L]\n"
 );
 
 console.log(`Prepared ${outputDir}`);
-console.log(`Copied ${Object.keys(assetMap).length} image mappings into ${staticAssetDir}`);
+console.log(
+  `Copied ${Object.keys(assetMap).length} image mappings into ${staticAssetDir}`
+);

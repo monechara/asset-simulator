@@ -108,6 +108,134 @@ export default function GuideArticle() {
                   </ul>
                 );
               }
+              if (block.type === "table") {
+                return (
+                  <figure
+                    key={`${block.type}-${index}`}
+                    className="overflow-hidden rounded-2xl border border-[#d8ebe3] bg-white shadow-sm"
+                  >
+                    <figcaption className="border-b border-[#d8ebe3] bg-[#eef8f3] px-4 py-3 text-sm font-black leading-6 text-[#10243a]">
+                      {block.caption}
+                    </figcaption>
+                    <div className="hidden overflow-x-auto sm:block">
+                      <table className="min-w-[760px] w-full border-collapse text-left text-xs text-[#425d55]">
+                        <thead className="bg-[#f7fbf8] text-[#10243a]">
+                          <tr>
+                            {block.columns.map(column => (
+                              <th
+                                key={column}
+                                className="border-b border-[#d8ebe3] px-3 py-3 font-black"
+                              >
+                                {column}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {block.rows.map((row, rowIndex) => (
+                            <tr
+                              key={`${rowIndex}-${row[0]}`}
+                              className="align-top odd:bg-white even:bg-[#fbfefc]"
+                            >
+                              {row.map((cell, cellIndex) => (
+                                <td
+                                  key={`${rowIndex}-${cellIndex}`}
+                                  className="border-b border-[#edf3ef] px-3 py-3 leading-5"
+                                >
+                                  {cell}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="space-y-3 p-3 sm:hidden">
+                      {block.rows.map((row, rowIndex) => (
+                        <section
+                          key={`${rowIndex}-${row[0]}`}
+                          className="rounded-2xl border border-[#d8ebe3] bg-[#fbfefc] p-4"
+                        >
+                          <h3 className="text-base font-black text-[#10243a]">
+                            {row[0]}
+                          </h3>
+                          <dl className="mt-3 grid gap-2">
+                            {block.columns
+                              .slice(1)
+                              .map((column, columnIndex) => (
+                                <div
+                                  key={`${rowIndex}-${column}`}
+                                  className="flex items-start justify-between gap-3 border-t border-[#edf3ef] pt-2 text-xs"
+                                >
+                                  <dt className="font-bold text-[#61726c]">
+                                    {column}
+                                  </dt>
+                                  <dd className="text-right font-black text-[#183b35]">
+                                    {row[columnIndex + 1]}
+                                  </dd>
+                                </div>
+                              ))}
+                          </dl>
+                        </section>
+                      ))}
+                    </div>
+                  </figure>
+                );
+              }
+              if (block.type === "summaryCard") {
+                return (
+                  <section
+                    key={`${block.type}-${index}`}
+                    className="rounded-3xl border border-[#9ad8c7] bg-[#eaf8f2] px-5 py-5 shadow-sm sm:px-6"
+                  >
+                    <p className="text-xl font-black leading-8 text-[#087f6e]">
+                      {block.title}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-[#183b35]">
+                      {block.text}
+                    </p>
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {block.items.map(item => (
+                        <p
+                          key={item}
+                          className="rounded-2xl bg-white/80 px-3 py-2 text-sm font-bold leading-6 text-[#425d55]"
+                        >
+                          <span className="mr-1 text-[#078c72]">✓</span>
+                          {item}
+                        </p>
+                      ))}
+                    </div>
+                  </section>
+                );
+              }
+              if (block.type === "imagePlaceholder") {
+                return (
+                  <figure
+                    key={`${block.type}-${index}`}
+                    className="rounded-3xl border border-dashed border-[#9acfc0] bg-[#eef8f3] px-5 py-8 text-center"
+                  >
+                    {(block.src ?? article.instagramImage) ? (
+                      <img
+                        src={block.src ?? article.instagramImage}
+                        alt={block.alt}
+                        className="mx-auto max-h-[520px] rounded-2xl object-contain"
+                      />
+                    ) : (
+                      <div className="mx-auto flex max-w-sm flex-col items-center gap-2 text-[#087f6e]">
+                        <span className="rounded-full bg-white px-3 py-1 text-xs font-black">
+                          画像差し替え欄
+                        </span>
+                        <p className="text-sm font-bold leading-6">
+                          {block.label}
+                        </p>
+                        <p className="text-xs leading-5 text-[#61726c]">
+                          正式なInstagram投稿画像を受領後、記事データのinstagramImageへ設定します。
+                        </p>
+                      </div>
+                    )}
+                  </figure>
+                );
+              }
               return (
                 <p
                   key={`${block.type}-${index}`}
@@ -138,17 +266,18 @@ export default function GuideArticle() {
           </div>
 
           <section className="mt-10 rounded-3xl bg-[#eaf8f2] px-5 py-7 text-center sm:px-8">
-            <p className="text-lg font-black text-[#10243a]">
-              あなたの場合は？
+            <p className="text-lg font-black leading-7 text-[#10243a]">
+              {article.ctaTitle ?? "あなたの場合は？"}
             </p>
             <p className="mt-2 text-sm leading-6 text-[#61726c]">
-              実際の条件を入力して、将来の資産をシミュレーションしてみましょう。
+              {article.ctaDescription ??
+                "実際の条件を入力して、将来の資産をシミュレーションしてみましょう。"}
             </p>
             <Link
               href="/?start=simple"
               className="mt-5 inline-flex rounded-full bg-[#078c72] px-6 py-3.5 text-sm font-black text-white shadow-[0_7px_16px_rgba(7,140,114,0.18)]"
             >
-              実際にシミュレーションしてみる →
+              {article.ctaLabel ?? "実際にシミュレーションしてみる"} →
             </Link>
           </section>
         </article>
