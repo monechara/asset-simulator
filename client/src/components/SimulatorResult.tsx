@@ -52,7 +52,6 @@ interface Props {
 
 import { calculateSimulation } from "@/lib/simulator";
 import SimulatorForm from "@/components/SimulatorForm";
-import { MONEX_AD_HTML } from "@/lib/affiliateAd";
 
 function SummaryMetric({
   label,
@@ -1460,21 +1459,6 @@ export default function SimulatorResultView({
               ※入力条件をもとにした試算です。
             </p>
           </motion.div>
-
-          <div className="order-6 rounded-2xl border border-[#d8e8df] bg-[#f2fbf7] px-4 py-4 text-center shadow-sm sm:px-5">
-            <p className="text-sm font-bold text-[#087f6e]">
-              NISAで資産形成を始める選択肢も
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">
-              少額から積立を始めたい方は、NISAに対応した証券口座も確認してみましょう。
-            </p>
-            <p className="mt-2 text-[11px] font-bold tracking-wide text-slate-500">
-              広告
-            </p>
-            <div className="mt-2 flex justify-center overflow-x-auto">
-              <div dangerouslySetInnerHTML={{ __html: MONEX_AD_HTML }} />
-            </div>
-          </div>
 
           {/* 2. あなたの現在地・同年代比較 */}
           <Card className="hidden border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">
