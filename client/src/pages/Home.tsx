@@ -13,7 +13,7 @@ import { SimulatorInput, calculateSimulation } from "@/lib/simulator";
 import { ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 import GuideCard from "@/components/GuideCard";
-import { guides } from "@/content/guides";
+import { getGuidesByNewest } from "@/content/guides";
 import { trackFunnelEvent } from "@/lib/funnelAnalytics";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -246,6 +246,8 @@ function NoticeIcon({ className = "" }: LineIconProps) {
 type HomeProps = { forceSimpleStart?: boolean };
 
 export default function Home({ forceSimpleStart = false }: HomeProps) {
+  const sortedGuides = getGuidesByNewest();
+  const latestSlug = sortedGuides[0]?.slug;
   const [result, setResult] = useState<ResultType | null>(null);
   const [lastInput, setLastInput] = useState<SimulatorInput | null>(null);
   const [isSimpleResult, setIsSimpleResult] = useState(false);
@@ -646,8 +648,13 @@ export default function Home({ forceSimpleStart = false }: HomeProps) {
                   </Link>
                 </div>
                 <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  {guides.slice(0, 3).map(article => (
-                    <GuideCard key={article.slug} article={article} compact />
+                  {sortedGuides.slice(0, 3).map(article => (
+                    <GuideCard
+                      key={article.slug}
+                      article={article}
+                      compact
+                      isLatest={article.slug === latestSlug}
+                    />
                   ))}
                 </div>
               </section>

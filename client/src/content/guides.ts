@@ -635,6 +635,17 @@ export const guides: GuideArticle[] = [
   },
 ];
 
+function publishedTimestamp(publishedAt: string) {
+  const [year, month, day] = publishedAt.split(".").map(Number);
+  return new Date(year, month - 1, day).getTime();
+}
+
+export function getGuidesByNewest() {
+  return [...guides].sort(
+    (a, b) => publishedTimestamp(b.publishedAt) - publishedTimestamp(a.publishedAt)
+  );
+}
+
 export function getGuideBySlug(slug: string) {
   return guides.find(article => article.slug === slug);
 }

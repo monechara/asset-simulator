@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getGuideBySlug, getRelatedGuides, guides } from "./guides";
+import {
+  getGuideBySlug,
+  getGuidesByNewest,
+  getRelatedGuides,
+  guides,
+} from "./guides";
 
 describe("money guide content", () => {
   it("contains the three formal release articles with configured images", () => {
@@ -38,5 +43,18 @@ describe("money guide content", () => {
     expect(
       getRelatedGuides(article!).some(related => related.slug === article!.slug)
     ).toBe(false);
+  });
+
+  it("sorts guides by published date without mutating the source array", () => {
+    const sorted = getGuidesByNewest();
+
+    expect(sorted[0]?.slug).toBe("smartphone-plan-comparison");
+    expect(sorted.map(article => article.publishedAt)).toEqual([
+      "2026.09.20",
+      "2026.09.16",
+      "2026.09.16",
+      "2026.09.16",
+    ]);
+    expect(guides[0]?.slug).toBe("house-price-by-household-income");
   });
 });

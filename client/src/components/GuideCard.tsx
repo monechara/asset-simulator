@@ -4,11 +4,13 @@ import type { GuideArticle } from "@/content/guides";
 type GuideCardProps = {
   article: GuideArticle;
   compact?: boolean;
+  isLatest?: boolean;
 };
 
 export default function GuideCard({
   article,
   compact = false,
+  isLatest = false,
 }: GuideCardProps) {
   return (
     <Link
@@ -34,6 +36,11 @@ export default function GuideCard({
           <span className="shrink-0 rounded-full bg-[#e5f6ee] px-2 py-1">
             {article.category}
           </span>
+          {isLatest && (
+            <span className="shrink-0 rounded-full bg-[#fff1c7] px-2 py-1 text-[9px] font-black text-[#b86b16] shadow-sm sm:text-[10px]">
+              NEW
+            </span>
+          )}
           <time
             className="truncate"
             dateTime={article.publishedAt.replaceAll(".", "-")}

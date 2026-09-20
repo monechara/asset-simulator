@@ -2,11 +2,14 @@ import { useEffect } from "react";
 import { Link } from "wouter";
 import SiteFooter from "@/components/SiteFooter";
 import GuideCard from "@/components/GuideCard";
-import { guides } from "@/content/guides";
+import { getGuidesByNewest } from "@/content/guides";
 
 const GUIDE_INDEX_SCROLL_KEY = "guide-index-scroll-y";
 
 export default function GuideIndex() {
+  const sortedGuides = getGuidesByNewest();
+  const latestSlug = sortedGuides[0]?.slug;
+
   useEffect(() => {
     const savedPosition = sessionStorage.getItem(GUIDE_INDEX_SCROLL_KEY);
     if (savedPosition) {
@@ -55,7 +58,7 @@ export default function GuideIndex() {
           <p className="mt-3 text-sm leading-7 text-[#61726c]">
             暮らしに役立つお金の情報を、わかりやすく。
           </p>
-          {guides.some(article => article.isDraft) && (
+          {sortedGuides.some(article => article.isDraft) && (
             <p className="mt-4 rounded-xl bg-white/80 px-4 py-3 text-xs font-semibold leading-6 text-[#9a6b3a]">
               掲載記事は現在、公開前の内容確認用です。数値・本文・出典は正式公開前に更新します。
             </p>
@@ -63,8 +66,13 @@ export default function GuideIndex() {
         </section>
 
         <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {guides.map(article => (
-            <GuideCard key={article.slug} article={article} compact />
+          {sortedGuides.map(article => (
+            <GuideCard
+              key={article.slug}
+              article={article}
+              compact
+              isLatest={article.slug === latestSlug}
+            />
           ))}
         </section>
       </main>
