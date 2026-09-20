@@ -3,17 +3,19 @@ import { getGuideBySlug, getRelatedGuides, guides } from "./guides";
 
 describe("money guide content", () => {
   it("contains the three formal release articles with configured images", () => {
-    expect(guides).toHaveLength(3);
+    expect(guides).toHaveLength(4);
     expect(guides.map(article => article.slug)).toEqual([
       "house-price-by-household-income",
       "fixed-or-variable-mortgage",
       "child-cost-by-age",
+      "smartphone-plan-comparison",
     ]);
     expect(guides.every(article => !article.isDraft)).toBe(true);
     expect(guides.map(article => article.publishedAt)).toEqual([
       "2026.09.16",
       "2026.09.16",
       "2026.09.16",
+      "2026.09.20",
     ]);
     expect(
       guides.every(article => article.thumbnail.startsWith("/manus-storage/"))
@@ -32,7 +34,7 @@ describe("money guide content", () => {
     const article = getGuideBySlug("fixed-or-variable-mortgage");
     expect(article?.title).toContain("固定と変動");
     expect(getGuideBySlug("missing-article")).toBeUndefined();
-    expect(getRelatedGuides(article!)).toHaveLength(2);
+    expect(getRelatedGuides(article!)).toHaveLength(3);
     expect(
       getRelatedGuides(article!).some(related => related.slug === article!.slug)
     ).toBe(false);

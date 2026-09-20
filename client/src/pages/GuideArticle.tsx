@@ -225,11 +225,19 @@ export default function GuideArticle() {
                     className="rounded-3xl border border-dashed border-[#9acfc0] bg-[#eef8f3] px-5 py-8 text-center"
                   >
                     {(block.src ?? article.instagramImage) ? (
-                      <img
-                        src={block.src ?? article.instagramImage}
-                        alt={block.alt}
-                        className="mx-auto max-h-[520px] rounded-2xl object-contain"
-                      />
+                      <a
+                        href={block.src ?? article.instagramImage}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#078c72] focus:ring-offset-2"
+                        aria-label={`${block.alt}（タップして拡大）`}
+                      >
+                        <img
+                          src={block.src ?? article.instagramImage}
+                          alt={block.alt}
+                          className="mx-auto max-h-[520px] w-full rounded-2xl object-contain"
+                        />
+                      </a>
                     ) : (
                       <div className="mx-auto flex max-w-sm flex-col items-center gap-2 text-[#087f6e]">
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-black">

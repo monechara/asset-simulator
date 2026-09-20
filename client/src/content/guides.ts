@@ -34,6 +34,9 @@ const familyComparisonImage =
   "/manus-storage/household-income-family-comparison_2945fe6a.png";
 const fixedVariableImage = "/manus-storage/fixed-vs-variable_86adf65e.png";
 const childCostImage = "/manus-storage/child-cost-by-age_af6850df.png";
+const smartphoneThumbnailImage = "/manus-storage/thumbnail_992dae35.png";
+const smartphonePriceTableImage = "/manus-storage/price-table_55ebfe06.png";
+const smartphonePlanTypesImage = "/manus-storage/plan-types_0c85fff8.png";
 
 export const guides: GuideArticle[] = [
   {
@@ -496,6 +499,137 @@ export const guides: GuideArticle[] = [
           "[3] 文部科学省「令和5年度子供の学習費調査結果のポイント（訂正版）」",
         url: "https://www.mext.go.jp/content/20260116-mxt_chousa01-000039333_1.pdf",
       },
+    ],
+    isDraft: false,
+  },
+  {
+    slug: "smartphone-plan-comparison",
+    title: "スマホ代を見直すならどこ？大手キャリア・格安SIMを料金比較【2026年版】",
+    category: "固定費・家計改善",
+    publishedAt: "2026.09.20",
+    thumbnail: smartphoneThumbnailImage,
+    heroImage: smartphoneThumbnailImage,
+    instagramImage: smartphoneThumbnailImage,
+    summary:
+      "大手キャリア・楽天モバイル・オンライン専用プラン・格安SIMを、料金・データ量・通話・サポートの違いから整理します。",
+    ctaTitle: "スマホ代を見直して、浮いたお金をどうする？",
+    ctaDescription:
+      "毎月の固定費を見直したあと、浮いたお金を積立や貯金に回した場合の将来資産を確認できます。",
+    ctaLabel: "資産形成シミュレーターで将来の資産を計算する",
+    tags: ["固定費", "家計改善", "通信費"],
+    body: [
+      { type: "heading", text: "結論・この記事で分かること" },
+      {
+        type: "summaryCard",
+        title: "スマホ代は、料金だけでなく使い方で選ぶ",
+        text: "毎月のデータ量・通話・店舗サポート・手続き方法を合わせて比較します。",
+        items: [
+          "大容量通信や店舗相談を重視するか確認する",
+          "浮いた固定費を貯金・積立へ回す選択肢も考える",
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "毎月なんとなく支払っているスマホ代は、一度見直すとその後も支出を抑えられる可能性がある固定費です。月8,000円から月3,000円になれば差額は月5,000円、単純計算で年間60,000円です。ただし、料金・キャンペーン・割引・契約条件は変わるため、この記事は2026年9月時点の比較として読み、契約前に各社公式サイトをご確認ください。",
+      },
+      {
+        type: "paragraph",
+        text: "本記事には広告・アフィリエイトリンクを含む場合があります。現時点では未承認の広告リンクやPRボタンは設置しておらず、広告掲載の有無で比較内容を変えていません。",
+      },
+      { type: "heading", text: "まずはスマホ料金をまとめて比較" },
+      {
+        type: "imagePlaceholder",
+        label: "スマホ料金プラン比較表（音声通話付きSIM）",
+        alt: "2026年9月時点のスマホ料金プラン比較表（音声通話付きSIM）",
+        src: smartphonePriceTableImage,
+      },
+      {
+        type: "paragraph",
+        text: "料金表は、同じデータ容量でもサービスごとに通話条件や店舗サポートが異なることを確認するための一覧です。スマートフォンでは画像をタップすると大きく表示できます。",
+      },
+      {
+        type: "paragraph",
+        text: "スマホ料金は、単純に一番安い会社を選べばよいとは限りません。毎月使うデータ容量、電話の頻度、20GBを超える通信の有無、店舗で相談したいか、オンラインだけで手続きできるかによって、合うサービスは変わります。",
+      },
+      { type: "heading", text: "スマホプランは大きく4タイプ" },
+      {
+        type: "imagePlaceholder",
+        label: "スマホプラン4タイプの比較図解",
+        alt: "楽天モバイル・オンライン専用プラン・サブブランド・格安SIMの違いを示す比較図解",
+        src: smartphonePlanTypesImage,
+      },
+      {
+        type: "paragraph",
+        text: "図解のとおり、料金だけでなく、回線・手続き方法・店舗サポート・データ容量の選びやすさも比較ポイントです。ここから各タイプの特徴を簡潔に見ていきます。",
+      },
+      { type: "heading", text: "楽天モバイル｜少量から無制限まで1つのプラン" },
+      {
+        type: "paragraph",
+        text: "楽天モバイルのRakuten最強プランは、利用したデータ量に応じて料金が変わる体系です。公式サイトでは3GBまで1,078円、3GB超から20GBまで2,178円、20GB超は3,278円（税込）と案内されています。自社回線を持つMNOで、ショップでの相談にも対応しています。Rakuten Linkアプリを利用した国内通話には対象外番号がありますので、通話条件は公式サイトで確認してください。",
+      },
+      { type: "heading", text: "ahamo｜30GB＋5分通話無料のシンプルな料金" },
+      {
+        type: "paragraph",
+        text: "ahamoは30GBで月額2,970円、1回5分以内の国内通話無料が基本料金に含まれるプランです。追加の大盛りオプションで110GBまで利用できます。オンラインで手続きを完結でき、ある程度データを使う人が比較しやすい選択肢です。",
+      },
+      { type: "heading", text: "LINEMO｜3GBから30GBまで使い方に合わせやすい" },
+      {
+        type: "paragraph",
+        text: "LINEMOには、3GBまで990円、10GBまで2,090円、30GBで2,970円などのプランがあります。対象となるLINEの利用でデータ通信量を消費しないLINEギガフリーが特徴ですが、一部対象外機能があります。通話条件を含む最新プランは公式サイトで確認してください。",
+      },
+      { type: "heading", text: "povo｜必要なデータを自分で追加する" },
+      {
+        type: "paragraph",
+        text: "povo2.0は基本料0円をベースに、必要なデータ容量や期間をトッピングとして追加する仕組みです。月によって使う量が変わる人に向きますが、一般的な定額プランとは管理方法が異なるため、トッピングの有効期間や利用条件を公式サイトで確認しましょう。",
+      },
+      { type: "heading", text: "格安SIM｜月額料金をできるだけ抑えたい人に" },
+      {
+        type: "paragraph",
+        text: "MVNOの格安SIMには、日本通信SIM、mineo、HISモバイル、IIJmio、イオンモバイル、NUROモバイルなどがあります。低容量向けの料金を比較しやすい一方、利用回線、通信環境、店舗サポート、通話オプションはサービスごとに異なります。料金だけでなく、普段使う場所や必要なサポートも確認してください。",
+      },
+      { type: "heading", text: "結局どのスマホプランを選べばいい？" },
+      {
+        type: "list",
+        items: [
+          "料金をできるだけ抑えたいなら、低容量向けの格安SIMも比較する",
+          "30GB程度と短時間の通話を使うなら、ahamo・LINEMOなどを比較する",
+          "必要なときだけデータを追加したいなら、povoなどを比較する",
+          "利用量が月によって変わる、大容量通信や店舗相談が必要なら楽天モバイルも比較する",
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "まずは現在のスマホで、毎月何GB使っているか、毎月いくら支払っているか、電話をどれくらい利用しているかを確認しましょう。現在の使い方が分かると、料金とサービス内容を比較しやすくなります。",
+      },
+      { type: "heading", text: "スマホ代を下げたら、浮いたお金をどうする？" },
+      {
+        type: "paragraph",
+        text: "固定費を見直して月5,000円浮けば、年間では60,000円です。貯金や積立へ回す場合、毎月いくらを何年続けると将来どれくらいになるかを、資産形成シミュレーターで試算できます。",
+      },
+    ],
+    assumptions: [
+      "料金・サービス内容は2026年9月時点の各社公式情報をもとに整理しています。",
+      "掲載料金は税込表示を基本とし、割引、キャンペーン、通話料、端末代、ユニバーサルサービス料等を含まない場合があります。",
+      "比較画像は理解のための図解・一覧であり、契約条件や料金の適用を保証するものではありません。",
+      "画像内の料金やサービス内容を含め、契約前に各社公式サイトの最新情報をご確認ください。",
+    ],
+    cautions: [
+      "最安のサービスがすべての人に合うとは限りません。通信品質、通話、店舗サポート、手続き方法も確認してください。",
+      "料金・プラン・キャンペーン・提供エリアは変更される可能性があります。",
+      "本記事には広告・アフィリエイトリンクを含む場合がありますが、現時点で未承認の広告リンクは設置していません。",
+      "浮いた固定費を積立に回す場合も、生活防衛資金や家計の余力を優先して検討してください。",
+    ],
+    sources: [
+      { label: "楽天モバイル「料金プラン」", url: "https://network.mobile.rakuten.co.jp/fee/saikyo-plan/" },
+      { label: "ahamo「料金・プラン」", url: "https://ahamo.com/plan/" },
+      { label: "LINEMO「料金プラン」", url: "https://www.linemo.jp/plan/" },
+      { label: "povo「料金・トッピング」", url: "https://povo.jp/spec/" },
+      { label: "日本通信SIM「料金プラン」", url: "https://www.nihontsushin.com/" },
+      { label: "mineo「料金」", url: "https://mineo.jp/price/" },
+      { label: "HISモバイル「料金プラン」", url: "https://his-mobile.com/plan" },
+      { label: "IIJmio「料金プラン」", url: "https://www.iijmio.jp/gigaplan/" },
+      { label: "イオンモバイル「料金プラン」", url: "https://aeonmobile.jp/plan/" },
+      { label: "NUROモバイル「料金プラン」", url: "https://mobile.nuro.jp/" },
     ],
     isDraft: false,
   },

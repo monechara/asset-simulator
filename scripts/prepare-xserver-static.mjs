@@ -83,6 +83,18 @@ const assetMap = {
     "guides/child-cost-by-age.png",
     "guides/child-cost-by-age.png",
   ],
+  "/manus-storage/thumbnail_992dae35.png": [
+    "smartphone-guide/thumbnail.png",
+    "guides/smartphone-plan-comparison.png",
+  ],
+  "/manus-storage/price-table_55ebfe06.png": [
+    "smartphone-guide/price-table.png",
+    "guides/smartphone-price-table.png",
+  ],
+  "/manus-storage/plan-types_0c85fff8.png": [
+    "smartphone-guide/plan-types.png",
+    "guides/smartphone-plan-types.png",
+  ],
 };
 
 async function resolveSource(candidates) {
