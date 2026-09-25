@@ -57,4 +57,30 @@ describe("money guide content", () => {
     ]);
     expect(guides[0]?.slug).toBe("house-price-by-household-income");
   });
+
+  it("keeps the approved mineo and HIS mobile ad codes unchanged", () => {
+    const article = getGuideBySlug("smartphone-plan-comparison");
+    const ads = article?.body.filter(block => block.type === "affiliateAd");
+
+    expect(ads).toEqual([
+      {
+        type: "affiliateAd",
+        label: "mineo（マイネオ）広告",
+        href: "https://h.accesstrade.net/sp/cc?rk=0100p12100oyul",
+        imageSrc: "https://h.accesstrade.net/sp/rr?rk=0100p12100oyul",
+        alt: "mineo（マイネオ）",
+        width: 300,
+        height: 250,
+      },
+      {
+        type: "affiliateAd",
+        label: "HISモバイル広告",
+        href: "https://h.accesstrade.net/sp/cc?rk=0100o6ly00oyul",
+        imageSrc: "https://h.accesstrade.net/sp/rr?rk=0100o6ly00oyul",
+        alt: "HISモバイル",
+        width: 300,
+        height: 250,
+      },
+    ]);
+  });
 });

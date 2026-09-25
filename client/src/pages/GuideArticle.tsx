@@ -254,6 +254,33 @@ export default function GuideArticle() {
                   </figure>
                 );
               }
+              if (block.type === "affiliateAd") {
+                return (
+                  <aside
+                    key={`${block.type}-${index}`}
+                    className="flex flex-col items-center rounded-3xl border border-[#d8ebe3] bg-white px-4 py-5 shadow-sm"
+                  >
+                    <span className="mb-3 rounded-full bg-[#fff1c7] px-2.5 py-1 text-[10px] font-black tracking-wide text-[#a86218]">
+                      PR
+                    </span>
+                    <a
+                      href={block.href}
+                      rel="nofollow"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      aria-label={`${block.label}（広告）`}
+                      className="block max-w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-[#078c72] focus:ring-offset-2"
+                    >
+                      <img
+                        src={block.imageSrc}
+                        alt={block.alt}
+                        width={block.width}
+                        height={block.height}
+                        className="mx-auto h-auto max-w-full"
+                      />
+                    </a>
+                  </aside>
+                );
+              }
               return (
                 <p
                   key={`${block.type}-${index}`}

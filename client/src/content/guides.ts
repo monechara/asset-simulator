@@ -4,7 +4,16 @@ export type GuideBodyBlock =
   | { type: "list"; items: string[] }
   | { type: "table"; caption: string; columns: string[]; rows: string[][] }
   | { type: "imagePlaceholder"; label: string; alt: string; src?: string }
-  | { type: "summaryCard"; title: string; text: string; items: string[] };
+  | { type: "summaryCard"; title: string; text: string; items: string[] }
+  | {
+      type: "affiliateAd";
+      label: string;
+      href: string;
+      imageSrc: string;
+      alt: string;
+      width: 300;
+      height: 250;
+    };
 
 export type GuideArticle = {
   slug: string;
@@ -534,7 +543,7 @@ export const guides: GuideArticle[] = [
       },
       {
         type: "paragraph",
-        text: "本記事には広告・アフィリエイトリンクを含む場合があります。現時点では未承認の広告リンクやPRボタンは設置しておらず、広告掲載の有無で比較内容を変えていません。",
+        text: "本記事には広告・アフィリエイトリンクを含みます。mineoとHISモバイルの広告はPR表示を付けて掲載していますが、広告掲載の有無で比較内容を変えていません。",
       },
       { type: "heading", text: "まずはスマホ料金をまとめて比較" },
       {
@@ -587,6 +596,24 @@ export const guides: GuideArticle[] = [
         type: "paragraph",
         text: "MVNOの格安SIMには、日本通信SIM、mineo、HISモバイル、IIJmio、イオンモバイル、NUROモバイルなどがあります。低容量向けの料金を比較しやすい一方、利用回線、通信環境、店舗サポート、通話オプションはサービスごとに異なります。料金だけでなく、普段使う場所や必要なサポートも確認してください。",
       },
+      {
+        type: "affiliateAd",
+        label: "mineo（マイネオ）広告",
+        href: "https://h.accesstrade.net/sp/cc?rk=0100p12100oyul",
+        imageSrc: "https://h.accesstrade.net/sp/rr?rk=0100p12100oyul",
+        alt: "mineo（マイネオ）",
+        width: 300,
+        height: 250,
+      },
+      {
+        type: "affiliateAd",
+        label: "HISモバイル広告",
+        href: "https://h.accesstrade.net/sp/cc?rk=0100o6ly00oyul",
+        imageSrc: "https://h.accesstrade.net/sp/rr?rk=0100o6ly00oyul",
+        alt: "HISモバイル",
+        width: 300,
+        height: 250,
+      },
       { type: "heading", text: "結局どのスマホプランを選べばいい？" },
       {
         type: "list",
@@ -616,7 +643,7 @@ export const guides: GuideArticle[] = [
     cautions: [
       "最安のサービスがすべての人に合うとは限りません。通信品質、通話、店舗サポート、手続き方法も確認してください。",
       "料金・プラン・キャンペーン・提供エリアは変更される可能性があります。",
-      "本記事には広告・アフィリエイトリンクを含む場合がありますが、現時点で未承認の広告リンクは設置していません。",
+      "mineoとHISモバイルの広告をPR表示付きで掲載しています。広告の利用条件や料金は各社公式サイトで確認してください。",
       "浮いた固定費を積立に回す場合も、生活防衛資金や家計の余力を優先して検討してください。",
     ],
     sources: [
