@@ -281,6 +281,35 @@ export default function GuideArticle() {
                   </aside>
                 );
               }
+              if (block.type === "serviceInfo") {
+                return (
+                  <section
+                    key={`${block.type}-${index}`}
+                    className="rounded-3xl border border-[#d8ebe3] bg-[#f4fbf7] px-5 py-5 shadow-sm"
+                  >
+                    <h3 className="text-base font-black text-[#10243a]">
+                      {block.service}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-[#425d55]">
+                      <span className="font-black text-[#078c72]">特徴：</span>
+                      {block.feature}
+                    </p>
+                    <div className="mt-4">
+                      <p className="text-xs font-black tracking-wide text-[#61726c]">
+                        こんな人におすすめ
+                      </p>
+                      <ul className="mt-2 grid gap-1.5 text-sm leading-6 text-[#425d55]">
+                        {block.recommendedFor.map(item => (
+                          <li key={item} className="flex gap-2">
+                            <span className="font-black text-[#e69b22]">・</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </section>
+                );
+              }
               return (
                 <p
                   key={`${block.type}-${index}`}

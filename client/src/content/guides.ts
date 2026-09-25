@@ -6,6 +6,12 @@ export type GuideBodyBlock =
   | { type: "imagePlaceholder"; label: string; alt: string; src?: string }
   | { type: "summaryCard"; title: string; text: string; items: string[] }
   | {
+      type: "serviceInfo";
+      service: string;
+      feature: string;
+      recommendedFor: string[];
+    }
+  | {
       type: "affiliateAd";
       label: string;
       href: string;
@@ -597,6 +603,16 @@ export const guides: GuideArticle[] = [
         text: "MVNOの格安SIMには、日本通信SIM、mineo、HISモバイル、IIJmio、イオンモバイル、NUROモバイルなどがあります。低容量向けの料金を比較しやすい一方、利用回線、通信環境、店舗サポート、通話オプションはサービスごとに異なります。料金だけでなく、普段使う場所や必要なサポートも確認してください。",
       },
       {
+        type: "serviceInfo",
+        service: "mineo",
+        feature:
+          "独自サービスが豊富な格安SIM。データ容量で選ぶ「マイピタ」に加え、通信速度で選ぶ「マイそく」など、使い方に合わせてプランを選べるのが特徴です。",
+        recommendedFor: [
+          "データをたくさん使いたい人",
+          "料金と使い方のバランスを自分で選びたい人",
+        ],
+      },
+      {
         type: "affiliateAd",
         label: "mineo（マイネオ）広告",
         href: "https://h.accesstrade.net/sp/cc?rk=0100p12100oyul",
@@ -604,6 +620,17 @@ export const guides: GuideArticle[] = [
         alt: "mineo（マイネオ）",
         width: 300,
         height: 250,
+      },
+      {
+        type: "serviceInfo",
+        service: "HISモバイル",
+        feature:
+          "少容量から選べる料金プランが特徴の格安SIM。Wi-Fi中心などデータ使用量が少ない人は、毎月の通信費を抑えやすい選択肢です。",
+        recommendedFor: [
+          "Wi-Fiを使うことが多い人",
+          "毎月のデータ使用量が少ない人",
+          "スマホの固定費を抑えたい人",
+        ],
       },
       {
         type: "affiliateAd",
