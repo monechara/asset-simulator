@@ -1460,6 +1460,33 @@ export default function SimulatorResultView({
             </p>
           </motion.div>
 
+          {input.currentInvestmentAssets === 0 &&
+            input.monthlyInvestmentContribution === 0 && (
+              <aside className="order-6 mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-4 text-center shadow-sm sm:p-5">
+                <p className="text-sm font-bold text-slate-800">
+                  これから資産形成を始めるなら
+                </p>
+                <p className="mt-2 text-[10px] font-black tracking-wide text-slate-500">
+                  PR
+                </p>
+                <a
+                  href="https://ad2.trafficgate.net/t/r/1216/738/319241_399043"
+                  target="_blank"
+                  rel="nofollow"
+                  aria-label="楽天証券の広告"
+                  className="mx-auto mt-3 block w-full max-w-[320px] overflow-hidden rounded-2xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 sm:max-w-[360px]"
+                >
+                  <img
+                    src="https://srv2.trafficgate.net/t/b/1216/738/319241_399043"
+                    width="512"
+                    height="512"
+                    alt="楽天証券"
+                    className="mx-auto block h-auto w-full"
+                  />
+                </a>
+              </aside>
+            )}
+
           {/* 2. あなたの現在地・同年代比較 */}
           <Card className="hidden border-emerald-200 shadow-sm bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50">
             <CardHeader className="pb-3">
