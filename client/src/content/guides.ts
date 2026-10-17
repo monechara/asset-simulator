@@ -11,6 +11,7 @@ export type GuideBodyBlock =
       service: string;
       feature: string;
       recommendedFor: string[];
+      cautions?: string[];
     }
   | {
       type: "affiliateAd";
@@ -582,6 +583,22 @@ export const guides: GuideArticle[] = [
       {
         type: "paragraph",
         text: "楽天モバイルのRakuten最強プランは、利用したデータ量に応じて料金が変わる体系です。公式サイトでは3GBまで1,078円、3GB超から20GBまで2,178円、20GB超は3,278円（税込）と案内されています。自社回線を持つMNOで、ショップでの相談にも対応しています。Rakuten Linkアプリを利用した国内通話には対象外番号がありますので、通話条件は公式サイトで確認してください。",
+      },
+      {
+        type: "serviceInfo",
+        service: "楽天モバイル",
+        feature:
+          "大手4キャリアの中でも低価格な月額3,278円で、国内高速データ通信が無制限！使わない月は3GBまで1,078円に自動で料金が下がります。Rakuten Linkアプリなら対象の国内通話が無料。さらに、楽天市場でのお買い物もポイント＋4倍になるなど、楽天経済圏との相性も抜群です。",
+        recommendedFor: [
+          "動画やSNSを容量を気にせず楽しみたい人",
+          "データ通信も通話料金も節約したい人",
+          "楽天市場や楽天ポイントをよく利用する人",
+        ],
+        cautions: [
+          "無制限は混雑時などに速度制御される場合があります。",
+          "Rakuten Linkには無料通話対象外の番号があります。",
+          "ポイント＋4倍は要エントリー、月間上限2,000ポイントです。",
+        ],
       },
       {
         type: "affiliateLink",
