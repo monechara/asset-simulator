@@ -60,9 +60,21 @@ describe("money guide content", () => {
 
   it("keeps the approved mineo and HIS mobile ad codes unchanged", () => {
     const article = getGuideBySlug("smartphone-plan-comparison");
-    const ads = article?.body.filter(block => block.type === "affiliateAd");
+    const relevantBlocks = article?.body.filter(
+      block => block.type === "serviceInfo" || block.type === "affiliateAd",
+    );
 
-    expect(ads).toEqual([
+    expect(relevantBlocks).toEqual([
+      {
+        type: "serviceInfo",
+        service: "mineo",
+        feature:
+          "独自サービスが豊富な格安SIM。データ容量で選ぶ「マイピタ」に加え、通信速度で選ぶ「マイそく」など、使い方に合わせてプランを選べるのが特徴です。",
+        recommendedFor: [
+          "データをたくさん使いたい人",
+          "料金と使い方のバランスを自分で選びたい人",
+        ],
+      },
       {
         type: "affiliateAd",
         label: "mineo（マイネオ）広告",
@@ -71,6 +83,17 @@ describe("money guide content", () => {
         alt: "mineo（マイネオ）",
         width: 300,
         height: 250,
+      },
+      {
+        type: "serviceInfo",
+        service: "HISモバイル",
+        feature:
+          "少容量から選べる料金プランが特徴の格安SIM。Wi-Fi中心などデータ使用量が少ない人は、毎月の通信費を抑えやすい選択肢です。",
+        recommendedFor: [
+          "Wi-Fiを使うことが多い人",
+          "毎月のデータ使用量が少ない人",
+          "スマホの固定費を抑えたい人",
+        ],
       },
       {
         type: "affiliateAd",
