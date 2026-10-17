@@ -281,6 +281,27 @@ export default function GuideArticle() {
                   </aside>
                 );
               }
+              if (block.type === "affiliateLink") {
+                return (
+                  <aside
+                    key={`${block.type}-${index}`}
+                    className="flex flex-col items-center rounded-3xl border border-[#d8ebe3] bg-white px-4 py-4 shadow-sm"
+                  >
+                    <span className="mb-3 rounded-full bg-[#fff1c7] px-2.5 py-1 text-[10px] font-black tracking-wide text-[#a86218]">
+                      PR
+                    </span>
+                    <a
+                      href={block.href}
+                      target="_blank"
+                      rel="nofollow sponsored noopener noreferrer"
+                      aria-label={`${block.label}（広告）`}
+                      className="inline-flex max-w-full items-center justify-center rounded-xl bg-[#078c72] px-5 py-3 text-center text-sm font-black text-white shadow-sm transition hover:bg-[#06765f] focus:outline-none focus:ring-2 focus:ring-[#078c72] focus:ring-offset-2"
+                    >
+                      {block.buttonText}
+                    </a>
+                  </aside>
+                );
+              }
               return (
                 <p
                   key={`${block.type}-${index}`}

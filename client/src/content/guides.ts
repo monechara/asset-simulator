@@ -5,6 +5,7 @@ export type GuideBodyBlock =
   | { type: "table"; caption: string; columns: string[]; rows: string[][] }
   | { type: "imagePlaceholder"; label: string; alt: string; src?: string }
   | { type: "summaryCard"; title: string; text: string; items: string[] }
+  | { type: "affiliateLink"; label: string; href: string; buttonText: string }
   | {
       type: "affiliateAd";
       label: string;
@@ -575,6 +576,12 @@ export const guides: GuideArticle[] = [
       {
         type: "paragraph",
         text: "楽天モバイルのRakuten最強プランは、利用したデータ量に応じて料金が変わる体系です。公式サイトでは3GBまで1,078円、3GB超から20GBまで2,178円、20GB超は3,278円（税込）と案内されています。自社回線を持つMNOで、ショップでの相談にも対応しています。Rakuten Linkアプリを利用した国内通話には対象外番号がありますので、通話条件は公式サイトで確認してください。",
+      },
+      {
+        type: "affiliateLink",
+        label: "楽天モバイル公式サイトへの広告リンク",
+        href: "https://hb.afl.rakuten.co.jp/hsc/5892b2e8.1754e94e.5892b2e9.4e626d65/?link_type=hybrid_url&rafst=rmn&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJoeWJyaWRfdXJsIiwiY29sIjoxLCJjYXQiOjEsImJhbiI6MjM3Nzg5NSwiYW1wIjpmYWxzZX0%3D",
+        buttonText: "楽天モバイル公式サイトを見る",
       },
       { type: "heading", text: "ahamo｜30GB＋5分通話無料のシンプルな料金" },
       {
