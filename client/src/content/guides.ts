@@ -11,7 +11,6 @@ export type GuideBodyBlock =
       service: string;
       feature: string;
       recommendedFor: string[];
-      cautions?: string[];
     }
   | {
       type: "affiliateAd";
@@ -593,11 +592,6 @@ export const guides: GuideArticle[] = [
           "動画やSNSを容量を気にせず楽しみたい人",
           "データ通信も通話料金も節約したい人",
           "楽天市場や楽天ポイントをよく利用する人",
-        ],
-        cautions: [
-          "無制限は混雑時などに速度制御される場合があります。",
-          "Rakuten Linkには無料通話対象外の番号があります。",
-          "ポイント＋4倍は要エントリー、月間上限2,000ポイントです。",
         ],
       },
       {

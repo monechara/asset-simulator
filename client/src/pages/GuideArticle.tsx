@@ -328,16 +328,6 @@ export default function GuideArticle() {
                         ))}
                       </ul>
                     </div>
-                    {block.cautions && block.cautions.length > 0 && (
-                      <div className="mt-4 rounded-2xl bg-[#fff8e5] px-3 py-2.5 text-xs leading-5 text-[#765523]">
-                        <p className="font-black">注意事項</p>
-                        <ul className="mt-1 space-y-0.5">
-                          {block.cautions.map(item => (
-                            <li key={item}>・{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </section>
                 );
               }
