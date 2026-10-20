@@ -72,6 +72,8 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+document.getElementById("seo-static-content")?.remove();
+
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>

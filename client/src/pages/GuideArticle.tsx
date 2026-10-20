@@ -12,6 +12,22 @@ export default function GuideArticle() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [params?.slug]);
 
+  useEffect(() => {
+    if (!article) return;
+
+    document.title = `${article.title} | お金のガイド | 資産形成シミュレーター`;
+    const description = document.querySelector('meta[name="description"]');
+    description?.setAttribute("content", article.summary);
+
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = `${window.location.origin}/guide/${article.slug}`;
+  }, [article]);
+
   if (!article) {
     return (
       <div className="min-h-screen bg-[#fffdf7] text-[#183b35]">
